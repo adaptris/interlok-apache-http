@@ -18,7 +18,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.util.Args;
 import org.hibernate.validator.constraints.NotBlank;
 
 import com.adaptris.annotation.AdvancedConfig;
@@ -31,6 +30,7 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.RequestReplyProducerImp;
+import com.adaptris.core.util.Args;
 import com.adaptris.security.password.Password;
 import com.adaptris.util.license.License;
 import com.adaptris.util.license.License.LicenseType;
