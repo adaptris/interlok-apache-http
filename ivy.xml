@@ -29,7 +29,6 @@
   <dependencies>
     <dependency org="com.adaptris" name="adp-core" rev="${adp-core-version}" conf="compile->default" changing="true"/>
     <dependency org="com.adaptris" name="adp-stubs" rev="${adp-core-version}" changing="true" conf="test->default"/>
-    <dependency org="org.apache.commons" name="commons-csv" rev="1.1" conf="compile->default"/>
     <dependency org="com.adaptris" name="adp-core-apt" rev="${adp-core-version}" conf="compile->default;ant->default" changing="true"/>
     <dependency org="org.apache.httpcomponents" name="httpclient" rev="4.5" conf="compile->default"/>
     
