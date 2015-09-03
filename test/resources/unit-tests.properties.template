@@ -1,0 +1,3 @@
+junit.ProducerCase.baseDir=${basedir}/build/example-xml
+junit.jetty.user.realm.properties=${test.resources.dir}/realm.properties
+
