@@ -18,7 +18,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
-import org.hibernate.validator.constraints.NotBlank;
 
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -101,7 +100,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   private String userName = null;
   @InputFieldHint(style = "PASSWORD")
   private String password = null;
-  @NotBlank
+  @NotNull
   @AutoPopulated
   private HttpMethod method;
 
