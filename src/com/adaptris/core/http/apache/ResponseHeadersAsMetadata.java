@@ -10,16 +10,17 @@ import com.adaptris.core.AdaptrisMessage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from
- * the response as metadata to the {@link AdaptrisMessage}.
+ * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
+ * response as metadata to the {@link AdaptrisMessage}.
  * 
+ * @config apache-http-response-headers-as-metadata
  * @author lchan
  * 
  */
 @XStreamAlias("apache-http-response-headers-as-metadata")
 public class ResponseHeadersAsMetadata implements ResponseHeaderHandler {
 
-  private Logger log = LoggerFactory.getLogger(this.getClass());
+  private transient Logger log = LoggerFactory.getLogger(this.getClass());
 
   private String metadataPrefix;
 

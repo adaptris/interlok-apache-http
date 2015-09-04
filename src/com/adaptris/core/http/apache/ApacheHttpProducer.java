@@ -11,6 +11,7 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -106,6 +107,14 @@ public class ApacheHttpProducer extends HttpProducer {
     return base;
   }
 
+  private static boolean notNull(Object[] o) {
+    boolean result = true;
+    if (o == null || o.length == 0) {
+      result = false;
+    }
+    return result;
+  }
+
   private class HttpResponseHandler implements ResponseHandler<AdaptrisMessage> {
 
     @Override
@@ -118,18 +127,25 @@ public class ApacheHttpProducer extends HttpProducer {
         }
       }
       HttpEntity entity = response.getEntity();
-      ContentType contentType = ContentType.get(entity);
-      // If the content-type is null, then create a dummy one (which will give us a null Charset)
-      if (contentType == null) {
-        contentType = ContentType.create("text/plain");
-      }
-      try (InputStream in = entity.getContent(); OutputStream out = new BufferedOutputStream(reply.getOutputStream())) {
-        IOUtils.copy(in, out);
-        if (contentType.getCharset() != null) {
-          reply.setCharEncoding(contentType.getCharset().name());
+      if (entity != null) {
+        log.trace("Processing data from response {}", response.getEntity().getClass().getSimpleName());
+        ContentType contentType = ContentType.get(entity);
+        // If the content-type is null, then create a dummy one (which will give us a null Charset)
+        if (contentType == null) {
+          contentType = ContentType.create("text/plain");
+        }
+        try (InputStream in = entity.getContent(); OutputStream out = new BufferedOutputStream(reply.getOutputStream())) {
+          IOUtils.copy(in, out);
+          if (contentType.getCharset() != null) {
+            reply.setCharEncoding(contentType.getCharset().name());
+          }
         }
       }
-      reply = getResponseHandler().handle(response.getAllHeaders(), reply);
+      Header[] responseHeaders = response.getAllHeaders();
+      if (notNull(responseHeaders)) {
+        log.trace("Processing {} headers from response", responseHeaders.length);
+        reply = getResponseHandler().handle(responseHeaders, reply);
+      }
       reply.addMetadata(new MetadataElement(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, String.valueOf(status)));
       return reply;
     }
