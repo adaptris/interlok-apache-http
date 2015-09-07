@@ -12,10 +12,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 /**
  * Provides a content type derived from metadata.
  * <p>
- * Note that the content type charset if derived from {@link AdaptrisMessage#getCharEncoding()} so
- * configuring a mime type of {@code text/xml} when the message has a char encoding of {@code UTF-8}
- * will return {@code text/xml; charset="UTF-8"}. Also no validation is done of the metadata value
- * forming the mime-type. it is passed straight through to
+ * Note that the content type charset will be derived from {@link AdaptrisMessage#getCharEncoding()}
+ * so configuring a mime type of {@code text/xml} when the message has a char encoding of
+ * {@code UTF-8} will return {@code text/xml; charset="UTF-8"}. Also no validation is done of the
+ * metadata value forming the mime-type. it is passed straight through to
  * {@link ContentType#create(String, String)}
  * </p>
  * 
@@ -56,12 +56,12 @@ public class MetadataContentTypeProvider implements ContentTypeProvider {
   }
 
   /**
-   * Set the base content type.
+   * Set the metadata item containing content type.
    * 
-   * @param contentType the base content type; defaults to text/plain
+   * @param key the key containing the base content type
    */
-  public void setMetadataKey(String contentType) {
-    this.metadataKey = contentType;
+  public void setMetadataKey(String key) {
+    this.metadataKey = key;
   }
 
 }
