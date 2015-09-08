@@ -12,6 +12,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.metadata.MetadataFilter;
+import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -50,7 +51,7 @@ public class MetadataRequestHeaders implements RequestHeaderHandler {
   }
 
   public void setFilter(MetadataFilter filter) {
-    this.filter = filter;
+    this.filter = Args.notNull(filter, "metadata filter");
   }
 
 }
