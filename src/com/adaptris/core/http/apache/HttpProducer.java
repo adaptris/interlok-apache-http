@@ -23,7 +23,6 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageImp;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
@@ -280,8 +279,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return passwordAuth;
   }
 
-  protected void copy(AdaptrisMessage src, AdaptrisMessage dest) throws IOException, CoreException {
-    AdaptrisMessageImp.copyPayload(src, dest);
+  protected void copyHeaders(AdaptrisMessage src, AdaptrisMessage dest) throws IOException, CoreException {
     dest.getObjectMetadata().putAll(src.getObjectMetadata());
     dest.setMetadata(src.getMetadata());
   }

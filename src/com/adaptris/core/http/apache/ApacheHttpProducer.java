@@ -76,7 +76,7 @@ public class ApacheHttpProducer extends HttpProducer {
         addData(msg, getRequestHandler().addHeaders(msg, httpOperation));
         reply = httpclient.execute(httpOperation, new HttpResponseHandler());
       }
-      copy(msg, reply);
+      copyHeaders(msg, reply);
     } catch (Exception e) {
       ExceptionHelper.rethrowProduceException(e);
     } finally {
@@ -121,7 +121,7 @@ public class ApacheHttpProducer extends HttpProducer {
     public AdaptrisMessage handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
       int status = response.getStatusLine().getStatusCode();
       AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
-      if (status < 200 || status > 299) {
+      if (status > 299) {
         if (!ignoreServerResponseCode()) {
           throw new IOException("Failed to complete operation, got " + status);
         }
