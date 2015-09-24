@@ -23,11 +23,13 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.RequestReplyProducerImp;
+import com.adaptris.core.http.ConfiguredRequestMethodProvider;
+import com.adaptris.core.http.RequestMethodProvider;
+import com.adaptris.core.http.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.password.Password;
 import com.adaptris.util.license.License;
@@ -96,12 +98,16 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     public abstract HttpRequestBase create(String url);
   }
 
+  @NotNull
+  @AutoPopulated
+  @Valid
+  private RequestMethodProvider methodProvider;
+  @Deprecated
+  private HttpMethod method;
+
   private String userName = null;
   @InputFieldHint(style = "PASSWORD")
   private String password = null;
-  @NotNull
-  @AutoPopulated
-  private HttpMethod method;
 
   @NotNull
   @Valid
@@ -136,7 +142,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     setContentTypeProvider(new StaticContentTypeProvider());
     setResponseHandler(new DiscardResponseHeaders());
     setRequestHandler(new NoOpRequestHeaders());
-    setMethod(HttpMethod.POST);
+    setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
   }
 
   @Override
@@ -306,6 +312,10 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
 
+  /**
+   * @deprecated since 3.0.6; use {@link #getMethodProvider()} instead.
+   */
+  @Deprecated
   public HttpMethod getMethod() {
     return method;
   }
@@ -314,9 +324,12 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Set the HTTP method to be used.
    * 
    * @param method the method; defaults to {@link HttpMethod#POST}
+   * @deprecated since 3.0.6 use {@link #setMethodProvider(RequestMethodProvider)} instead.
    */
+  @Deprecated
   public void setMethod(HttpMethod method) {
-    this.method = method;
+    log.warn("setMethod() is deprecated; use setMethodProvider() instead.");
+    this.method = Args.notNull(method, "Method");
   }
 
 
@@ -346,5 +359,20 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     this.requestHandler = Args.notNull(handler, "Request Header Handler");
   }
 
+  public RequestMethodProvider getMethodProvider() {
+    return methodProvider;
+  }
 
+  public void setMethodProvider(RequestMethodProvider p) {
+    this.methodProvider = Args.notNull(p, "Method Provider");
+  }
+
+  protected HttpMethod getMethod(AdaptrisMessage msg) {
+    if (getMethod() != null) {
+      log.warn("Configured using deprecated setMethod(), configure using #setMethodProvider() instead.");
+      return getMethod();
+    }
+    RequestMethod m = getMethodProvider().getMethod(msg);
+    return HttpMethod.valueOf(m.name());
+  }
 }

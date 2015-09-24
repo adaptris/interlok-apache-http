@@ -26,7 +26,7 @@ public final class AdaptrisMessageEntity extends AbstractHttpEntity {
   public AdaptrisMessageEntity(AdaptrisMessage msg, ContentTypeProvider contentType) throws CoreException {
     super();
     this.msg = Args.notNull(msg, "AdaptrisMessage");
-    setContentType(contentType.getContentType(msg).toString());
+    setContentType(Args.notNull(contentType, "Content Type").getContentType(msg).toString());
   }
 
 

@@ -26,7 +26,6 @@ import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.perf4j.aop.Profiled;
 
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageProducerImp;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.MetadataElement;
@@ -66,7 +65,7 @@ public class ApacheHttpProducer extends HttpProducer {
     HttpAuthenticator myAuth = null;
     try {
       String uri = destination.getDestination(msg);
-      HttpRequestBase httpOperation = getMethod().create(uri);
+      HttpRequestBase httpOperation = getMethod(msg).create(uri);
       if (getPasswordAuthentication() != null) {
         myAuth = new HttpAuthenticator(httpOperation.getURI(), getPasswordAuthentication());
         Authenticator.setDefault(AdapterResourceAuthenticator.getInstance());
