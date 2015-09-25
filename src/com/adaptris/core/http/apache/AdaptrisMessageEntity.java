@@ -11,6 +11,7 @@ import org.apache.http.util.Args;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.http.ContentTypeProvider;
 
 /**
  * A streamed, repeatable entity that obtains its content from the associated
@@ -26,7 +27,7 @@ public final class AdaptrisMessageEntity extends AbstractHttpEntity {
   public AdaptrisMessageEntity(AdaptrisMessage msg, ContentTypeProvider contentType) throws CoreException {
     super();
     this.msg = Args.notNull(msg, "AdaptrisMessage");
-    setContentType(Args.notNull(contentType, "Content Type").getContentType(msg).toString());
+    setContentType(Args.notNull(contentType, "Content Type").getContentType(msg));
   }
 
 

@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
+import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -23,7 +24,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("apache-http-metadata-request-headers")
-public class MetadataRequestHeaders implements RequestHeaderHandler {
+public class MetadataRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
   @NotNull
   @Valid
   private MetadataFilter filter;

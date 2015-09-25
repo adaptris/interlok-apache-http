@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.metadata.RegexMetadataFilter;
 
 public class CompositeRequestHeadersTest extends RequestHeadersCase {
@@ -27,12 +28,12 @@ public class CompositeRequestHeadersTest extends RequestHeadersCase {
   @Test
   public void testSetHandlers() throws Exception {
     CompositeRequestHeaders headers = new CompositeRequestHeaders();
-    assertNotNull(headers.getHandlers());
-    assertEquals(0, headers.getHandlers().size());
+    assertNotNull(headers.getProviders());
+    assertEquals(0, headers.getProviders().size());
     headers.addHandler(new NoOpRequestHeaders());
-    assertEquals(1, headers.getHandlers().size());
-    headers.setHandlers(new ArrayList<RequestHeaderHandler>());
-    assertEquals(0, headers.getHandlers().size());
+    assertEquals(1, headers.getProviders().size());
+    headers.setProviders(new ArrayList<RequestHeaderProvider<HttpRequestBase>>());
+    assertEquals(0, headers.getProviders().size());
   }
 
   @Test

@@ -6,6 +6,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.util.Args;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
@@ -18,7 +19,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("apache-http-configured-request-headers")
-public class ConfiguredRequestHeaders implements RequestHeaderHandler {
+public class ConfiguredRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
   @NotNull
   @AutoPopulated
   private KeyValuePairSet headers;

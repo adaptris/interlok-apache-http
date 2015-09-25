@@ -9,6 +9,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
@@ -23,37 +24,37 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * 
  */
 @XStreamAlias("apache-http-composite-request-headers")
-public class CompositeRequestHeaders implements RequestHeaderHandler {
+public class CompositeRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
   @XStreamImplicit
   @NotNull
   @AutoPopulated
-  private List<RequestHeaderHandler> handlers;
+  private List<RequestHeaderProvider<HttpRequestBase>> providers;
 
   public CompositeRequestHeaders() {
-    handlers = new ArrayList<>();
+    providers = new ArrayList<>();
   }
 
 
   @Override
   public HttpRequestBase addHeaders(AdaptrisMessage msg, HttpRequestBase target) {
     HttpRequestBase http = target;
-    for (RequestHeaderHandler h : getHandlers()) {
+    for (RequestHeaderProvider<HttpRequestBase> h : getProviders()) {
       http = h.addHeaders(msg, http);
     }
     return http;
   }
 
 
-  public List<RequestHeaderHandler> getHandlers() {
-    return handlers;
+  public List<RequestHeaderProvider<HttpRequestBase>> getProviders() {
+    return providers;
   }
 
 
-  public void setHandlers(List<RequestHeaderHandler> handlers) {
-    this.handlers = Args.notNull(handlers, "Request Header Handlers");
+  public void setProviders(List<RequestHeaderProvider<HttpRequestBase>> handlers) {
+    this.providers = Args.notNull(handlers, "Request Header Providers");
   }
 
-  public void addHandler(RequestHeaderHandler handler) {
-    getHandlers().add(Args.notNull(handler, "Request Header Handler"));
+  public void addHandler(RequestHeaderProvider<HttpRequestBase> handler) {
+    getProviders().add(Args.notNull(handler, "Request Header Provider"));
   }
 }

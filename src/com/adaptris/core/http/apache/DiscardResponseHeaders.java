@@ -1,8 +1,9 @@
 package com.adaptris.core.http.apache;
 
-import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -12,10 +13,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config apache-http-discard-response-headers
  */
 @XStreamAlias("apache-http-discard-response-headers")
-public class DiscardResponseHeaders implements ResponseHeaderHandler {
+public class DiscardResponseHeaders implements ResponseHeaderHandler<HttpResponse> {
 
   @Override
-  public AdaptrisMessage handle(Header[] headers, AdaptrisMessage msg) {
+  public AdaptrisMessage handle(HttpResponse src, AdaptrisMessage msg) {
     return msg;
   }
 

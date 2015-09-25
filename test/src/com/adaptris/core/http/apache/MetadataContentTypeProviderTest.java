@@ -1,7 +1,6 @@
 package com.adaptris.core.http.apache;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
@@ -16,6 +15,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.DefaultMessageFactory;
 
+@SuppressWarnings("deprecation")
 public class MetadataContentTypeProviderTest {
   @Rule
   public TestName testName = new TestName();
@@ -32,8 +32,8 @@ public class MetadataContentTypeProviderTest {
 
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("");
     msg.addMetadata(testName.getMethodName(), "text/complicated");
-    ContentType contentType = provider.getContentType(msg);
-    assertNotNull(contentType);
+
+    ContentType contentType = ContentType.parse(provider.getContentType(msg));
     assertEquals("text/complicated", contentType.getMimeType());
     assertNull(contentType.getCharset());
   }
@@ -43,12 +43,8 @@ public class MetadataContentTypeProviderTest {
     MetadataContentTypeProvider provider = new MetadataContentTypeProvider(testName.getMethodName());
 
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("");
-    try {
-      ContentType contentType = provider.getContentType(msg);
-      fail();
-    } catch (CoreException expected) {
-
-    }
+    ContentType contentType = ContentType.parse(provider.getContentType(msg));
+    assertEquals("text/plain", contentType.getMimeType());
   }
 
   @Test
@@ -58,7 +54,7 @@ public class MetadataContentTypeProviderTest {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("");
     msg.addMetadata(testName.getMethodName(), "text/complicated");
     try {
-      ContentType contentType = provider.getContentType(msg);
+      ContentType contentType = ContentType.parse(provider.getContentType(msg));
       fail();
     } catch (CoreException expected) {
 

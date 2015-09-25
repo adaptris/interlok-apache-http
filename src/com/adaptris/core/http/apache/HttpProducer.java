@@ -9,6 +9,7 @@ import java.net.PasswordAuthentication;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -27,9 +28,13 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.RequestReplyProducerImp;
+import com.adaptris.core.http.ConfiguredContentTypeProvider;
+import com.adaptris.core.http.ContentTypeProvider;
 import com.adaptris.core.http.client.ConfiguredRequestMethodProvider;
+import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
+import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.password.Password;
 import com.adaptris.util.license.License;
@@ -119,13 +124,13 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Valid
   @NotNull
   @AutoPopulated
-  private ResponseHeaderHandler responseHandler;
+  private ResponseHeaderHandler<HttpResponse> responseHandler;
 
   @AdvancedConfig
   @Valid
   @NotNull
   @AutoPopulated
-  private RequestHeaderHandler requestHandler;
+  private RequestHeaderProvider<HttpRequestBase> requestHandler;
 
   @AdvancedConfig
   private Boolean ignoreServerResponseCode;
@@ -139,7 +144,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   public HttpProducer() {
     super();
-    setContentTypeProvider(new StaticContentTypeProvider());
+    setContentTypeProvider(new ConfiguredContentTypeProvider());
     setResponseHandler(new DiscardResponseHeaders());
     setRequestHandler(new NoOpRequestHeaders());
     setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
@@ -333,7 +338,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
 
-  public ResponseHeaderHandler getResponseHandler() {
+  public ResponseHeaderHandler<HttpResponse> getResponseHandler() {
     return responseHandler;
   }
 
@@ -342,11 +347,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * 
    * @param handler the handler, default is a {@link DiscardResponseHeaders}.
    */
-  public void setResponseHandler(ResponseHeaderHandler handler) {
+  public void setResponseHandler(ResponseHeaderHandler<HttpResponse> handler) {
     this.responseHandler = Args.notNull(handler, "ResponseHeaderHandler");
   }
 
-  public RequestHeaderHandler getRequestHandler() {
+  public RequestHeaderProvider<HttpRequestBase> getRequestHandler() {
     return requestHandler;
   }
 
@@ -355,7 +360,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * 
    * @param handler the handler, default is a {@link NoOpRequestHeaders}
    */
-  public void setRequestHandler(RequestHeaderHandler handler) {
+  public void setRequestHandler(RequestHeaderProvider<HttpRequestBase> handler) {
     this.requestHandler = Args.notNull(handler, "Request Header Handler");
   }
 

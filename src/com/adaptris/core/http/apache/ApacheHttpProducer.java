@@ -11,7 +11,6 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -106,13 +105,6 @@ public class ApacheHttpProducer extends HttpProducer {
     return base;
   }
 
-  private static boolean notNull(Object[] o) {
-    boolean result = true;
-    if (o == null || o.length == 0) {
-      result = false;
-    }
-    return result;
-  }
 
   private class HttpResponseHandler implements ResponseHandler<AdaptrisMessage> {
 
@@ -140,11 +132,7 @@ public class ApacheHttpProducer extends HttpProducer {
           }
         }
       }
-      Header[] responseHeaders = response.getAllHeaders();
-      if (notNull(responseHeaders)) {
-        log.trace("Processing {} headers from response", responseHeaders.length);
-        reply = getResponseHandler().handle(responseHeaders, reply);
-      }
+      reply = getResponseHandler().handle(response, reply);
       reply.addMetadata(new MetadataElement(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, String.valueOf(status)));
       return reply;
     }

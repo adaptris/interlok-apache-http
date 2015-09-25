@@ -1,12 +1,8 @@
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.http.entity.ContentType;
-import org.hibernate.validator.constraints.NotBlank;
-
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreException;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -18,50 +14,26 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * metadata value forming the mime-type. it is passed straight through to
  * {@link ContentType#create(String, String)}
  * </p>
- * 
  * @config apache-http-metadata-content-type-provider
+ * @deprecated since 3.0.6 use {@link com.adaptris.core.http.MetadataContentTypeProvider} instead.
  */
 @XStreamAlias("apache-http-metadata-content-type-provider")
-public class MetadataContentTypeProvider implements ContentTypeProvider {
-
-  @NotBlank
-  private String metadataKey;
+@Deprecated
+public class MetadataContentTypeProvider extends com.adaptris.core.http.MetadataContentTypeProvider {
+  private static transient boolean warningLogged;
+  private transient Logger log = LoggerFactory.getLogger(this.getClass());
 
   public MetadataContentTypeProvider() {
+    if (!warningLogged) {
+      log.warn("[{}] is deprecated, use [{}] instead", this.getClass().getSimpleName(),
+          com.adaptris.core.http.MetadataContentTypeProvider.class.getName());
+      warningLogged = true;
+    }
   }
 
   public MetadataContentTypeProvider(String key) {
     this();
     setMetadataKey(key);
-  }
-  @Override
-  public ContentType getContentType(AdaptrisMessage msg) throws CoreException {
-    validate(msg);
-    return ContentType.create(msg.getMetadataValue(getMetadataKey()), msg.getCharEncoding());
-  }
-
-  private void validate(AdaptrisMessage msg) throws CoreException {
-    if (isEmpty(getMetadataKey())) {
-      throw new CoreException("metadata key is blank");
-    }
-    if (!msg.containsKey(getMetadataKey())) {
-      throw new CoreException(getMetadataKey() + " not found in message");
-    }
-    return;
-  }
-
-
-  public String getMetadataKey() {
-    return metadataKey;
-  }
-
-  /**
-   * Set the metadata item containing content type.
-   * 
-   * @param key the key containing the base content type
-   */
-  public void setMetadataKey(String key) {
-    this.metadataKey = key;
   }
 
 }

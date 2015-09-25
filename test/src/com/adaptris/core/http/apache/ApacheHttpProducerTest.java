@@ -1,6 +1,11 @@
 package com.adaptris.core.http.apache;
 
+import static com.adaptris.core.http.apache.JettyHelper.JETTY_USER_REALM;
+import static com.adaptris.core.http.apache.JettyHelper.METADATA_KEY_CONTENT_TYPE;
+import static com.adaptris.core.http.apache.JettyHelper.TEXT;
+import static com.adaptris.core.http.apache.JettyHelper.URL_TO_POST_TO;
 import static com.adaptris.core.http.apache.JettyHelper.createChannel;
+import static com.adaptris.core.http.apache.JettyHelper.createConnection;
 import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 
@@ -29,20 +34,15 @@ import com.adaptris.core.http.jetty.HttpConnection;
 import com.adaptris.core.http.jetty.MessageConsumer;
 import com.adaptris.core.http.jetty.ResponseProducer;
 import com.adaptris.core.http.jetty.SecurityConstraint;
-import com.adaptris.core.http.jetty.SecurityHandlerWrapper;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
 import com.adaptris.core.http.server.MetadataHeaderHandler;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.core.services.metadata.AddMetadataService;
 import com.adaptris.core.stubs.MockMessageProducer;
-import com.adaptris.util.KeyValuePair;
 
 public class ApacheHttpProducerTest extends ProducerCase {
-  private static final String METADATA_KEY_CONTENT_TYPE = "content.type";
-  private static final String URL_TO_POST_TO = "/url/to/post/to";
-  private static final String TEXT = "ABCDEFG";
-  private static final String JETTY_USER_REALM = "jetty.user.realm.properties";
+
 
   public ApacheHttpProducerTest(String name) {
     super(name);
@@ -107,6 +107,36 @@ public class ApacheHttpProducerTest extends ProducerCase {
     p.setResponseHandler(new ResponseHeadersAsMetadata());
     assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHandler().getClass());
   }
+
+  @SuppressWarnings("deprecation")
+  public void testProduce_LegacyContentType() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    mc.setHeaderHandler(new MetadataHeaderHandler());
+    HttpConnection jc = createConnection();
+
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList()));
+    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(jc.getPort()));
+    http.setContentTypeProvider(new StaticContentTypeProvider());
+    StandaloneProducer producer = new StandaloneProducer(http);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
+    try {
+      c.requestStart();
+      start(producer);
+      producer.doService(msg);
+      waitForMessages(mock, 1);
+    } finally {
+      c.requestClose();
+      stop(producer);
+      PortManager.release(jc.getPort());
+    }
+    doAssertions(mock, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
+  }
+
 
   public void testProduce() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
@@ -250,7 +280,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(0, msg.getSize());
   }
 
-  public void testProduce_WithContentTypeMetadata() throws Exception {
+  @SuppressWarnings("deprecation")
+  public void testProduce_WithContentTypeMetadata_Legacy() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     MessageConsumer mc = createConsumer(URL_TO_POST_TO);
     mc.setHeaderHandler(new MetadataHeaderHandler());
@@ -270,6 +301,36 @@ public class ApacheHttpProducerTest extends ProducerCase {
       waitForMessages(mock, 1);
     }
     finally {
+      c.requestClose();
+      stop(producer);
+      PortManager.release(jc.getPort());
+    }
+    doAssertions(mock, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    assertTrue(m2.containsKey("Content-Type"));
+    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertEquals("text/complicated", m2.getMetadataValue("Content-Type"));
+  }
+
+  public void testProduce_WithContentTypeMetadata() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    mc.setHeaderHandler(new MetadataHeaderHandler());
+    HttpConnection jc = createConnection();
+
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList()));
+    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(jc.getPort()));
+
+    http.setContentTypeProvider(new com.adaptris.core.http.MetadataContentTypeProvider(METADATA_KEY_CONTENT_TYPE));
+    StandaloneProducer producer = new StandaloneProducer(http);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
+    try {
+      c.requestStart();
+      start(producer);
+      producer.doService(msg);
+      waitForMessages(mock, 1);
+    } finally {
       c.requestClose();
       stop(producer);
       PortManager.release(jc.getPort());
@@ -437,23 +498,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     StandaloneProducer result = new StandaloneProducer(producer);
     return result;
   }
-
-  private HttpConnection createConnection() {
-    return createConnection(null);
-  }
-
-
-  protected HttpConnection createConnection(SecurityHandlerWrapper sh) {
-    HttpConnection c = new HttpConnection();
-    int port = PortManager.nextUnusedPort(18080);
-    c.setPort(port);
-    if (sh != null) {
-      c.setSecurityHandler(sh);
-    }
-    c.getHttpProperties().add(new KeyValuePair(HttpConnection.HttpProperty.MaxIdleTime.name(), "30000"));
-    return c;
-  }
-
 
   private ConfiguredProduceDestination createProduceDestination(int port) {
     ConfiguredProduceDestination d = new ConfiguredProduceDestination("http://localhost:" + port + URL_TO_POST_TO);

@@ -3,10 +3,12 @@ package com.adaptris.core.http.apache;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 
 import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -18,7 +20,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("apache-http-response-headers-as-metadata")
-public class ResponseHeadersAsMetadata implements ResponseHeaderHandler {
+public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResponse> {
 
   private transient Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -34,11 +36,15 @@ public class ResponseHeadersAsMetadata implements ResponseHeaderHandler {
   }
 
   @Override
-  public AdaptrisMessage handle(Header[] headers, AdaptrisMessage msg) {
-    for (Header h : headers) {
-      String metadataKey = generateKey(h.getName());
-      log.trace("Adding {}: {}", metadataKey, h.getValue());
-      msg.addMetadata(metadataKey, h.getValue());
+  public AdaptrisMessage handle(HttpResponse response, AdaptrisMessage msg) {
+    Header[] headers = response.getAllHeaders();
+    if (notNull(headers)) {
+      log.trace("Processing {} headers from response", headers.length);
+      for (Header h : headers) {
+        String metadataKey = generateKey(h.getName());
+        log.trace("Adding {}: {}", metadataKey, h.getValue());
+        msg.addMetadata(metadataKey, h.getValue());
+      }
     }
     return msg;
   }
@@ -53,5 +59,14 @@ public class ResponseHeadersAsMetadata implements ResponseHeaderHandler {
 
   public void setMetadataPrefix(String metadataPrefix) {
     this.metadataPrefix = metadataPrefix;
+  }
+
+
+  private static boolean notNull(Object[] o) {
+    boolean result = true;
+    if (o == null || o.length == 0) {
+      result = false;
+    }
+    return result;
   }
 }
