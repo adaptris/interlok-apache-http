@@ -5,6 +5,7 @@ import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.Channel;
 import com.adaptris.core.ComponentLifecycle;
 import com.adaptris.core.ConfiguredConsumeDestination;
+import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.DefaultEventHandler;
 import com.adaptris.core.EventHandler;
@@ -52,6 +53,12 @@ public class JettyHelper {
   public static Channel createChannel(AdaptrisConnection connection, MessageConsumer consumer, AdaptrisMessageProducer producer)
       throws Exception {
     return createChannel(connection, createWorkflow(consumer, producer));
+  }
+
+
+  public static ConfiguredProduceDestination createProduceDestination(Channel channel) {
+    ConfiguredProduceDestination d = new ConfiguredProduceDestination("http://localhost:" + getPort(channel) + URL_TO_POST_TO);
+    return d;
   }
 
   public static Channel createChannel(AdaptrisConnection connection, Workflow w) throws Exception {
