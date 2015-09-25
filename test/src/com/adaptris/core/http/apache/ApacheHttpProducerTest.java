@@ -491,6 +491,46 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  public void testProduce_WithUsernamePassword_BadCredentials() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
+    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
+
+    SecurityConstraint securityConstraint = new SecurityConstraint();
+    securityConstraint.setMustAuthenticate(true);
+    securityConstraint.setRoles("user");
+
+    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
+
+    HttpConnection connection = createConnection(securityWrapper);
+    MockMessageProducer mockProducer = new MockMessageProducer();
+    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    Channel adapter = JettyHelper.createChannel(connection, consumer, mockProducer);
+    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(connection.getPort()));
+    try {
+      adapter.requestStart();
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+
+      httpProducer.setUserName(getName());
+      httpProducer.setPassword(getName());
+      StandaloneProducer producer = new StandaloneProducer(httpProducer);
+      start(producer);
+      producer.doService(msg);
+      fail();
+    } catch (ServiceException expected) {
+
+    } finally {
+      stop(httpProducer);
+      adapter.requestClose();
+      Thread.currentThread().setName(threadName);
+      PortManager.release(connection.getPort());
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
+
+
   @Override
   protected Object retrieveObjectForSampleConfig() {
     ApacheHttpProducer producer = new ApacheHttpProducer(new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));

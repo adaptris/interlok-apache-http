@@ -22,7 +22,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("apache-http-response-headers-as-metadata")
 public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResponse> {
 
-  private transient Logger log = LoggerFactory.getLogger(this.getClass());
+  protected transient Logger log = LoggerFactory.getLogger(this.getClass());
 
   private String metadataPrefix;
 
@@ -49,7 +49,7 @@ public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResp
     return msg;
   }
 
-  private String generateKey(String header) {
+  protected String generateKey(String header) {
     return defaultIfEmpty(getMetadataPrefix(), "") + header;
   }
 
@@ -62,7 +62,7 @@ public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResp
   }
 
 
-  private static boolean notNull(Object[] o) {
+  protected static boolean notNull(Object[] o) {
     boolean result = true;
     if (o == null || o.length == 0) {
       result = false;
