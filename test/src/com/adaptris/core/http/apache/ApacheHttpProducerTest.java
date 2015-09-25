@@ -264,6 +264,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
 
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(jc.getPort()));
+    http.setAllowRedirect(true);
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);

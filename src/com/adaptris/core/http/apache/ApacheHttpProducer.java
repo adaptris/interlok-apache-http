@@ -78,9 +78,7 @@ public class ApacheHttpProducer extends HttpProducer {
     } catch (Exception e) {
       ExceptionHelper.rethrowProduceException(e);
     } finally {
-      if (myAuth != null) {
-        AdapterResourceAuthenticator.getInstance().removeAuthenticator(myAuth);
-      }
+      AdapterResourceAuthenticator.getInstance().removeAuthenticator(myAuth);
     }
     return reply;
   }
