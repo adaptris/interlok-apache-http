@@ -124,13 +124,13 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Valid
   @NotNull
   @AutoPopulated
-  private ResponseHeaderHandler<HttpResponse> responseHandler;
+  private ResponseHeaderHandler<HttpResponse> responseHeaderHandler;
 
   @AdvancedConfig
   @Valid
   @NotNull
   @AutoPopulated
-  private RequestHeaderProvider<HttpRequestBase> requestHandler;
+  private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
 
   @AdvancedConfig
   private Boolean ignoreServerResponseCode;
@@ -145,8 +145,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   public HttpProducer() {
     super();
     setContentTypeProvider(new ConfiguredContentTypeProvider());
-    setResponseHandler(new DiscardResponseHeaders());
-    setRequestHandler(new NoOpRequestHeaders());
+    setResponseHeaderHandler(new DiscardResponseHeaders());
+    setRequestHeaderProvider(new NoOpRequestHeaders());
     setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
   }
 
@@ -338,8 +338,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
 
-  public ResponseHeaderHandler<HttpResponse> getResponseHandler() {
-    return responseHandler;
+  public ResponseHeaderHandler<HttpResponse> getResponseHeaderHandler() {
+    return responseHeaderHandler;
   }
 
   /**
@@ -347,12 +347,12 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * 
    * @param handler the handler, default is a {@link DiscardResponseHeaders}.
    */
-  public void setResponseHandler(ResponseHeaderHandler<HttpResponse> handler) {
-    this.responseHandler = Args.notNull(handler, "ResponseHeaderHandler");
+  public void setResponseHeaderHandler(ResponseHeaderHandler<HttpResponse> handler) {
+    this.responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
   }
 
-  public RequestHeaderProvider<HttpRequestBase> getRequestHandler() {
-    return requestHandler;
+  public RequestHeaderProvider<HttpRequestBase> getRequestHeaderProvider() {
+    return requestHeaderProvider;
   }
 
   /**
@@ -360,8 +360,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * 
    * @param handler the handler, default is a {@link NoOpRequestHeaders}
    */
-  public void setRequestHandler(RequestHeaderProvider<HttpRequestBase> handler) {
-    this.requestHandler = Args.notNull(handler, "Request Header Handler");
+  public void setRequestHeaderProvider(RequestHeaderProvider<HttpRequestBase> handler) {
+    this.requestHeaderProvider = Args.notNull(handler, "Request Header Handler");
   }
 
   public RequestMethodProvider getMethodProvider() {

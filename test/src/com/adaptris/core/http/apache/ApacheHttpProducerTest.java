@@ -82,31 +82,31 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testSetRequestHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
-    assertEquals(NoOpRequestHeaders.class, p.getRequestHandler().getClass());
+    assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
     try {
-      p.setRequestHandler(null);
+      p.setRequestHeaderProvider(null);
       fail();
     } catch (IllegalArgumentException expected) {
 
     }
-    assertEquals(NoOpRequestHeaders.class, p.getRequestHandler().getClass());
-    p.setRequestHandler(new MetadataRequestHeaders(new RemoveAllMetadataFilter()));
-    assertEquals(MetadataRequestHeaders.class, p.getRequestHandler().getClass());
+    assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
+    p.setRequestHeaderProvider(new MetadataRequestHeaders(new RemoveAllMetadataFilter()));
+    assertEquals(MetadataRequestHeaders.class, p.getRequestHeaderProvider().getClass());
   }
 
 
   public void testSetResponseHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
-    assertEquals(DiscardResponseHeaders.class, p.getResponseHandler().getClass());
+    assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
     try {
-      p.setResponseHandler(null);
+      p.setResponseHeaderHandler(null);
       fail();
     } catch (IllegalArgumentException expected) {
 
     }
-    assertEquals(DiscardResponseHeaders.class, p.getResponseHandler().getClass());
-    p.setResponseHandler(new ResponseHeadersAsMetadata());
-    assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHandler().getClass());
+    assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
+    p.setResponseHeaderHandler(new ResponseHeadersAsMetadata());
+    assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHeaderHandler().getClass());
   }
 
   @SuppressWarnings("deprecation")
@@ -183,7 +183,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
-    http.setRequestHandler(new MetadataRequestHeaders(new NoOpMetadataFilter()));
+    http.setRequestHeaderProvider(new MetadataRequestHeaders(new NoOpMetadataFilter()));
     StandaloneProducer producer = new StandaloneProducer(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
@@ -388,7 +388,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
     http.setIgnoreServerResponseCode(true);
-    http.setResponseHandler(new ResponseHeadersAsMetadata("HTTP_"));
+    http.setResponseHeaderHandler(new ResponseHeadersAsMetadata("HTTP_"));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {

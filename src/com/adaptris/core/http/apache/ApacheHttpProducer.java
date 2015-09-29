@@ -71,7 +71,7 @@ public class ApacheHttpProducer extends HttpProducer {
         AdapterResourceAuthenticator.getInstance().addAuthenticator(myAuth);
       }
       try (CloseableHttpClient httpclient = createClient()) {
-        addData(msg, getRequestHandler().addHeaders(msg, httpOperation));
+        addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
         reply = httpclient.execute(httpOperation, new HttpResponseHandler());
       }
       copyHeaders(msg, reply);
@@ -130,7 +130,7 @@ public class ApacheHttpProducer extends HttpProducer {
           }
         }
       }
-      reply = getResponseHandler().handle(response, reply);
+      reply = getResponseHeaderHandler().handle(response, reply);
       reply.addMetadata(new MetadataElement(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, String.valueOf(status)));
       return reply;
     }
