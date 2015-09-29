@@ -333,7 +333,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    */
   @Deprecated
   public void setMethod(HttpMethod method) {
-    log.warn("setMethod() is deprecated; use setMethodProvider() instead.");
     this.method = Args.notNull(method, "Method");
   }
 
