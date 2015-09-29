@@ -378,6 +378,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
       return getMethod();
     }
     RequestMethod m = getMethodProvider().getMethod(msg);
+    log.trace("HTTP Request Method is : [{}]", m);
     return HttpMethod.valueOf(m.name());
   }
 }
