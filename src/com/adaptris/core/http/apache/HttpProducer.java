@@ -37,8 +37,6 @@ import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.password.Password;
-import com.adaptris.util.license.License;
-import com.adaptris.util.license.License.LicenseType;
 
 /**
  * Abstract base class for all Apache HTTP producer classes.
@@ -309,15 +307,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   /**
-   * @see com.adaptris.core.AdaptrisComponent#isEnabled(License)
-   */
-  @Override
-  public boolean isEnabled(License l) throws CoreException {
-    return l.isEnabled(LicenseType.Basic);
-  }
-
-
-  /**
    * @deprecated since 3.0.6; use {@link #getMethodProvider()} instead.
    */
   @Deprecated
@@ -379,5 +368,9 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     RequestMethod m = getMethodProvider().getMethod(msg);
     log.trace("HTTP Request Method is : [{}]", m);
     return HttpMethod.valueOf(m.name());
+  }
+
+  public void prepare() throws CoreException {
+
   }
 }
