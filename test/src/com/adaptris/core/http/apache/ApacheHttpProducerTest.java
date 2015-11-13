@@ -484,6 +484,26 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  public void testRequest_WithReplyAsMetadata() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    Channel c = createAndStartChannel(mock);
+    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    http.setResponseHandlerFactory(new MetadataResponseHandlerFactory(getName()));
+    StandaloneRequestor producer = new StandaloneRequestor(http);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    try {
+      start(producer);
+      producer.doService(msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+      stop(producer);
+    }
+    doAssertions(mock, true);
+    
+    assertTrue(msg.headersContainsKey(getName()));
+    assertEquals(TEXT, msg.getMetadataValue(getName()));
+  }
 
 
   @Override
