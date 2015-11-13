@@ -80,6 +80,7 @@ public class MetadataResponseHandlerFactory implements ResponseHandlerFactory {
           throw new IOException("Failed to complete operation, got " + status);
         }
       }
+      System.out.println(getMetadataKey());
       HttpEntity entity = response.getEntity();
       if (entity != null) {
         log.trace("Processing data from response {}", response.getEntity().getClass().getSimpleName());
@@ -93,6 +94,7 @@ public class MetadataResponseHandlerFactory implements ResponseHandlerFactory {
             StringBuilderWriter out = new StringBuilderWriter(builder)) {
           IOUtils.copy(in, out);
         }
+        System.out.println(builder.toString());
         reply.addMessageHeader(getMetadataKey(), builder.toString());
       }
       reply = owner.getResponseHeaderHandler().handle(response, reply);

@@ -486,20 +486,30 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testRequest_WithReplyAsMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
+    HttpConnection jc = createConnection();
+    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+
+    ServiceList sl = new ServiceList();
+    sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
+    ResponseProducer responder = new ResponseProducer(HttpStatus.OK_200);
+    responder.setContentTypeKey(getName());
+    sl.add(new StandaloneProducer(responder));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
+
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
     http.setResponseHandlerFactory(new MetadataResponseHandlerFactory(getName()));
-    StandaloneRequestor producer = new StandaloneRequestor(http);
+    StandaloneRequestor requestor = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
-      start(producer);
-      producer.doService(msg);
+      start(c);
+      start(requestor);
+      requestor.doService(msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
-      stop(producer);
+      stop(requestor);
     }
-    doAssertions(mock, true);
+    doAssertions(mock, false);
     
     assertTrue(msg.headersContainsKey(getName()));
     assertEquals(TEXT, msg.getMetadataValue(getName()));

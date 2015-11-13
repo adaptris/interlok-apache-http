@@ -87,7 +87,7 @@ public class ApacheHttpProducer extends HttpProducer {
       }
       try (CloseableHttpClient httpclient = createClient()) {
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
-        reply = httpclient.execute(httpOperation, responseHandlerFactory.createResponseHandler(this));
+        reply = httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       }
       copyHeaders(msg, reply);
     } catch (Exception e) {
