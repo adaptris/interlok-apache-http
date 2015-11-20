@@ -2,32 +2,24 @@ package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URI;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
+import javax.validation.Valid;
+
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.perf4j.aop.Profiled;
 
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.MetadataElement;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.http.AdapterResourceAuthenticator;
@@ -44,6 +36,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("apache-http-producer")
 public class ApacheHttpProducer extends HttpProducer {
 
+  private static final ResponseHandlerFactory DEFAULT_HANDLER = new PayloadResponseHandlerFactory();
+
+  @AdvancedConfig
+  @Valid
+  private ResponseHandlerFactory responseHandlerFactory;
 
   public ApacheHttpProducer() {
     super();
@@ -52,6 +49,24 @@ public class ApacheHttpProducer extends HttpProducer {
   public ApacheHttpProducer(ProduceDestination d) {
     this();
     setDestination(d);
+  }
+
+
+  public ResponseHandlerFactory getResponseHandlerFactory() {
+    return responseHandlerFactory;
+  }
+
+  /**
+   * Set how to handle the response.
+   * 
+   * @param fac the factory; default is {@link PayloadResponseHandlerFactory}.
+   */
+  public void setResponseHandlerFactory(ResponseHandlerFactory fac) {
+    this.responseHandlerFactory = fac;
+  }
+
+  ResponseHandlerFactory responseHandlerFactory() {
+    return getResponseHandlerFactory() != null ? getResponseHandlerFactory() : DEFAULT_HANDLER;
   }
 
   /**
@@ -72,7 +87,7 @@ public class ApacheHttpProducer extends HttpProducer {
       }
       try (CloseableHttpClient httpclient = createClient()) {
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
-        reply = httpclient.execute(httpOperation, new HttpResponseHandler());
+        reply = httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       }
       copyHeaders(msg, reply);
     } catch (Exception e) {
@@ -101,40 +116,6 @@ public class ApacheHttpProducer extends HttpProducer {
       ((HttpEntityEnclosingRequestBase) base).setEntity(entity);
     }
     return base;
-  }
-
-
-  private class HttpResponseHandler implements ResponseHandler<AdaptrisMessage> {
-
-    @Override
-    public AdaptrisMessage handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-      int status = response.getStatusLine().getStatusCode();
-      AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
-      if (status > 299) {
-        if (!ignoreServerResponseCode()) {
-          throw new IOException("Failed to complete operation, got " + status);
-        }
-      }
-      HttpEntity entity = response.getEntity();
-      if (entity != null) {
-        log.trace("Processing data from response {}", response.getEntity().getClass().getSimpleName());
-        ContentType contentType = ContentType.get(entity);
-        // If the content-type is null, then create a dummy one (which will give us a null Charset)
-        if (contentType == null) {
-          contentType = ContentType.create("text/plain");
-        }
-        try (InputStream in = entity.getContent(); OutputStream out = new BufferedOutputStream(reply.getOutputStream())) {
-          IOUtils.copy(in, out);
-          if (contentType.getCharset() != null) {
-            reply.setCharEncoding(contentType.getCharset().name());
-          }
-        }
-      }
-      reply = getResponseHeaderHandler().handle(response, reply);
-      reply.addMetadata(new MetadataElement(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, String.valueOf(status)));
-      return reply;
-    }
-
   }
 
   private class HttpAuthenticator implements ResourceAuthenticator {
@@ -174,4 +155,5 @@ public class ApacheHttpProducer extends HttpProducer {
       return null;
     }
   }
+
 }
