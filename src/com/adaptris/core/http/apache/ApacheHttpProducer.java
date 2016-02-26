@@ -25,7 +25,7 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
-import com.adaptris.core.http.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.ResourceAuthenticator;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
