@@ -17,12 +17,15 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.perf4j.aop.Profiled;
 
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
-import com.adaptris.core.http.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.ResourceAuthenticator;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -34,6 +37,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @license BASIC
  */
 @XStreamAlias("apache-http-producer")
+@AdapterComponent
+@ComponentProfile(summary = "Make a HTTP request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
+    recommended = {NullConnection.class})
 public class ApacheHttpProducer extends HttpProducer {
 
   private static final ResponseHandlerFactory DEFAULT_HANDLER = new PayloadResponseHandlerFactory();

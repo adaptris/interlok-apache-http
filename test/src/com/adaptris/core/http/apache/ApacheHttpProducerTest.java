@@ -28,7 +28,7 @@ import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandaloneRequestor;
-import com.adaptris.core.http.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.client.ConfiguredRequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.jetty.HashUserRealmProxy;
@@ -353,7 +353,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("GET", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
     assertEquals(0, m2.getSize());
   }
-  
+
   public void testRequest_ProduceException_401() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -510,7 +510,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
       stop(requestor);
     }
     doAssertions(mock, false);
-    
+
     assertTrue(msg.headersContainsKey(getName()));
     assertEquals(TEXT, msg.getMetadataValue(getName()));
   }
