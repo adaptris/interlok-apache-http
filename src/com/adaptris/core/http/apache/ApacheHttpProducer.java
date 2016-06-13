@@ -15,18 +15,18 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
-import org.perf4j.aop.Profiled;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageProducerImp;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
-import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.ResourceAuthenticator;
+import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -79,7 +79,6 @@ public class ApacheHttpProducer extends HttpProducer {
    * @see AdaptrisMessageProducerImp #request(AdaptrisMessage, ProduceDestination, long)
    */
   @Override
-  @Profiled(tag = "{$this.getClass().getSimpleName()}.request()", logger = "com.adaptris.perf4j.http.apache.TimingLogger")
   protected AdaptrisMessage doRequest(AdaptrisMessage msg, ProduceDestination destination, long timeout) throws ProduceException {
     AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
     HttpAuthenticator myAuth = null;
