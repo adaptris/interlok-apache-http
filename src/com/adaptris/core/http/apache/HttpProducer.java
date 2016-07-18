@@ -22,6 +22,7 @@ import org.apache.http.client.methods.HttpTrace;
 
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
@@ -132,8 +133,10 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
 
   @AdvancedConfig
+  @InputFieldDefault(value = "false")
   private Boolean ignoreServerResponseCode;
   @AdvancedConfig
+  @InputFieldDefault(value = "true")
   private Boolean allowRedirect;
 
 
