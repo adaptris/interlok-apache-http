@@ -1,6 +1,7 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.io.IOException;
 import java.net.Authenticator;
@@ -9,6 +10,7 @@ import java.net.URI;
 
 import javax.validation.Valid;
 
+import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -19,6 +21,7 @@ import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducerImp;
 import com.adaptris.core.CoreException;
@@ -40,6 +43,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Make a HTTP request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
     recommended = {NullConnection.class})
+@DisplayOrder(order = {"username", "password", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",
+    "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory"})
 public class ApacheHttpProducer extends HttpProducer {
 
   private static final ResponseHandlerFactory DEFAULT_HANDLER = new PayloadResponseHandlerFactory();
@@ -47,6 +52,9 @@ public class ApacheHttpProducer extends HttpProducer {
   @AdvancedConfig
   @Valid
   private ResponseHandlerFactory responseHandlerFactory;
+
+  @AdvancedConfig
+  private String httpProxy;
 
   public ApacheHttpProducer() {
     super();
@@ -70,6 +78,24 @@ public class ApacheHttpProducer extends HttpProducer {
   public void setResponseHandlerFactory(ResponseHandlerFactory fac) {
     this.responseHandlerFactory = fac;
   }
+
+
+  /**
+   * @return the httpProxy
+   */
+  public String getHttpProxy() {
+    return httpProxy;
+  }
+
+  /**
+   * Explicitly configure a proxy server.
+   * 
+   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
+   */
+  public void setHttpProxy(String proxy) {
+    this.httpProxy = proxy;
+  }
+
 
   ResponseHandlerFactory responseHandlerFactory() {
     return getResponseHandlerFactory() != null ? getResponseHandlerFactory() : DEFAULT_HANDLER;
@@ -104,13 +130,14 @@ public class ApacheHttpProducer extends HttpProducer {
   }
 
   private CloseableHttpClient createClient() {
-    CloseableHttpClient result = null;
     HttpClientBuilder builder = HttpClients.custom();
     if (!handleRedirection()) {
       builder.disableRedirectHandling();
     }
-    result = builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).build();
-    return result;
+    if (!isBlank(getHttpProxy())) {
+      builder.setProxy(HttpHost.create(getHttpProxy()));
+    }
+    return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties().build();
   }
 
   
