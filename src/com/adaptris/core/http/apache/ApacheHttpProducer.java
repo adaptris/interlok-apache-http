@@ -2,11 +2,9 @@ package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.URI;
 
 import javax.validation.Valid;
 
@@ -16,6 +14,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 
 import com.adaptris.annotation.AdapterComponent;
@@ -28,8 +27,10 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
-import com.adaptris.core.http.ResourceAuthenticator;
-import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
+import com.adaptris.core.http.auth.HttpAuthenticator;
+import com.adaptris.core.http.auth.NoAuthentication;
+import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -43,8 +44,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Make a HTTP request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
     recommended = {NullConnection.class})
-@DisplayOrder(order = {"username", "password", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",
-    "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory"})
+@DisplayOrder(order =
+{
+    "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",
+    "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory"
+})
 public class ApacheHttpProducer extends HttpProducer {
 
   private static final ResponseHandlerFactory DEFAULT_HANDLER = new PayloadResponseHandlerFactory();
@@ -55,6 +59,8 @@ public class ApacheHttpProducer extends HttpProducer {
 
   @AdvancedConfig
   private String httpProxy;
+  @Valid
+  private HttpAuthenticator authenticator;
 
   public ApacheHttpProducer() {
     super();
@@ -107,24 +113,21 @@ public class ApacheHttpProducer extends HttpProducer {
   @Override
   protected AdaptrisMessage doRequest(AdaptrisMessage msg, ProduceDestination destination, long timeout) throws ProduceException {
     AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
-    HttpAuthenticator myAuth = null;
-    try {
+
+    try (HttpAuthenticator auth = authenticator()) {
       String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
-      if (getPasswordAuthentication() != null) {
-        myAuth = new HttpAuthenticator(httpOperation.getURI(), getPasswordAuthentication());
-        Authenticator.setDefault(AdapterResourceAuthenticator.getInstance());
-        AdapterResourceAuthenticator.getInstance().addAuthenticator(myAuth);
-      }
+      auth.setup(uri, msg);
       try (CloseableHttpClient httpclient = createClient()) {
+        if (auth instanceof ApacheRequestAuthenticator) {
+          ((ApacheRequestAuthenticator) auth).configure(httpOperation);
+        }
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
         reply = httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       }
       copyHeaders(msg, reply);
     } catch (Exception e) {
-      ExceptionHelper.rethrowProduceException(e);
-    } finally {
-      AdapterResourceAuthenticator.getInstance().removeAuthenticator(myAuth);
+      throw ExceptionHelper.wrapProduceException(e);
     }
     return reply;
   }
@@ -133,6 +136,9 @@ public class ApacheHttpProducer extends HttpProducer {
     HttpClientBuilder builder = HttpClients.custom();
     if (!handleRedirection()) {
       builder.disableRedirectHandling();
+    }
+    else {
+      builder.setRedirectStrategy(new LaxRedirectStrategy());
     }
     if (!isBlank(getHttpProxy())) {
       builder.setProxy(HttpHost.create(getHttpProxy()));
@@ -150,42 +156,23 @@ public class ApacheHttpProducer extends HttpProducer {
     return base;
   }
 
-  private class HttpAuthenticator implements ResourceAuthenticator {
-
-    private URI uri;
-    private String host;
-    private int port;
-    private PasswordAuthentication auth;
-
-    HttpAuthenticator(URI uri, PasswordAuthentication auth) {
-      this.uri = uri;
-      this.auth = auth;
-      this.port = derivePort(uri);
-      host = uri.getHost();
-    }
-
-    private int derivePort(URI uri) {
-      int result = uri.getPort();
-      if (result == -1) {
-        if ("http".equalsIgnoreCase(uri.getScheme())) {
-          result = 80;
-        }
-        if ("https".equalsIgnoreCase(uri.getScheme())) {
-          result = 443;
-        }
-      }
-      return result;
-    }
-
-    @Override
-    public PasswordAuthentication authenticate(ResourceTarget target) {
-      if (host.equalsIgnoreCase(target.getRequestingHost()) && port == target.getRequestingPort()) {
-        log.trace("Using user={} to login to [{}://{}:{}]", auth.getUserName(), target.getRequestingScheme(),
-            target.getRequestingHost(), target.getRequestingPort());
-        return auth;
-      }
-      return null;
-    }
+  public HttpAuthenticator getAuthenticator() {
+    return authenticator;
   }
 
+  /**
+   * Set the authentication method to use for the HTTP request
+   */
+  public void setAuthenticator(HttpAuthenticator authenticator) {
+    this.authenticator = Args.notNull(authenticator, "authenticator");
+  }
+
+  HttpAuthenticator authenticator() {
+    HttpAuthenticator authToUse = getAuthenticator() != null ? getAuthenticator() : new NoAuthentication();
+    // If deprecated username/password are set and no authenticator is configured, transparently create a static authenticator
+    if (getAuthenticator() instanceof NoAuthentication && !isEmpty(getUserName())) {
+      authToUse = new ConfiguredUsernamePassword(getUserName(), getPassword());
+    }
+    return authToUse;
+  }
 }

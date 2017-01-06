@@ -1,10 +1,8 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.http.HttpConstants.DEFAULT_SOCKET_TIMEOUT;
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.IOException;
-import java.net.PasswordAuthentication;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -139,10 +137,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @InputFieldDefault(value = "true")
   private Boolean allowRedirect;
 
-
-
   private transient String authString = null;
-  private transient PasswordAuthentication passwordAuth;
 
   public HttpProducer() {
     super();
@@ -166,15 +161,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   @Override
   public void init() throws CoreException {
-    try {
-      if (!isEmpty(userName)) {
-        passwordAuth = new PasswordAuthentication(userName, Password.decode(password).toCharArray());
-      }
-    }
-    catch (Exception e) {
-      throw new CoreException(e);
-    }
-
   }
 
 
@@ -286,10 +272,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    */
   public void setIgnoreServerResponseCode(Boolean b) {
     ignoreServerResponseCode = b;
-  }
-
-  protected PasswordAuthentication getPasswordAuthentication() {
-    return passwordAuth;
   }
 
   protected void copyHeaders(AdaptrisMessage src, AdaptrisMessage dest) throws IOException, CoreException {

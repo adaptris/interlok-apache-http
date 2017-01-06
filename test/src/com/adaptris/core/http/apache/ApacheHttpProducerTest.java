@@ -29,18 +29,23 @@ import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandaloneRequestor;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.MetadataUsernamePassword;
 import com.adaptris.core.http.client.ConfiguredRequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
+import com.adaptris.core.http.jetty.ConfigurableSecurityHandler;
+import com.adaptris.core.http.jetty.HashLoginServiceFactory;
 import com.adaptris.core.http.jetty.HashUserRealmProxy;
 import com.adaptris.core.http.jetty.HttpConnection;
 import com.adaptris.core.http.jetty.MessageConsumer;
 import com.adaptris.core.http.jetty.ResponseProducer;
 import com.adaptris.core.http.jetty.SecurityConstraint;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
+import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.core.services.metadata.AddMetadataService;
 import com.adaptris.core.stubs.MockMessageProducer;
+import com.adaptris.util.text.Conversion;
 
 public class ApacheHttpProducerTest extends ProducerCase {
 
@@ -435,8 +440,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
       start(producer);
       producer.doService(msg);
       doAssertions(mockProducer, true);
-    } catch (Exception e) {
-      e.printStackTrace();
     } finally {
       stop(httpProducer);
       stopAndRelease(c);
@@ -480,6 +483,107 @@ public class ApacheHttpProducerTest extends ProducerCase {
       stopAndRelease(c);
       Thread.currentThread().setName(threadName);
       PortManager.release(connection.getPort());
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
+  public void testProduce_WithMetadataCredentials() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
+    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
+
+    SecurityConstraint securityConstraint = new SecurityConstraint();
+    securityConstraint.setMustAuthenticate(true);
+    securityConstraint.setRoles("user");
+
+    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
+
+    HttpConnection connection = createConnection(securityWrapper);
+    MockMessageProducer mockProducer = new MockMessageProducer();
+    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
+    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    try {
+      c.requestStart();
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+      msg.addMetadata("apacheUser", "user");
+      msg.addMetadata("apachePassword", "password");
+      MetadataUsernamePassword acl = new MetadataUsernamePassword();
+      acl.setPasswordMetadataKey("apachePassword");
+      acl.setUsernameMetadataKey("apacheUser");
+      httpProducer.setAuthenticator(acl);
+      StandaloneProducer producer = new StandaloneProducer(httpProducer);
+      start(producer);
+      producer.doService(msg);
+      doAssertions(mockProducer, true);
+    }
+    finally {
+      stop(httpProducer);
+      stopAndRelease(c);
+      Thread.currentThread().setName(threadName);
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
+  public void testProduce_WithAuthHeader() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
+    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
+
+    SecurityConstraint securityConstraint = new SecurityConstraint();
+    securityConstraint.setMustAuthenticate(true);
+    securityConstraint.setRoles("user");
+
+    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
+
+    HttpConnection connection = createConnection(securityWrapper);
+    MockMessageProducer mockProducer = new MockMessageProducer();
+    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
+    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    try {
+      c.requestStart();
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+      ConfiguredAuthorizationHeader acl = new ConfiguredAuthorizationHeader(buildAuthHeader("user", "password"));
+      httpProducer.setAuthenticator(acl);
+      StandaloneProducer producer = new StandaloneProducer(httpProducer);
+      start(producer);
+      producer.doService(msg);
+      doAssertions(mockProducer, true);
+    }
+    finally {
+      stop(httpProducer);
+      stopAndRelease(c);
+      Thread.currentThread().setName(threadName);
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
+  public void testProduce_WithMetadataAuthHeader() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    HttpConnection connection = createConnection(createSecurityWrapper());
+    MockMessageProducer mockProducer = new MockMessageProducer();
+    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
+    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    try {
+      c.requestStart();
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+      MetadataAuthorizationHeader acl = new MetadataAuthorizationHeader("apacheAuth");
+      msg.addMetadata("apacheAuth", buildAuthHeader("user", "password"));
+      httpProducer.setAuthenticator(acl);
+      StandaloneProducer producer = new StandaloneProducer(httpProducer);
+      start(producer);
+      producer.doService(msg);
+      doAssertions(mockProducer, true);
+    }
+    finally {
+      stop(httpProducer);
+      stopAndRelease(c);
+      Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
   }
@@ -540,4 +644,25 @@ public class ApacheHttpProducerTest extends ProducerCase {
     return msg;
   }
 
+  private static String buildAuthHeader(String user, String password) {
+
+    String authString = "";
+    if (user != null && user.length() > 0) {
+      String source = user + ":" + password;
+      authString = "Authorization: Basic " + Conversion.byteArrayToBase64String(source.getBytes());
+    }
+    return authString;
+  }
+
+  private SecurityHandlerWrapper createSecurityWrapper() {
+    ConfigurableSecurityHandler handler = new ConfigurableSecurityHandler();
+    HashLoginServiceFactory login = new HashLoginServiceFactory("InterlokJetty", PROPERTIES.getProperty(JETTY_USER_REALM));
+    SecurityConstraint securityConstraint = new SecurityConstraint();
+    securityConstraint.setMustAuthenticate(true);
+    securityConstraint.setRoles("user");
+
+    handler.setSecurityConstraints(Arrays.asList(securityConstraint));
+    handler.setLoginService(login);
+    return handler;
+  }
 }
