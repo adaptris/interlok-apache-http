@@ -2,9 +2,10 @@ package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 
 import javax.validation.Valid;
 
@@ -27,10 +28,9 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
-import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
+import com.adaptris.core.http.ResourceAuthenticator.ResourceTarget;
 import com.adaptris.core.http.auth.HttpAuthenticator;
-import com.adaptris.core.http.auth.NoAuthentication;
-import com.adaptris.core.util.Args;
+import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -59,8 +59,7 @@ public class ApacheHttpProducer extends HttpProducer {
 
   @AdvancedConfig
   private String httpProxy;
-  @Valid
-  private HttpAuthenticator authenticator;
+
 
   public ApacheHttpProducer() {
     super();
@@ -117,7 +116,7 @@ public class ApacheHttpProducer extends HttpProducer {
     try (HttpAuthenticator auth = authenticator()) {
       String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
-      auth.setup(uri, msg);
+      auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
       try (CloseableHttpClient httpclient = createClient()) {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
@@ -156,23 +155,57 @@ public class ApacheHttpProducer extends HttpProducer {
     return base;
   }
 
-  public HttpAuthenticator getAuthenticator() {
-    return authenticator;
-  }
+  private class ApacheResourceTargetMatcher implements ResourceTargetMatcher {
 
-  /**
-   * Set the authentication method to use for the HTTP request
-   */
-  public void setAuthenticator(HttpAuthenticator authenticator) {
-    this.authenticator = Args.notNull(authenticator, "authenticator");
-  }
+    private URI uri;
+    private String host;
+    private int port;
 
-  HttpAuthenticator authenticator() {
-    HttpAuthenticator authToUse = getAuthenticator() != null ? getAuthenticator() : new NoAuthentication();
-    // If deprecated username/password are set and no authenticator is configured, transparently create a static authenticator
-    if (getAuthenticator() instanceof NoAuthentication && !isEmpty(getUserName())) {
-      authToUse = new ConfiguredUsernamePassword(getUserName(), getPassword());
+    ApacheResourceTargetMatcher(URI uri) {
+      this.uri = uri;
+      this.port = derivePort(uri);
+      host = uri.getHost();
     }
-    return authToUse;
+
+    private int derivePort(URI uri) {
+      int result = uri.getPort();
+      if (result == -1) {
+        if ("http".equalsIgnoreCase(uri.getScheme())) {
+          result = 80;
+        }
+        if ("https".equalsIgnoreCase(uri.getScheme())) {
+          result = 443;
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public boolean matches(ResourceTarget target) {
+      if (doMatch(target)) {
+        log.trace("Matched authentication request for [{}://{}:{}].", target.getRequestingScheme(), target.getRequestingHost(),
+            target.getRequestingPort());
+        return true;
+      }
+      log.trace("Unmatched authentication request for [{}://{}:{}]. My target is [{}]", target.getRequestingScheme(),
+          target.getRequestingHost(), target.getRequestingPort(), uri);
+      return false;
+    }
+
+    private boolean doMatch(ResourceTarget target) {
+      boolean rc = false;
+      try {
+        if (target.getRequestingURL() == null) {
+          rc = host.equalsIgnoreCase(target.getRequestingHost()) && port == target.getRequestingPort();
+        }
+        else {
+          rc = uri.toURL().equals(target.getRequestingURL());
+        }
+      }
+      catch (MalformedURLException e) {
+
+      }
+      return rc;
+    }
   }
 }

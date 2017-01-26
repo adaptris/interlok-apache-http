@@ -1,13 +1,12 @@
 package com.adaptris.core.http.apache;
 
-import java.net.HttpURLConnection;
-
 import org.apache.http.client.methods.HttpRequestBase;
 import org.hibernate.validator.constraints.NotBlank;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.http.HttpConstants;
+import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -44,10 +43,7 @@ public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator
   }
 
   @Override
-  public void setup(String target, AdaptrisMessage msg) throws CoreException {
-  }
-
-  public void configureConnection(HttpURLConnection conn) {
+  public void setup(String target, AdaptrisMessage msg, ResourceTargetMatcher m) throws CoreException {
   }
 
   @Override

@@ -649,7 +649,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     String authString = "";
     if (user != null && user.length() > 0) {
       String source = user + ":" + password;
-      authString = "Authorization: Basic " + Conversion.byteArrayToBase64String(source.getBytes());
+      authString = "Basic " + Conversion.byteArrayToBase64String(source.getBytes());
     }
     return authString;
   }

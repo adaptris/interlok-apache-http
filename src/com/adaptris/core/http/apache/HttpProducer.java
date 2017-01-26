@@ -1,6 +1,7 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.http.HttpConstants.DEFAULT_SOCKET_TIMEOUT;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.IOException;
 
@@ -30,6 +31,10 @@ import com.adaptris.core.ProduceException;
 import com.adaptris.core.RequestReplyProducerImp;
 import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.ContentTypeProvider;
+import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
+import com.adaptris.core.http.auth.HttpAuthenticator;
+import com.adaptris.core.http.auth.MetadataUsernamePassword;
+import com.adaptris.core.http.auth.NoAuthentication;
 import com.adaptris.core.http.client.ConfiguredRequestMethodProvider;
 import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider;
@@ -108,7 +113,9 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Deprecated
   private HttpMethod method;
 
+  @Deprecated
   private String userName = null;
+  @Deprecated
   @InputFieldHint(style = "PASSWORD")
   private String password = null;
 
@@ -136,6 +143,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @AdvancedConfig
   @InputFieldDefault(value = "true")
   private Boolean allowRedirect;
+  @Valid
+  private HttpAuthenticator authenticator;
 
   private transient String authString = null;
 
@@ -198,7 +207,9 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * </p>
    * 
    * @param s the password
+   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
    */
+  @Deprecated
   public void setPassword(String s) {
     password = s;
   }
@@ -346,6 +357,23 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     this.methodProvider = Args.notNull(p, "Method Provider");
   }
 
+  public HttpAuthenticator getAuthenticator() {
+    return authenticator;
+  }
+
+  /**
+   * Set the authentication method to use for the HTTP request
+   * 
+   * @see ApacheRequestAuthenticator
+   * @see ConfiguredUsernamePassword
+   * @see MetadataUsernamePassword
+   * @see ConfiguredAuthorizationHeader
+   * @see MetadataAuthorizationHeader
+   */
+  public void setAuthenticator(HttpAuthenticator authenticator) {
+    this.authenticator = Args.notNull(authenticator, "authenticator");
+  }
+
   protected HttpMethod getMethod(AdaptrisMessage msg) {
     if (getMethod() != null) {
       log.warn("Configured using deprecated setMethod(), configure using #setMethodProvider() instead.");
@@ -354,6 +382,15 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     RequestMethod m = getMethodProvider().getMethod(msg);
     log.trace("HTTP Request Method is : [{}]", m);
     return HttpMethod.valueOf(m.name());
+  }
+
+  protected HttpAuthenticator authenticator() {
+    HttpAuthenticator authToUse = getAuthenticator() != null ? getAuthenticator() : new NoAuthentication();
+    // If deprecated username/password are set and no authenticator is configured, transparently create a static authenticator
+    if (authToUse instanceof NoAuthentication && !isEmpty(getUserName())) {
+      authToUse = new ConfiguredUsernamePassword(getUserName(), getPassword());
+    }
+    return authToUse;
   }
 
   public void prepare() throws CoreException {
