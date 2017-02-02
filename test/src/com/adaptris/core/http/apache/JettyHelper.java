@@ -21,7 +21,7 @@ import com.adaptris.core.http.jetty.MessageConsumer;
 import com.adaptris.core.http.jetty.ResponseProducer;
 import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
-import com.adaptris.core.http.server.MetadataHeaderHandler;
+import com.adaptris.core.http.jetty.MetadataHeaderHandler;
 import com.adaptris.core.stubs.MockChannel;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
