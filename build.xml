@@ -126,6 +126,7 @@
         <path refid="main.classpath"/>
       </classpath>
     </javac>
+    <adapter:copy-template src="${test.resources.dir}/log4j.properties.template" dest="${test.resources.dir}/log4j.properties"/>
     <!-- Source our test property files, relying on ant property immutability.
       -->
     <property file="${test.resources.dir}/unit-tests.properties.template"/>

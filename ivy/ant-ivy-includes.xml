@@ -415,10 +415,10 @@
               </fileset>
             </batchtest>
             <classpath>
+              <dirset dir="${test.resources.dir}"/>
               <path refid="main.classpath"/>
               <pathelement path="${classes.build.dir}"/>
               <pathelement path="${testclasses.build.dir}"/>
-              <dirset dir="${test.resources.dir}"/>
               <extra-classpath/>
             </classpath>
           </junit>

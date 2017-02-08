@@ -15,6 +15,9 @@ import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -49,6 +52,7 @@ import com.adaptris.util.text.Conversion;
 
 public class ApacheHttpProducerTest extends ProducerCase {
 
+  protected static Logger log = LoggerFactory.getLogger(ApacheHttpProducerTest.class);
 
   public ApacheHttpProducerTest(String name) {
     super(name);
