@@ -389,7 +389,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testRequest_WithErrorResponse() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
-    jc.setSendServerVersion(true);
     MessageConsumer mc = createConsumer(URL_TO_POST_TO);
     ServiceList services = new ServiceList();
     services.add(new StandaloneProducer(new ResponseProducer(HttpStatus.UNAUTHORIZED_401)));
