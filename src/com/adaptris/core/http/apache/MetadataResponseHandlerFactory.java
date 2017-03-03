@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.StringBuilderWriter;
@@ -15,10 +14,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.entity.ContentType;
 import org.hibernate.validator.constraints.NotBlank;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
@@ -33,15 +29,14 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *
  */
 @XStreamAlias("apache-http-metadata-response-handler")
-public class MetadataResponseHandlerFactory implements ResponseHandlerFactory {
+public class MetadataResponseHandlerFactory extends ResponseHandlerFactoryImpl {
 
-  private transient Logger log = LoggerFactory.getLogger(this.getClass());
   @NotBlank
   private String metadataKey;
 
 
   public MetadataResponseHandlerFactory() {
-
+    super();
   }
 
   public MetadataResponseHandlerFactory(String key) {
@@ -75,21 +70,17 @@ public class MetadataResponseHandlerFactory implements ResponseHandlerFactory {
     public AdaptrisMessage handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
       int status = response.getStatusLine().getStatusCode();
       AdaptrisMessage reply = defaultIfNull(owner.getMessageFactory()).newMessage();
+      HttpEntity entity = response.getEntity();
       if (status > 299) {
         if (!owner.ignoreServerResponseCode()) {
-          throw new IOException("Failed to complete operation, got " + status);
+          logAndThrow(status, entity);
         }
       }
-      HttpEntity entity = response.getEntity();
       if (entity != null) {
         log.trace("Processing data from response {}", response.getEntity().getClass().getSimpleName());
-        ContentType contentType = ContentType.get(entity);
-        // If the content-type is null, then create a dummy one (which will give us a null Charset)
-        if (contentType == null) {
-          contentType = ContentType.create("text/plain");
-        }
+        String encoding = contentEncoding(entity);
         StringBuilder builder = new StringBuilder();
-        try (Reader in = getReader(entity.getContent(), contentType.getCharset());
+        try (Reader in = getReader(entity.getContent(), encoding);
             StringBuilderWriter out = new StringBuilderWriter(builder)) {
           IOUtils.copy(in, out);
         }
@@ -100,7 +91,7 @@ public class MetadataResponseHandlerFactory implements ResponseHandlerFactory {
       return reply;
     }
 
-    private InputStreamReader getReader(InputStream in, Charset encoding) throws UnsupportedEncodingException {
+    private InputStreamReader getReader(InputStream in, String encoding) throws UnsupportedEncodingException {
       InputStreamReader reader = null;
       if (encoding == null) {
         reader = new InputStreamReader(in);

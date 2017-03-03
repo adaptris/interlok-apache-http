@@ -18,10 +18,10 @@ import com.adaptris.core.StandardWorkflow;
 import com.adaptris.core.Workflow;
 import com.adaptris.core.http.jetty.HttpConnection;
 import com.adaptris.core.http.jetty.MessageConsumer;
+import com.adaptris.core.http.jetty.MetadataHeaderHandler;
 import com.adaptris.core.http.jetty.ResponseProducer;
-import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
-import com.adaptris.core.http.server.MetadataHeaderHandler;
+import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.stubs.MockChannel;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
@@ -140,8 +140,7 @@ public class JettyHelper {
     if (sh != null) {
       c.setSecurityHandler(sh);
     }
-    c.getHttpProperties().add(new KeyValuePair(HttpConnection.HttpProperty.MaxIdleTime.name(), "30000"));
-    c.setSendServerVersion(true);
+    c.getHttpConfiguration().add(new KeyValuePair(HttpConnection.HttpConfigurationProperty.SendServerVersion.name(), "true"));
     return c;
   }
 

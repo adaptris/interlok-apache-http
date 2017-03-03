@@ -12,9 +12,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
@@ -28,9 +25,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *
  */
 @XStreamAlias("apache-http-payload-response-handler")
-public class PayloadResponseHandlerFactory implements ResponseHandlerFactory {
+public class PayloadResponseHandlerFactory extends ResponseHandlerFactoryImpl {
 
-  private transient Logger log = LoggerFactory.getLogger(this.getClass());
+  public PayloadResponseHandlerFactory() {
+    super();
+  }
 
   @Override
   public ResponseHandler<AdaptrisMessage> createResponseHandler(HttpProducer owner) {
@@ -49,24 +48,18 @@ public class PayloadResponseHandlerFactory implements ResponseHandlerFactory {
     public AdaptrisMessage handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
       int status = response.getStatusLine().getStatusCode();
       AdaptrisMessage reply = defaultIfNull(owner.getMessageFactory()).newMessage();
+      HttpEntity entity = response.getEntity();
       if (status > 299) {
         if (!owner.ignoreServerResponseCode()) {
-          throw new IOException("Failed to complete operation, got " + status);
+          logAndThrow(status, entity);
         }
       }
-      HttpEntity entity = response.getEntity();
       if (entity != null) {
         log.trace("Processing data from response {}", response.getEntity().getClass().getSimpleName());
-        ContentType contentType = ContentType.get(entity);
-        // If the content-type is null, then create a dummy one (which will give us a null Charset)
-        if (contentType == null) {
-          contentType = ContentType.create("text/plain");
-        }
+        String encoding = contentEncoding(entity);
         try (InputStream in = entity.getContent(); OutputStream out = new BufferedOutputStream(reply.getOutputStream())) {
           IOUtils.copy(in, out);
-          if (contentType.getCharset() != null) {
-            reply.setContentEncoding(contentType.getCharset().name());
-          }
+          reply.setContentEncoding(encoding);
         }
       }
       reply = owner.getResponseHeaderHandler().handle(response, reply);
