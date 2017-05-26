@@ -12,6 +12,7 @@ import javax.validation.Valid;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -43,7 +44,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("apache-http-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Make a HTTP request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
-    recommended = {NullConnection.class})
+    recommended = {NullConnection.class}, author = "Adaptris Ltd")
 @DisplayOrder(order =
 {
     "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",
@@ -117,7 +118,7 @@ public class ApacheHttpProducer extends HttpProducer {
       String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
-      try (CloseableHttpClient httpclient = createClient()) {
+      try (CloseableHttpClient httpclient = createClient(Long.valueOf(timeout).intValue())) {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
         }
@@ -131,8 +132,9 @@ public class ApacheHttpProducer extends HttpProducer {
     return reply;
   }
 
-  private CloseableHttpClient createClient() {
+  private CloseableHttpClient createClient(int timeout) {
     HttpClientBuilder builder = HttpClients.custom();
+    builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build());
     if (!handleRedirection()) {
       builder.disableRedirectHandling();
     }
