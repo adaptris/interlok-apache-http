@@ -39,11 +39,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
  * 
  * @config apache-http-producer
- * @license BASIC
  */
 @XStreamAlias("apache-http-producer")
 @AdapterComponent
-@ComponentProfile(summary = "Make a HTTP request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
+@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
     recommended = {NullConnection.class}, author = "Adaptris Ltd")
 @DisplayOrder(order =
 {
@@ -132,21 +131,23 @@ public class ApacheHttpProducer extends HttpProducer {
     return reply;
   }
 
-  private CloseableHttpClient createClient(int timeout) {
+  private CloseableHttpClient createClient(int timeout) throws Exception {
     HttpClientBuilder builder = HttpClients.custom();
     builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build());
+    return customise(builder).build();
+  }
+
+  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
     if (!handleRedirection()) {
       builder.disableRedirectHandling();
-    }
-    else {
+    } else {
       builder.setRedirectStrategy(new LaxRedirectStrategy());
     }
     if (!isBlank(getHttpProxy())) {
       builder.setProxy(HttpHost.create(getHttpProxy()));
     }
-    return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties().build();
+    return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties();
   }
-
   
   private HttpRequestBase addData(AdaptrisMessage msg, HttpRequestBase base) throws IOException,
       CoreException {

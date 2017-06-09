@@ -1,3 +1,9 @@
 junit.ProducerCase.baseDir=${basedir}/build/example-xml
 junit.jetty.user.realm.properties=${test.resources.dir}/realm.properties
+junit.jetty.keystore.material=${test.resources.dir}/interlok.jks
+junit.jetty.keystore.password=PW:AAAAEIhnGa0xsOzf0680Qcj4qosAAAAQOMQLy1hQbJVU85GWJiVzywAAABCbVQnnjO66PT1rvyg/er61
+junit.jetty.keystore.type=JKS
+junit.jetty.keystore.url=file://localhost/${junit.jetty.keystore.material}?keystoreType=${junit.jetty.keystore.type}
 
+junit.jetty.trust.url=file://localhost/${java.home}/lib/security/cacerts?keystoreType=JKS
+junit.jetty.trust.password=changeit
