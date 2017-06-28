@@ -21,6 +21,8 @@ public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator
   @NotBlank
   private String headerValue;
   
+  private transient String actualHeaderValue;
+
   public ConfiguredAuthorizationHeader() {
 
   }
@@ -44,6 +46,7 @@ public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator
 
   @Override
   public void setup(String target, AdaptrisMessage msg, ResourceTargetMatcher m) throws CoreException {
+    actualHeaderValue = msg.resolve(getHeaderValue());
   }
 
   @Override
@@ -52,7 +55,7 @@ public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator
 
   @Override
   public void configure(HttpRequestBase req) {
-    req.addHeader(HttpConstants.AUTHORIZATION, headerValue);
+    req.addHeader(HttpConstants.AUTHORIZATION, actualHeaderValue);
   }
 
 }
