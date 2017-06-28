@@ -32,6 +32,7 @@ import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandaloneRequestor;
 import com.adaptris.core.http.ConfiguredContentTypeProvider;
+import com.adaptris.core.http.RawContentTypeProvider;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
 import com.adaptris.core.http.auth.MetadataUsernamePassword;
@@ -298,7 +299,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
-    http.setContentTypeProvider(new com.adaptris.core.http.MetadataContentTypeProvider(METADATA_KEY_CONTENT_TYPE));
+    http.setContentTypeProvider(new RawContentTypeProvider("%message{" + METADATA_KEY_CONTENT_TYPE + "}"));
     StandaloneProducer producer = new StandaloneProducer(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
