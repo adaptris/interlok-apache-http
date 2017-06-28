@@ -144,10 +144,9 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
     sl.addService(service);
     sl.setFirstServiceId(service.getUniqueId());
     sl.addService(new ThrowExceptionService("5XX Server Error", new ConfiguredException("Got 5XX error from server")));
-    sl.addService(new ThrowExceptionService("4XX Client Error", new ConfiguredException("Got 4XX error from server")));
     sl.addService(new NullService("Not Found"));
     sl.addService(new LogMessageService("2XX OK"));
-    sl.addService(new ThrowExceptionService("DefaultServiceId", new ConfiguredException("Unmatched Response")));
+    sl.addService(new NullService("DefaultServiceId"));
 
     return sl;
   }
@@ -162,9 +161,6 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
     service.getStatusMatches().add(new RangeMatch(500, 599, "5XX Server Error"));
     service.getStatusMatches().add(new RangeMatch(200, 299, "2XX OK"));
     service.getStatusMatches().add(new ExactMatch(404, "Not Found"));
-    service.getStatusMatches().add(new RangeMatch(400, 499, "4XX Client Error"));
-    service.setAuthenticator(HttpRequestServiceTest.buildAuthenticator("username", "password"));
-
     return service;
   }
 

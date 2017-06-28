@@ -63,7 +63,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  */
 @XStreamAlias("branching-apache-http-request-service")
 @AdapterComponent
-@ComponentProfile(summary = "Make a HTTP request to a remote server using standard JRE components", tag = "service,http,https,branching", branchSelector = true)
+@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https,branching", branchSelector = true, author = "Adaptris Ltd")
 @DisplayOrder(order = {"url", "method", "contentType", "defaultServiceId", "authentication", "requestHeaderProvider",
     "responseHeaderHandler", "statusMatches"})
 public class BranchingHttpRequestService extends HttpRequestServiceImpl {
@@ -71,7 +71,7 @@ public class BranchingHttpRequestService extends HttpRequestServiceImpl {
   @NotNull
   @AutoPopulated
   @Valid
-  @XStreamImplicit(itemFieldName = "status-match")
+  @XStreamImplicit
   private List<StatusEvaluator> statusMatches;
 
   // Allow this to be null, which just means no branching...

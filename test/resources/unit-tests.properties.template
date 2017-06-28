@@ -1,4 +1,5 @@
 junit.ProducerCase.baseDir=${basedir}/build/example-xml
+junit.ServiceCase.baseDir=${basedir}/build/example-xml
 junit.jetty.user.realm.properties=${test.resources.dir}/realm.properties
 junit.jetty.keystore.material=${test.resources.dir}/interlok.jks
 junit.jetty.keystore.password=PW:AAAAEIhnGa0xsOzf0680Qcj4qosAAAAQOMQLy1hQbJVU85GWJiVzywAAABCbVQnnjO66PT1rvyg/er61
