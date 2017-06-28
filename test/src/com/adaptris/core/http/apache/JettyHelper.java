@@ -19,7 +19,7 @@ import com.adaptris.core.Workflow;
 import com.adaptris.core.http.jetty.HttpConnection;
 import com.adaptris.core.http.jetty.MessageConsumer;
 import com.adaptris.core.http.jetty.MetadataHeaderHandler;
-import com.adaptris.core.http.jetty.ResponseProducer;
+import com.adaptris.core.http.jetty.StandardResponseProducer;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
 import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.stubs.MockChannel;
@@ -72,10 +72,11 @@ public class JettyHelper {
   }
 
   public static Workflow createWorkflow(MessageConsumer consumer, AdaptrisMessageProducer producer) {
-    return createWorkflow(consumer, producer, new ResponseProducer(HttpStatus.OK_200));
+    return createWorkflow(consumer, producer, new StandardResponseProducer(HttpStatus.OK_200));
   }
 
-  public static Workflow createWorkflow(MessageConsumer consumer, AdaptrisMessageProducer producer, ResponseProducer responder) {
+  public static Workflow createWorkflow(MessageConsumer consumer, AdaptrisMessageProducer producer,
+                                        StandardResponseProducer responder) {
     return createWorkflow(consumer, producer, new ServiceList(new Service[]
     {
       new StandaloneProducer(responder)

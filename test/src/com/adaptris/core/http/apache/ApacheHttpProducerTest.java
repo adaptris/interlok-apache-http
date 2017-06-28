@@ -31,19 +31,19 @@ import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandaloneRequestor;
+import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
 import com.adaptris.core.http.auth.MetadataUsernamePassword;
 import com.adaptris.core.http.client.ConfiguredRequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.jetty.ConfigurableSecurityHandler;
 import com.adaptris.core.http.jetty.HashLoginServiceFactory;
-import com.adaptris.core.http.jetty.HashUserRealmProxy;
 import com.adaptris.core.http.jetty.HttpConnection;
 import com.adaptris.core.http.jetty.MessageConsumer;
-import com.adaptris.core.http.jetty.ResponseProducer;
 import com.adaptris.core.http.jetty.SecurityConstraint;
+import com.adaptris.core.http.jetty.StandardResponseProducer;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
-import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.core.services.metadata.AddMetadataService;
@@ -137,7 +137,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
@@ -159,7 +159,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
@@ -183,7 +183,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
@@ -207,7 +207,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertTrue(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertTrue(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
@@ -218,8 +218,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     ServiceList sl = new ServiceList();
     sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
-    ResponseProducer responder = new ResponseProducer(HttpStatus.OK_200);
-    responder.setContentTypeKey(getName());
+    StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
+    responder.setContentTypeProvider(new com.adaptris.core.http.MetadataContentTypeProvider(getName()));
     sl.add(new StandaloneProducer(responder));
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
 
@@ -236,7 +236,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
       stopAndRelease(c);
       stop(producer);
     }
-    assertEquals("UTF-8", msg.getCharEncoding());
+    assertEquals("UTF-8", msg.getContentEncoding());
   }
 
 
@@ -246,7 +246,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     MessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
-    ResponseProducer responder = new ResponseProducer(HttpStatus.OK_200);
+    StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
     responder.setSendPayload(false);
     sl.add(new StandaloneProducer(responder));
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
@@ -289,8 +289,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertTrue(m2.containsKey("Content-Type"));
-    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertTrue(m2.headersContainsKey("Content-Type"));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/complicated", m2.getMetadataValue("Content-Type"));
   }
 
@@ -312,8 +312,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertTrue(m2.containsKey("Content-Type"));
-    assertFalse(m2.containsKey(METADATA_KEY_CONTENT_TYPE));
+    assertTrue(m2.headersContainsKey("Content-Type"));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/complicated", m2.getMetadataValue("Content-Type"));
   }
 
@@ -368,7 +368,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     HttpConnection jc = createConnection();
     MessageConsumer mc = createConsumer(URL_TO_POST_TO);
     ServiceList services = new ServiceList();
-    services.add(new StandaloneProducer(new ResponseProducer(HttpStatus.UNAUTHORIZED_401)));
+    services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
     Channel c = createChannel(jc, createWorkflow(mc, mock, services));
     StandaloneRequestor producer = new StandaloneRequestor(new ApacheHttpProducer(createProduceDestination(c)));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
@@ -391,7 +391,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     HttpConnection jc = createConnection();
     MessageConsumer mc = createConsumer(URL_TO_POST_TO);
     ServiceList services = new ServiceList();
-    services.add(new StandaloneProducer(new ResponseProducer(HttpStatus.UNAUTHORIZED_401)));
+
+    services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
     Channel c = createChannel(jc, createWorkflow(mc, mock, services));
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
@@ -416,17 +417,12 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  @SuppressWarnings("deprecation")
   public void testProduce_WithUsernamePassword() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
-    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
+    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
 
-    SecurityConstraint securityConstraint = new SecurityConstraint();
-    securityConstraint.setMustAuthenticate(true);
-    securityConstraint.setRoles("user");
-
-    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
@@ -455,14 +451,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithUsernamePassword_BadCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
-    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
+    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
 
-    SecurityConstraint securityConstraint = new SecurityConstraint();
-    securityConstraint.setMustAuthenticate(true);
-    securityConstraint.setRoles("user");
-
-    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
@@ -473,8 +463,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
       c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
 
-      httpProducer.setUserName(getName());
-      httpProducer.setPassword(getName());
+      httpProducer.setAuthenticator(new ConfiguredUsernamePassword(getName(), getName()));
       StandaloneProducer producer = new StandaloneProducer(httpProducer);
       start(producer);
       producer.doService(msg);
@@ -493,14 +482,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithMetadataCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
-    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
-
-    SecurityConstraint securityConstraint = new SecurityConstraint();
-    securityConstraint.setMustAuthenticate(true);
-    securityConstraint.setRoles("user");
-
-    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
+    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
@@ -532,14 +514,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithAuthHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    HashUserRealmProxy securityWrapper = new HashUserRealmProxy();
-    securityWrapper.setFilename(PROPERTIES.getProperty(JETTY_USER_REALM));
-
-    SecurityConstraint securityConstraint = new SecurityConstraint();
-    securityConstraint.setMustAuthenticate(true);
-    securityConstraint.setRoles("user");
-
-    securityWrapper.setSecurityConstraints(Arrays.asList(securityConstraint));
+    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
@@ -598,8 +573,9 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     ServiceList sl = new ServiceList();
     sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
-    ResponseProducer responder = new ResponseProducer(HttpStatus.OK_200);
-    responder.setContentTypeKey(getName());
+    StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
+    responder.setContentTypeProvider(new ConfiguredContentTypeProvider("%message{" + getName() + "}"));
+
     sl.add(new StandaloneProducer(responder));
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
 
@@ -626,8 +602,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   @Override
   protected Object retrieveObjectForSampleConfig() {
     ApacheHttpProducer producer = new ApacheHttpProducer(new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));
-    producer.setUserName("username");
-    producer.setPassword("password");
+    producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
     StandaloneProducer result = new StandaloneProducer(producer);
     return result;
   }
@@ -636,12 +611,12 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(1, mockProducer.getMessages().size());
     AdaptrisMessage msg = mockProducer.getMessages().get(0);
     if (assertPayload) {
-      assertEquals(TEXT, msg.getStringPayload());
+      assertEquals(TEXT, msg.getContent());
     }
-    assertTrue(msg.containsKey(CoreConstants.JETTY_URI));
+    assertTrue(msg.headersContainsKey(CoreConstants.JETTY_URI));
     assertEquals(URL_TO_POST_TO, msg.getMetadataValue(CoreConstants.JETTY_URI));
-    assertTrue(msg.containsKey(CoreConstants.JETTY_URL));
-    Map objMetadata = msg.getObjectMetadata();
+    assertTrue(msg.headersContainsKey(CoreConstants.JETTY_URL));
+    Map objMetadata = msg.getObjectHeaders();
     assertNotNull(objMetadata.get(CoreConstants.JETTY_REQUEST_KEY));
     assertNotNull(objMetadata.get(CoreConstants.JETTY_RESPONSE_KEY));
     return msg;
@@ -657,7 +632,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     return authString;
   }
 
-  private SecurityHandlerWrapper createSecurityWrapper() {
+  private ConfigurableSecurityHandler createSecurityWrapper() {
     ConfigurableSecurityHandler handler = new ConfigurableSecurityHandler();
     HashLoginServiceFactory login = new HashLoginServiceFactory("InterlokJetty", PROPERTIES.getProperty(JETTY_USER_REALM));
     SecurityConstraint securityConstraint = new SecurityConstraint();
@@ -668,4 +643,5 @@ public class ApacheHttpProducerTest extends ProducerCase {
     handler.setLoginService(login);
     return handler;
   }
+
 }
