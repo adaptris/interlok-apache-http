@@ -64,6 +64,7 @@ public class PayloadResponseHandlerFactory extends ResponseHandlerFactoryImpl {
       }
       reply = owner.getResponseHeaderHandler().handle(response, reply);
       reply.addMetadata(new MetadataElement(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, String.valueOf(status)));
+      reply.addObjectHeader(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, Integer.valueOf(status));
       return reply;
     }
 
