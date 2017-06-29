@@ -13,7 +13,7 @@ import com.adaptris.util.KeyValuePairSet;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Implementation of {@link RequestHeaderHandler} that applies static configured values as headers.
+ * Implementation of {@link RequestHeaderProvider} that applies static configured values as headers.
  * 
  * @config apache-http-configured-request-headers
  * 

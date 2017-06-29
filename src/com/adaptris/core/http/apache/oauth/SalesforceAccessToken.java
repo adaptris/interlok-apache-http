@@ -18,9 +18,14 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.http.apache.ApacheHttpProducer;
+import com.adaptris.core.http.client.net.StandardHttpProducer;
 import com.adaptris.core.http.oauth.AccessToken;
 import com.adaptris.core.http.oauth.AccessTokenBuilder;
 import com.adaptris.core.http.oauth.GetOauthToken;
+import com.adaptris.core.services.metadata.AddFormattedMetadataService;
+import com.adaptris.core.services.metadata.AddMetadataService;
+import com.adaptris.core.services.metadata.CreateQueryStringFromMetadata;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.security.exc.PasswordException;
@@ -28,12 +33,17 @@ import com.adaptris.security.password.Password;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * 
- * Wraps the salesforce username/password OAuth authentication flow.
+ * Wraps the salesforce username/password OAuth authentication flow for machine/machine data flow.
  * <p>
  * Based on the java example available within the
  * <a href="https://github.com/jamesward/salesforce-rest-starter">salesforce-rest-starter</a> project and relies on the jackson json
- * jars being available on the classpath.
+ * jars being available on the classpath (built against {@code com.fasterxml.jackson.core:jackson-databind:2.6.2}) which has been
+ * marked as optional in the dependency list to avoid additional jars if you want to just use Apache HTTP.
+ * </p>
+ * <p>
+ * It is perfectly possible to achieve the same thing with standard configuration; it would be a combination of
+ * {@link AddMetadataService} + {@link CreateQueryStringFromMetadata} + ({@link StandardHttpProducer} || {@link ApacheHttpProducer})
+ * + {@code JsonPathService} + {@link AddFormattedMetadataService}. This encapsulates all of that into a single class.
  * </p>
  * 
  * @config salesforce-access-token
@@ -47,6 +57,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("salesforce-access-token")
 public class SalesforceAccessToken implements AccessTokenBuilder {
 
+  /**
+   * The default URL for getting access tokens {@value #DEFAULT_TOKEN_URL}.
+   * 
+   */
   public static final String DEFAULT_TOKEN_URL = "https://login.salesforce.com/services/oauth2/token";
 
   @NotBlank
@@ -129,6 +143,11 @@ public class SalesforceAccessToken implements AccessTokenBuilder {
     return username;
   }
 
+  /**
+   * Set the username.
+   * 
+   * @param s the username
+   */
   public void setUsername(String s) {
     this.username = Args.notBlank(s, "username");
   }
@@ -137,6 +156,14 @@ public class SalesforceAccessToken implements AccessTokenBuilder {
     return password;
   }
 
+  /**
+   * Set the password.
+   * <p>
+   * Remember the password is really your password + security token
+   * </p>
+   * 
+   * @param s the password which may be encoded via {@link Password#encode(String, String)}
+   */
   public void setPassword(String s) {
     this.password = Args.notBlank(s, "password");
   }
@@ -145,6 +172,11 @@ public class SalesforceAccessToken implements AccessTokenBuilder {
     return consumerKey;
   }
 
+  /**
+   * Set your consumer key.
+   * 
+   * @param s the consumer key
+   */
   public void setConsumerKey(String s) {
     this.consumerKey = Args.notBlank(s, "consumerKey");
   }
@@ -153,6 +185,11 @@ public class SalesforceAccessToken implements AccessTokenBuilder {
     return consumerSecret;
   }
 
+  /**
+   * Set your consumer secret.
+   * 
+   * @param s the consumer secret which may be encoded via {@link Password#encode(String, String)}
+   */
   public void setConsumerSecret(String s) {
     this.consumerSecret = Args.notBlank(s, "consumerSecret");
   }
@@ -161,8 +198,13 @@ public class SalesforceAccessToken implements AccessTokenBuilder {
     return httpProxy;
   }
 
-  public void setHttpProxy(String httpProxy) {
-    this.httpProxy = httpProxy;
+  /**
+   * Explicitly configure a proxy server.
+   * 
+   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
+   */
+  public void setHttpProxy(String proxy) {
+    this.httpProxy = proxy;
   }
 
   public String getTokenUrl() {
@@ -172,7 +214,7 @@ public class SalesforceAccessToken implements AccessTokenBuilder {
   /**
    * Set the token URL.
    * 
-   * @param tokenUrl the URL, if not specified, defaults to {@value #TOKEN_URL}
+   * @param tokenUrl the URL, if not specified, defaults to {@value #DEFAULT_TOKEN_URL}
    */
   public void setTokenUrl(String tokenUrl) {
     this.tokenUrl = tokenUrl;
