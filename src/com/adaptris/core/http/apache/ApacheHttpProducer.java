@@ -143,8 +143,9 @@ public class ApacheHttpProducer extends HttpProducer {
     } else {
       builder.setRedirectStrategy(new LaxRedirectStrategy());
     }
-    if (!isBlank(getHttpProxy())) {
-      builder.setProxy(HttpHost.create(getHttpProxy()));
+    String httpProxy = getHttpProxy();
+    if (!isBlank(httpProxy) && !httpProxy.equals(":")) {
+      builder.setProxy(HttpHost.create(httpProxy));
     }
     return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties();
   }
