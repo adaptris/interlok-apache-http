@@ -12,6 +12,7 @@ import javax.validation.Valid;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -38,12 +39,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
  * 
  * @config apache-http-producer
- * @license BASIC
  */
 @XStreamAlias("apache-http-producer")
 @AdapterComponent
-@ComponentProfile(summary = "Make a HTTP request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
-    recommended = {NullConnection.class})
+@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
+    recommended = {NullConnection.class}, author = "Adaptris Ltd")
 @DisplayOrder(order =
 {
     "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",
@@ -117,7 +117,7 @@ public class ApacheHttpProducer extends HttpProducer {
       String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
-      try (CloseableHttpClient httpclient = createClient()) {
+      try (CloseableHttpClient httpclient = createClient(Long.valueOf(timeout).intValue())) {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
         }
@@ -131,20 +131,24 @@ public class ApacheHttpProducer extends HttpProducer {
     return reply;
   }
 
-  private CloseableHttpClient createClient() {
+  private CloseableHttpClient createClient(int timeout) throws Exception {
     HttpClientBuilder builder = HttpClients.custom();
-    if (!handleRedirection()) {
-      builder.disableRedirectHandling();
-    }
-    else {
-      builder.setRedirectStrategy(new LaxRedirectStrategy());
-    }
-    if (!isBlank(getHttpProxy())) {
-      builder.setProxy(HttpHost.create(getHttpProxy()));
-    }
-    return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties().build();
+    builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build());
+    return customise(builder).build();
   }
 
+  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
+    if (!handleRedirection()) {
+      builder.disableRedirectHandling();
+    } else {
+      builder.setRedirectStrategy(new LaxRedirectStrategy());
+    }
+    String httpProxy = getHttpProxy();
+    if (!isBlank(httpProxy) && !httpProxy.equals(":")) {
+      builder.setProxy(HttpHost.create(httpProxy));
+    }
+    return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties();
+  }
   
   private HttpRequestBase addData(AdaptrisMessage msg, HttpRequestBase base) throws IOException,
       CoreException {

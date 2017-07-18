@@ -3,17 +3,17 @@ package com.adaptris.core.http.apache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.adaptris.core.AdaptrisMessage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Provides a content type derived from metadata.
  * <p>
- * Note that the content type charset will be derived from {@link AdaptrisMessage#getCharEncoding()}
- * so configuring a mime type of {@code text/xml} when the message has a char encoding of
- * {@code UTF-8} will return {@code text/xml; charset="UTF-8"}. Also no validation is done of the
- * metadata value forming the mime-type. it is passed straight through to
- * {@link ContentType#create(String, String)}
+ * Note that the content type charset will be derived from {@link AdaptrisMessage#getContentEncoding()} so configuring a mime type
+ * of {@code text/xml} when the message has a char encoding of {@code UTF-8} will return {@code text/xml; charset="UTF-8"}. Also no
+ * validation is done of the metadata value forming the mime-type.
  * </p>
+ * 
  * @config apache-http-metadata-content-type-provider
  * @deprecated since 3.0.6 use {@link com.adaptris.core.http.MetadataContentTypeProvider} instead.
  */

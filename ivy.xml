@@ -32,6 +32,8 @@
     <dependency org="com.adaptris" name="adp-core-apt" rev="${adp-core-version}" conf="compile->default;ant->default" changing="true"/>
     <dependency org="org.apache.httpcomponents" name="httpclient" rev="4.5" conf="compile->default"/>
 
+    <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.6.2" conf="optional->default"/>
+
     <dependency org="org.apache.velocity" name="velocity" rev="1.7" transitive="false" conf="compile->default"/>
     <dependency org="org.slf4j" name="slf4j-api" rev="1.7.12" conf="compile->default" />
     <dependency org="org.slf4j" name="jcl-over-slf4j" rev="1.7.12" conf="optional->default" />

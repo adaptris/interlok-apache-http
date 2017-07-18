@@ -285,6 +285,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     ignoreServerResponseCode = b;
   }
 
+  @SuppressWarnings("deprecation")
   protected void copyHeaders(AdaptrisMessage src, AdaptrisMessage dest) throws IOException, CoreException {
     dest.getObjectMetadata().putAll(src.getObjectMetadata());
     dest.setMetadata(src.getMetadata());

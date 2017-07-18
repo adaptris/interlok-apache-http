@@ -22,6 +22,7 @@ public class CompositeResponseHeadersTest extends ResponseHeadersCase {
   @After
   public void tearDown() throws Exception {}
   @Test
+  @SuppressWarnings("deprecation")
   public void testHandle_Response() {
     String name = testName.getMethodName();
     BasicHeader header = new BasicHeader(name, name);
@@ -34,7 +35,7 @@ public class CompositeResponseHeadersTest extends ResponseHeadersCase {
     handler.handle(response, msg);
 
     assertEquals(1, msg.getMetadata().size());
-    assertTrue(msg.containsKey(name));
+    assertTrue(msg.headersContainsKey(name));
     assertEquals(name, msg.getMetadataValue(name));
 
     assertEquals(1, msg.getObjectMetadata().size());

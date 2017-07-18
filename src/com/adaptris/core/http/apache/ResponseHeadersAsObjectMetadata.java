@@ -4,6 +4,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -30,6 +31,7 @@ public class ResponseHeadersAsObjectMetadata extends ResponseHeadersAsMetadata {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public AdaptrisMessage handle(HttpResponse src, AdaptrisMessage msg) {
     Header[] headers = src.getAllHeaders();
     if (notNull(headers)) {

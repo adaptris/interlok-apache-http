@@ -97,7 +97,7 @@
   <target name="javadoc" depends="prepare-ivy" description="Create javadocs">
     <adapter:ydoc-javadoc-creator sourcepath="${src.dir}" destdir="${api.doc.dir}">
       <groups>
-        <group title="Interlok JSON Transformations" packages="com.adaptris.core.transform.json:com.adaptris.core.transform.json.*"/>
+        <group title="Interlok Apache HTTP" packages="com.adaptris.core.http.apache:com.adaptris.core.http.apache.*"/>
       </groups>
     </adapter:ydoc-javadoc-creator>
   </target>

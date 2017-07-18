@@ -3,14 +3,14 @@ import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.adaptris.core.AdaptrisMessage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Provides a static content type.
  * <p>
- * Note that the content type character set if derived from
- * {@link AdaptrisMessage#getCharEncoding()} so configuring a mime type of {@code text/xml} when the
- * message has a char encoding of {@code UTF-8} will return {@code text/xml; charset="UTF-8"}
+ * Note that the content type character set if derived from {@link AdaptrisMessage#getContentEncoding()} so configuring a mime type
+ * of {@code text/xml} when the message has a char encoding of {@code UTF-8} will return {@code text/xml; charset="UTF-8"}
  * </p>
  * 
  * @config apache-http-static-content-type-provider

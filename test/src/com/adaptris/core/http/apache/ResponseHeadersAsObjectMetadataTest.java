@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 
+@SuppressWarnings("deprecation")
 public class ResponseHeadersAsObjectMetadataTest extends ResponseHeadersCase {
 
   @Before
