@@ -46,7 +46,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("apache-http-request-service")
 @AdapterComponent
-@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https", author = "Adaptris Ltd")
+@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https", metadata =
+{
+    "adphttpresponse"
+
+}, author = "Adaptris Ltd")
 @DisplayOrder(order = {"url", "method", "contentType", "authentication", "requestHeaderProvider", "responseHeaderHandler"})
 public class HttpRequestService extends HttpRequestServiceImpl implements DynamicPollingTemplate.TemplateProvider {
 

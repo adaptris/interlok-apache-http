@@ -42,8 +42,14 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("apache-http-producer")
 @AdapterComponent
-@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "producer,http,https",
-    recommended = {NullConnection.class}, author = "Adaptris Ltd")
+@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "producer,http,https", metadata =
+{
+    "adphttpresponse"
+
+}, recommended =
+{
+    NullConnection.class
+}, author = "Adaptris Ltd")
 @DisplayOrder(order =
 {
     "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",

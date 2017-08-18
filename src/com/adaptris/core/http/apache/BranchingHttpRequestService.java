@@ -63,7 +63,11 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  */
 @XStreamAlias("branching-apache-http-request-service")
 @AdapterComponent
-@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https,branching", branchSelector = true, author = "Adaptris Ltd")
+@ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https,branching", branchSelector = true, metadata =
+{
+    "adphttpresponse"
+
+}, author = "Adaptris Ltd")
 @DisplayOrder(order = {"url", "method", "contentType", "defaultServiceId", "authentication", "requestHeaderProvider",
     "responseHeaderHandler", "statusMatches"})
 public class BranchingHttpRequestService extends HttpRequestServiceImpl {
