@@ -36,8 +36,14 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("custom-tls-apache-http-producer")
 @AdapterComponent
-@ComponentProfile(summary = "Apache HTTP Client with custom TLS/SSL parameters", tag = "producer,http,https",
-    recommended = {NullConnection.class}, author = "Adaptris Ltd")
+@ComponentProfile(summary = "Apache HTTP Client with custom TLS/SSL parameters", tag = "producer,http,https", metadata =
+{
+    "adphttpresponse"
+
+}, recommended =
+{
+    NullConnection.class
+}, author = "Adaptris Ltd")
 @DisplayOrder(order = {"username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode",
     "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory", "keystore",
     "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites"
