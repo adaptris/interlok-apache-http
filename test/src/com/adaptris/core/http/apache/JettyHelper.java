@@ -17,7 +17,7 @@ import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandardWorkflow;
 import com.adaptris.core.Workflow;
 import com.adaptris.core.http.jetty.HttpConnection;
-import com.adaptris.core.http.jetty.MessageConsumer;
+import com.adaptris.core.http.jetty.JettyMessageConsumer;
 import com.adaptris.core.http.jetty.MetadataHeaderHandler;
 import com.adaptris.core.http.jetty.StandardResponseProducer;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
@@ -42,7 +42,7 @@ public class JettyHelper {
   }
 
   public static Channel createAndStartChannel(MockMessageProducer mock) throws Exception {
-    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
     mc.setHeaderHandler(new MetadataHeaderHandler());
     HttpConnection jc = createConnection();
     Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList()));
@@ -50,7 +50,8 @@ public class JettyHelper {
     return c;
   }
 
-  public static Channel createChannel(AdaptrisConnection connection, MessageConsumer consumer, AdaptrisMessageProducer producer)
+  public static Channel createChannel(AdaptrisConnection connection, JettyMessageConsumer consumer,
+                                      AdaptrisMessageProducer producer)
       throws Exception {
     return createChannel(connection, createWorkflow(consumer, producer));
   }
@@ -71,11 +72,11 @@ public class JettyHelper {
     return result;
   }
 
-  public static Workflow createWorkflow(MessageConsumer consumer, AdaptrisMessageProducer producer) {
+  public static Workflow createWorkflow(JettyMessageConsumer consumer, AdaptrisMessageProducer producer) {
     return createWorkflow(consumer, producer, new StandardResponseProducer(HttpStatus.OK_200));
   }
 
-  public static Workflow createWorkflow(MessageConsumer consumer, AdaptrisMessageProducer producer,
+  public static Workflow createWorkflow(JettyMessageConsumer consumer, AdaptrisMessageProducer producer,
                                         StandardResponseProducer responder) {
     return createWorkflow(consumer, producer, new ServiceList(new Service[]
     {
@@ -83,7 +84,7 @@ public class JettyHelper {
     }));
   }
 
-  public static Workflow createWorkflow(MessageConsumer consumer, AdaptrisMessageProducer producer, ServiceList list) {
+  public static Workflow createWorkflow(JettyMessageConsumer consumer, AdaptrisMessageProducer producer, ServiceList list) {
     StandardWorkflow wf = new StandardWorkflow();
     wf.setConsumer(consumer);
     wf.setProducer(producer);
@@ -91,8 +92,8 @@ public class JettyHelper {
     return wf;
   }
 
-  public static MessageConsumer createConsumer(String dest) {
-    MessageConsumer consumer = new MessageConsumer();
+  public static JettyMessageConsumer createConsumer(String dest) {
+    JettyMessageConsumer consumer = new JettyMessageConsumer();
     consumer.setAdditionalDebug(true);
     consumer.setDestination(new ConfiguredConsumeDestination(dest));
     return consumer;
