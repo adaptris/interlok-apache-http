@@ -134,6 +134,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
     p.setAuthenticator(getAuthenticator());
     p.setRequestHeaderProvider(getRequestHeaderProvider());
     p.setResponseHeaderHandler(getResponseHeaderHandler());
+    p.setAllowRedirect(true);
     p.registerConnection(new NullConnection());
     return p;
   }

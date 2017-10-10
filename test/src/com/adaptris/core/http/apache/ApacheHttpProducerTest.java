@@ -448,6 +448,35 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  public void testProduce_WithDynamicUsernamePassword() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
+
+
+    HttpConnection connection = createConnection(securityWrapper);
+    MockMessageProducer mockProducer = new MockMessageProducer();
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
+    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    try {
+      c.requestStart();
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+
+      DynamicBasicAuthorizationHeader auth = new DynamicBasicAuthorizationHeader("user", "password");
+      httpProducer.setAuthenticator(auth);
+      StandaloneProducer producer = new StandaloneProducer(httpProducer);
+      start(producer);
+      producer.doService(msg);
+      doAssertions(mockProducer, true);
+    } finally {
+      stop(httpProducer);
+      stopAndRelease(c);
+      Thread.currentThread().setName(threadName);
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
 
   public void testProduce_WithUsernamePassword_BadCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
