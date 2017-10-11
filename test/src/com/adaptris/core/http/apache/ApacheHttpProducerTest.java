@@ -41,7 +41,7 @@ import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.jetty.ConfigurableSecurityHandler;
 import com.adaptris.core.http.jetty.HashLoginServiceFactory;
 import com.adaptris.core.http.jetty.HttpConnection;
-import com.adaptris.core.http.jetty.MessageConsumer;
+import com.adaptris.core.http.jetty.JettyMessageConsumer;
 import com.adaptris.core.http.jetty.SecurityConstraint;
 import com.adaptris.core.http.jetty.StandardResponseProducer;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
@@ -215,7 +215,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_ReplyHasCharset() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
-    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
     sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
@@ -244,7 +244,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_ReplyHasNoData() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
-    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
     StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
@@ -367,7 +367,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testRequest_ProduceException_401() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
-    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
     ServiceList services = new ServiceList();
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
     Channel c = createChannel(jc, createWorkflow(mc, mock, services));
@@ -390,7 +390,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testRequest_WithErrorResponse() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
-    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
     ServiceList services = new ServiceList();
 
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
@@ -427,7 +427,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
-    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
     Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
     ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
     try {
@@ -436,6 +436,35 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
       httpProducer.setUserName("user");
       httpProducer.setPassword("password");
+      StandaloneProducer producer = new StandaloneProducer(httpProducer);
+      start(producer);
+      producer.doService(msg);
+      doAssertions(mockProducer, true);
+    } finally {
+      stop(httpProducer);
+      stopAndRelease(c);
+      Thread.currentThread().setName(threadName);
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
+  public void testProduce_WithDynamicUsernamePassword() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
+
+
+    HttpConnection connection = createConnection(securityWrapper);
+    MockMessageProducer mockProducer = new MockMessageProducer();
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
+    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    try {
+      c.requestStart();
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+
+      DynamicBasicAuthorizationHeader auth = new DynamicBasicAuthorizationHeader("user", "password");
+      httpProducer.setAuthenticator(auth);
       StandaloneProducer producer = new StandaloneProducer(httpProducer);
       start(producer);
       producer.doService(msg);
@@ -457,7 +486,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
-    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
     Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
     ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
     try {
@@ -487,7 +516,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
-    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
     Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
     ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
     try {
@@ -519,7 +548,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     HttpConnection connection = createConnection(securityWrapper);
     MockMessageProducer mockProducer = new MockMessageProducer();
-    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
     Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
     ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
     try {
@@ -545,7 +574,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     Thread.currentThread().setName(getName());
     HttpConnection connection = createConnection(createSecurityWrapper());
     MockMessageProducer mockProducer = new MockMessageProducer();
-    MessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
     Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
     ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
     try {
@@ -570,7 +599,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testRequest_WithReplyAsMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
-    MessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
     sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
