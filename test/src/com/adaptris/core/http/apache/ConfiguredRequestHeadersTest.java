@@ -40,7 +40,7 @@ public class ConfiguredRequestHeadersTest extends RequestHeadersCase {
     HttpRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
     ConfiguredRequestHeaders headers = new ConfiguredRequestHeaders();
     String name = testName.getMethodName();
-    headers.getHeaders().add(new KeyValuePair(name, name));
+    headers.withHeaders(new KeyValuePair(name, name));
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     httpOperation = headers.addHeaders(msg, httpOperation);
     assertTrue(contains(httpOperation, name, name));

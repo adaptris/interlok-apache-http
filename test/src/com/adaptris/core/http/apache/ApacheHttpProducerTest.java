@@ -14,6 +14,7 @@ import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandaloneRequestor;
 import com.adaptris.core.http.ConfiguredContentTypeProvider;
+import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.RawContentTypeProvider;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
@@ -47,8 +49,12 @@ import com.adaptris.core.http.jetty.StandardResponseProducer;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
+import com.adaptris.core.services.WaitService;
 import com.adaptris.core.services.metadata.AddMetadataService;
+import com.adaptris.core.services.metadata.PayloadFromMetadataService;
 import com.adaptris.core.stubs.MockMessageProducer;
+import com.adaptris.util.KeyValuePair;
+import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
 
 public class ApacheHttpProducerTest extends ProducerCase {
@@ -628,6 +634,40 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(TEXT, msg.getMetadataValue(getName()));
   }
 
+  public void testRequest_ExpectHeader() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+
+    MockMessageProducer mock = new MockMessageProducer();
+    HttpConnection jc = createConnection();
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    mc.setSendProcessingInterval(new TimeInterval(100L, TimeUnit.MILLISECONDS));
+    ServiceList services = new ServiceList();
+    services.add(new PayloadFromMetadataService(TEXT));
+    services.add(new WaitService(new TimeInterval(2L, TimeUnit.SECONDS)));
+    services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)));
+
+    Channel c = createChannel(jc, createWorkflow(mc, mock, services));
+
+    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
+    http.setRequestHeaderProvider(
+        new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
+    StandaloneRequestor requestor = new StandaloneRequestor(http);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
+
+    try {
+      start(c);
+      start(requestor);
+      requestor.doService(msg);
+      assertEquals(TEXT, msg.getContent());
+    }
+    finally {
+      stopAndRelease(c);
+      stop(requestor);
+      Thread.currentThread().setName(threadName);
+    }
+  }
 
   @Override
   protected Object retrieveObjectForSampleConfig() {

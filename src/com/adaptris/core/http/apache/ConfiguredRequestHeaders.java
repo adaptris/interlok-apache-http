@@ -45,4 +45,11 @@ public class ConfiguredRequestHeaders implements RequestHeaderProvider<HttpReque
   public void setHeaders(KeyValuePairSet headers) {
     this.headers = Args.notNull(headers, "headers");
   }
+
+  public ConfiguredRequestHeaders withHeaders(KeyValuePair... keyValuePairs) {
+    for (KeyValuePair k : keyValuePairs) {
+      getHeaders().add(k);
+    }
+    return this;
+  }
 }
