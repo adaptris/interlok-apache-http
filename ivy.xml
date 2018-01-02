@@ -27,6 +27,7 @@
      <artifact name="adp-apache-http-javadoc" type="javadoc" ext="zip" conf="javadoc"/>
      <artifact name="adp-apache-http-examples" type="examples" ext="zip" conf="examples"/>
      <artifact type="javadoc" ext="jar" conf="javadoc" m:classifier="javadoc"/>
+     <artifact type="examples" ext="jar" conf="examples" m:classifier="examples"/>
 
   </publications>
   <dependencies>
