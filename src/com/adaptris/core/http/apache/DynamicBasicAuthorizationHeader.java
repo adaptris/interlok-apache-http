@@ -15,6 +15,7 @@ import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.http.auth.UserPassAuthentication;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.adaptris.util.text.Base64ByteTranslator;
@@ -38,7 +39,7 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
   @InputFieldHint(expression = true)
   private String username;
   @NotBlank
-  @InputFieldHint(expression = true, style = "PASSWORD")
+  @InputFieldHint(expression = true, style = "PASSWORD", external = true)
   private String password;
   
   private transient String authHeader;
@@ -57,7 +58,7 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
   public void setup(String target, AdaptrisMessage msg, ResourceTargetMatcher auth) throws CoreException {
     try {
       String username = Args.notBlank(msg.resolve(getUsername()), "username");
-      String password = Args.notBlank(msg.resolve(getPassword()), "password");
+      String password = Args.notBlank(msg.resolve(ExternalResolver.resolve(getPassword())), "password");
       String encoded = new Base64ByteTranslator().translate(String.format("%s:%s", username, Password.decode(password)).getBytes("UTF-8"));
       authHeader = String.format("Basic %s", encoded);
     } catch (UnsupportedEncodingException | IllegalArgumentException | PasswordException e) {

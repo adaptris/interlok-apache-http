@@ -116,7 +116,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Deprecated
   private String userName = null;
   @Deprecated
-  @InputFieldHint(style = "PASSWORD")
+  @InputFieldHint(style = "PASSWORD", external = true)
   private String password = null;
 
   @NotNull
@@ -227,7 +227,9 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Get the password.
    * 
    * @return the password
+   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
    */
+  @Deprecated
   public String getPassword() {
     return password;
   }
