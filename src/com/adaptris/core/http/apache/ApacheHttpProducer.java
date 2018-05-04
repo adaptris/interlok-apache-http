@@ -10,6 +10,9 @@ import java.net.URI;
 import javax.validation.Valid;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.SocketConfig;
@@ -18,6 +21,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.protocol.HttpContext;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
@@ -123,7 +127,7 @@ public class ApacheHttpProducer extends HttpProducer {
       String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
-      try (CloseableHttpClient httpclient = createClient(Long.valueOf(timeout).intValue())) {
+      try (CloseableHttpClient httpclient = createClient(timeout)) {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
         }
@@ -137,10 +141,31 @@ public class ApacheHttpProducer extends HttpProducer {
     return reply;
   }
 
-  private CloseableHttpClient createClient(int timeout) throws Exception {
-    HttpClientBuilder builder = HttpClients.custom();
-    builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build());
+  private CloseableHttpClient createClient(long timeout) throws Exception {
+    HttpClientBuilder builder = customiseTimeouts(HttpClients.custom(), timeout);
+    builder.addInterceptorLast(new HttpRequestInterceptor() {
+      public void process(HttpRequest request, HttpContext context){
+        request.removeHeaders("Accept-Encoding");
+        request.removeHeaders("Connection");
+        request.removeHeaders("User-Agent");
+      }
+    });
     return customise(builder).build();
+  }
+
+  protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) throws Exception {
+    RequestConfig.Builder requestCfg = RequestConfig.custom();
+    if (getConnectTimeout() != null) {
+      requestCfg.setConnectTimeout(Long.valueOf(getConnectTimeout().toMilliseconds()).intValue());
+    }
+    if (getReadTimeout() != null) {
+      requestCfg.setSocketTimeout(Long.valueOf(getReadTimeout().toMilliseconds()).intValue());
+    }
+    if (timeout != DEFAULT_TIMEOUT) {
+      requestCfg.setSocketTimeout(Long.valueOf(timeout).intValue());
+      builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(Long.valueOf(timeout).intValue()).build());
+    }
+    return builder;
   }
 
   protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {

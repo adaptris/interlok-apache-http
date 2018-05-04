@@ -1,6 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import static com.adaptris.core.http.HttpConstants.DEFAULT_SOCKET_TIMEOUT;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.IOException;
@@ -42,6 +41,7 @@ import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.password.Password;
+import com.adaptris.util.TimeInterval;
 
 /**
  * Abstract base class for all Apache HTTP producer classes.
@@ -50,6 +50,8 @@ import com.adaptris.security.password.Password;
  * 
  */
 public abstract class HttpProducer extends RequestReplyProducerImp {
+
+  protected static final long DEFAULT_TIMEOUT = -1;
   /**
    * Maps various methods supported by the Apache Http client.
    * 
@@ -145,6 +147,12 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   private Boolean allowRedirect;
   @Valid
   private HttpAuthenticator authenticator;
+  @Valid
+  @AdvancedConfig
+  private TimeInterval connectTimeout;
+  @Valid
+  @AdvancedConfig
+  private TimeInterval readTimeout;
 
   private transient String authString = null;
 
@@ -179,7 +187,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    */
   @Override
   protected long defaultTimeout() {
-    return DEFAULT_SOCKET_TIMEOUT;
+    return DEFAULT_TIMEOUT;
   }
 
 
@@ -399,4 +407,33 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   public void prepare() throws CoreException {
   }
 
+  public TimeInterval getConnectTimeout() {
+    return connectTimeout;
+  }
+
+  /**
+   * Set the connect timeout.
+   * 
+   * @param t the timeout.
+   */
+  public void setConnectTimeout(TimeInterval t) {
+    this.connectTimeout = t;
+  }
+
+  public TimeInterval getReadTimeout() {
+    return readTimeout;
+  }
+
+  /**
+   * Set the read timeout.
+   * <p>
+   * Note that any read timeout will be overridden by the timeout value passed in via the {{@link #request(AdaptrisMessage, long)}
+   * method, provided it differs from {@link #defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
+   * </p>
+   * 
+   * @param t the timeout.
+   */
+  public void setReadTimeout(TimeInterval t) {
+    this.readTimeout = t;
+  }
 }

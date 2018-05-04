@@ -653,7 +653,10 @@ public class ApacheHttpProducerTest extends ProducerCase {
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
     http.setRequestHeaderProvider(
         new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
+    http.setConnectTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
+    http.setReadTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
     StandaloneRequestor requestor = new StandaloneRequestor(http);
+    requestor.setReplyTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
 
     try {
