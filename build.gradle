@@ -148,8 +148,6 @@ javadoc {
       ]
     taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
     options.addStringOption "tagletpath", configurations.javadoc.asPath
-    options.group ("Interlok Apache HTTP", ["com.adaptris.core.http.apache.*" , "com.adaptris.core.http.apache"])
-
     title= componentName
   }
 }
