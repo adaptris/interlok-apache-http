@@ -112,7 +112,7 @@ public class ApacheHttpProducer extends HttpProducer {
   }
 
 
-  ResponseHandlerFactory responseHandlerFactory() {
+  protected ResponseHandlerFactory responseHandlerFactory() {
     return getResponseHandlerFactory() != null ? getResponseHandlerFactory() : DEFAULT_HANDLER;
   }
 
@@ -153,6 +153,13 @@ public class ApacheHttpProducer extends HttpProducer {
     return customise(builder).build();
   }
 
+  /**
+   * Customise any timeouts as required.
+   * 
+   * @param builder the builder
+   * @param timeout the timeout specified by {@link #doRequest(AdaptrisMessage, ProduceDestination, long)}
+   * @return the builder.
+   */
   protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) throws Exception {
     RequestConfig.Builder requestCfg = RequestConfig.custom();
     if (getConnectTimeout() != null) {
@@ -168,6 +175,13 @@ public class ApacheHttpProducer extends HttpProducer {
     return builder;
   }
 
+  /**
+   * Do any further customisations.
+   * 
+   * @param builder the builder
+   * @param timeout the timeout specified by {@link #doRequest(AdaptrisMessage, ProduceDestination, long)}
+   * @return the builder.
+   */
   protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
     if (!handleRedirection()) {
       builder.disableRedirectHandling();

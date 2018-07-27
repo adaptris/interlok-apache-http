@@ -71,7 +71,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testSetHandleRedirection() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
-    assertFalse(p.handleRedirection());
+    assertTrue(p.handleRedirection());
     p.setAllowRedirect(true);
     assertNotNull(p.getAllowRedirect());
     assertEquals(Boolean.TRUE, p.getAllowRedirect());

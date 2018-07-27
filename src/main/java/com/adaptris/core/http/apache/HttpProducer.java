@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -251,8 +252,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     allowRedirect = b;
   }
 
-  boolean handleRedirection() {
-    return allowRedirect != null ? allowRedirect.booleanValue() : false;
+  protected boolean handleRedirection() {
+    return BooleanUtils.toBooleanDefaultIfNull(getAllowRedirect(), true);
   }
 
   /**
@@ -274,8 +275,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return ignoreServerResponseCode;
   }
 
-  boolean ignoreServerResponseCode() {
-    return ignoreServerResponseCode != null ? ignoreServerResponseCode.booleanValue() : false;
+  protected boolean ignoreServerResponseCode() {
+    return BooleanUtils.toBooleanDefaultIfNull(getIgnoreServerResponseCode(), false);
   }
 
   /**
