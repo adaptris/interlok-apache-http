@@ -86,6 +86,32 @@ public class HttpRequestServiceTest extends ServiceCase {
     LifecycleHelper.stop(service);
   }
 
+  public void testService() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    HttpConnection jc = createConnection();
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new Service[]
+    {
+        new PayloadFromMetadataService(TEXT), new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200))
+    })));
+
+    HttpRequestService service = new HttpRequestService(createProduceDestination(c).getDestination());
+    service.setClientConfig(new NoConnectionManagement());
+    service.setMethod("GET");
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
+    try {
+      start(c);
+      execute(service, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stop(c);
+    }
+    assertEquals(1, mock.messageCount());
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    assertEquals("GET", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
+    assertEquals(TEXT, msg.getContent());
+  }
+
   public void testService_WithContentTypeMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -294,6 +320,8 @@ public class HttpRequestServiceTest extends ServiceCase {
     })));
 
     HttpRequestService service = new HttpRequestService(createProduceDestination(c).getDestination());
+    // this shouldn't create a proxy.
+    service.setHttpProxy(":");
     service.setMethod("GET");
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
     try {

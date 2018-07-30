@@ -1,7 +1,6 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -9,18 +8,13 @@ import java.net.URI;
 
 import javax.validation.Valid;
 
-import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.protocol.HttpContext;
 
 import com.adaptris.annotation.AdapterComponent;
@@ -56,9 +50,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 }, author = "Adaptris Ltd")
 @DisplayOrder(order =
 {
-    "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode", "methodProvider",
-    "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory"
+    "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode",
+    "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory",
+    "clientConfig"
 })
+@SuppressWarnings("deprecation")
 public class ApacheHttpProducer extends HttpProducer {
 
   private static final ResponseHandlerFactory DEFAULT_HANDLER = new PayloadResponseHandlerFactory();
@@ -67,8 +63,6 @@ public class ApacheHttpProducer extends HttpProducer {
   @Valid
   private ResponseHandlerFactory responseHandlerFactory;
 
-  @AdvancedConfig
-  private String httpProxy;
 
 
   public ApacheHttpProducer() {
@@ -94,27 +88,10 @@ public class ApacheHttpProducer extends HttpProducer {
     this.responseHandlerFactory = fac;
   }
 
-
-  /**
-   * @return the httpProxy
-   */
-  public String getHttpProxy() {
-    return httpProxy;
-  }
-
-  /**
-   * Explicitly configure a proxy server.
-   * 
-   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
-   */
-  public void setHttpProxy(String proxy) {
-    this.httpProxy = proxy;
-  }
-
-
   protected ResponseHandlerFactory responseHandlerFactory() {
     return getResponseHandlerFactory() != null ? getResponseHandlerFactory() : DEFAULT_HANDLER;
   }
+
 
   /**
    * @see AdaptrisMessageProducerImp #request(AdaptrisMessage, ProduceDestination, long)
@@ -142,57 +119,26 @@ public class ApacheHttpProducer extends HttpProducer {
   }
 
   private CloseableHttpClient createClient(long timeout) throws Exception {
-    HttpClientBuilder builder = customiseTimeouts(HttpClients.custom(), timeout);
+    HttpClientBuilder builder = customise(
+        HttpClientBuilderConfigurator.defaultIfNull(clientConfig()).configure(HttpClients.custom(), timeout));
     builder.addInterceptorLast(new HttpRequestInterceptor() {
-      public void process(HttpRequest request, HttpContext context){
+      public void process(HttpRequest request, HttpContext context) {
         request.removeHeaders("Accept-Encoding");
         request.removeHeaders("Connection");
         request.removeHeaders("User-Agent");
       }
     });
-    return customise(builder).build();
-  }
-
-  /**
-   * Customise any timeouts as required.
-   * 
-   * @param builder the builder
-   * @param timeout the timeout specified by {@link #doRequest(AdaptrisMessage, ProduceDestination, long)}
-   * @return the builder.
-   */
-  protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) throws Exception {
-    RequestConfig.Builder requestCfg = RequestConfig.custom();
-    if (getConnectTimeout() != null) {
-      requestCfg.setConnectTimeout(Long.valueOf(getConnectTimeout().toMilliseconds()).intValue());
-    }
-    if (getReadTimeout() != null) {
-      requestCfg.setSocketTimeout(Long.valueOf(getReadTimeout().toMilliseconds()).intValue());
-    }
-    if (timeout != DEFAULT_TIMEOUT) {
-      requestCfg.setSocketTimeout(Long.valueOf(timeout).intValue());
-      builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(Long.valueOf(timeout).intValue()).build());
-    }
-    return builder;
+    return builder.build();
   }
 
   /**
    * Do any further customisations.
    * 
    * @param builder the builder
-   * @param timeout the timeout specified by {@link #doRequest(AdaptrisMessage, ProduceDestination, long)}
    * @return the builder.
    */
   protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
-    if (!handleRedirection()) {
-      builder.disableRedirectHandling();
-    } else {
-      builder.setRedirectStrategy(new LaxRedirectStrategy());
-    }
-    String httpProxy = getHttpProxy();
-    if (!isBlank(httpProxy) && !httpProxy.equals(":")) {
-      builder.setProxy(HttpHost.create(httpProxy));
-    }
-    return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties();
+    return builder;
   }
   
   private HttpRequestBase addData(AdaptrisMessage msg, HttpRequestBase base) throws IOException,
@@ -257,4 +203,5 @@ public class ApacheHttpProducer extends HttpProducer {
       return rc;
     }
   }
+
 }

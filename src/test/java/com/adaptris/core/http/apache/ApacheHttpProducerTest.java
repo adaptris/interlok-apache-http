@@ -57,6 +57,7 @@ import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
 
+@SuppressWarnings("deprecation")
 public class ApacheHttpProducerTest extends ProducerCase {
 
   protected static Logger log = LoggerFactory.getLogger(ApacheHttpProducerTest.class);
@@ -71,15 +72,12 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testSetHandleRedirection() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
-    assertTrue(p.handleRedirection());
     p.setAllowRedirect(true);
     assertNotNull(p.getAllowRedirect());
     assertEquals(Boolean.TRUE, p.getAllowRedirect());
-    assertTrue(p.handleRedirection());
     p.setAllowRedirect(false);
     assertNotNull(p.getAllowRedirect());
     assertEquals(Boolean.FALSE, p.getAllowRedirect());
-    assertFalse(p.handleRedirection());
   }
 
   public void testSetIgnoreServerResponse() throws Exception {

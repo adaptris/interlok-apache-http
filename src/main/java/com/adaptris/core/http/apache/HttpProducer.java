@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -145,15 +146,24 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   private Boolean ignoreServerResponseCode;
   @AdvancedConfig
   @InputFieldDefault(value = "true")
+  @Deprecated
   private Boolean allowRedirect;
+  @AdvancedConfig
+  @Deprecated
+  private String httpProxy;
   @Valid
   private HttpAuthenticator authenticator;
   @Valid
   @AdvancedConfig
+  @Deprecated
   private TimeInterval connectTimeout;
   @Valid
   @AdvancedConfig
+  @Deprecated
   private TimeInterval readTimeout;
+  @Valid
+  @AdvancedConfig
+  private HttpClientBuilderConfigurator clientConfig;
 
   private transient String authString = null;
 
@@ -247,20 +257,20 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Specify whether to automatically handle redirection.
    * 
    * @param b true or false.
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
    */
+  @Deprecated
   public void setAllowRedirect(Boolean b) {
     allowRedirect = b;
-  }
-
-  protected boolean handleRedirection() {
-    return BooleanUtils.toBooleanDefaultIfNull(getAllowRedirect(), true);
   }
 
   /**
    * Get the handle redirection flag.
    * 
    * @return true or false.
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
    */
+  @Deprecated
   public Boolean getAllowRedirect() {
     return allowRedirect;
   }
@@ -405,9 +415,30 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return authToUse;
   }
 
+  protected HttpClientBuilderConfigurator clientConfig() {
+    if (getClientConfig() == null && hasDeprecatedBuilderConfig()) {
+      log.warn("Use of deprecated #allowRedirectory, #httpProxy, #readTimeout, #connectTimeout; use a {} instead",
+          HttpClientBuilderConfigurator.class.getName());
+      return new DefaultClientBuilder().withAllowRedirect(getAllowRedirect()).withConnectTimeout(getConnectTimeout())
+          .withProxy(getHttpProxy()).withReadTimeout(getReadTimeout());
+    }
+    return getClientConfig();
+  }
+
+  protected boolean hasDeprecatedBuilderConfig() {
+    return !StringUtils.isEmpty(getHttpProxy()) || getAllowRedirect() != null || getReadTimeout() != null
+        || getConnectTimeout() != null;
+  }
+
   public void prepare() throws CoreException {
   }
 
+  /**
+   * 
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
+   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
+   */
+  @Deprecated
   public TimeInterval getConnectTimeout() {
     return connectTimeout;
   }
@@ -416,11 +447,20 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Set the connect timeout.
    * 
    * @param t the timeout.
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
+   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
+  @Deprecated
   public void setConnectTimeout(TimeInterval t) {
     this.connectTimeout = t;
   }
 
+  /**
+   * 
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
+   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
+   */
+  @Deprecated
   public TimeInterval getReadTimeout() {
     return readTimeout;
   }
@@ -433,8 +473,47 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * </p>
    * 
    * @param t the timeout.
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
+   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
+  @Deprecated
   public void setReadTimeout(TimeInterval t) {
     this.readTimeout = t;
   }
+
+  /**
+   * @return the httpProxy
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
+   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
+   */
+  @Deprecated
+  public String getHttpProxy() {
+    return httpProxy;
+  }
+
+  /**
+   * Explicitly configure a proxy server.
+   * 
+   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
+   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
+   */
+  @Deprecated
+  public void setHttpProxy(String proxy) {
+    this.httpProxy = proxy;
+  }
+
+  public HttpClientBuilderConfigurator getClientConfig() {
+    return clientConfig;
+  }
+
+  /**
+   * Specify any custom {@code HttpClientBuilder} configuration.
+   * 
+   * @param clientConfig a {@link HttpClientBuilderConfigurator} instance.
+   */
+  public void setClientConfig(HttpClientBuilderConfigurator httpClientCustomiser) {
+    this.clientConfig = httpClientCustomiser;
+  }
+
 }

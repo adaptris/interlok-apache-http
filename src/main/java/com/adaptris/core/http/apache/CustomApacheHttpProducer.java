@@ -1,22 +1,8 @@
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 import javax.validation.Valid;
 
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.ssl.TrustStrategy;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
@@ -24,8 +10,8 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceDestination;
+import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.security.PrivateKeyPasswordProvider;
-import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.keystore.ConfiguredKeystore;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -33,6 +19,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Apache HTTP client producer with customised TLS/SSL settings.
  * 
  * @config custom-tls-apache-http-producer
+ * @deprecated since 3.8.0 you can achieve the same thing with a {@link CustomTlsHttpClientBuilder} with {@link ApacheHttpProducer}.
  */
 @XStreamAlias("custom-tls-apache-http-producer")
 @AdapterComponent
@@ -46,32 +33,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 }, author = "Adaptris Ltd")
 @DisplayOrder(order = {"username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode",
     "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory", "keystore",
-    "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites"
+    "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites", "clientConfig"
 })
+@Deprecated
 public class CustomApacheHttpProducer extends ApacheHttpProducer {
-
-  public enum HostnameVerification {
-    /**
-     * No Hostname Verification (dangerous).
-     * 
-     */
-    NONE(new NoopHostnameVerifier()),
-    /**
-     * Standard Hostname verification
-     * 
-     */
-    STANDARD(SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-    
-    private HostnameVerifier myVerifier;
-    private HostnameVerification(HostnameVerifier v) {
-      myVerifier = v;
-    }
-
-    public HostnameVerifier getVerifier() {
-      return myVerifier;
-    }
-
-  }
 
   @AdvancedConfig
   private String tlsVersions;
@@ -88,6 +53,8 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   private Boolean trustSelfSigned;
 
+  private static boolean warningLogged = false;
+
   public CustomApacheHttpProducer() {
     super();
   }
@@ -98,39 +65,15 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
 
   protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
-    HttpClientBuilder result = super.customise(builder);
-    SSLContext sslcontext = configure(SSLContexts.custom()).build();
-    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext, asArray(getTlsVersions()),
-        asArray(getCipherSuites()),
-        hostnameVerification().getVerifier());
-    result.setSSLSocketFactory(sslsf);
-    return builder;
-  }
-
-  private SSLContextBuilder configure(SSLContextBuilder builder)
-      throws GeneralSecurityException, AdaptrisSecurityException, IOException {
-    if (getKeystore() != null) {
-      KeyStore actual = getKeystore().asKeystoreProxy().getKeystore();
-      if (getPrivateKeyPassword() == null) {
-        throw new AdaptrisSecurityException("Keystore configured; no key password");
-      }
-      builder.loadKeyMaterial(actual, getPrivateKeyPassword().retrievePrivateKeyPassword());
+    if (!warningLogged) {
+      log.warn("{} is deprecated, use {} with {} instead", this.getClass().getSimpleName(), ApacheHttpProducer.class.getName(),
+          CustomTlsBuilder.class.getName());
+      warningLogged = true;
     }
-    if (getTruststore() != null) {
-      KeyStore actual = getTruststore().asKeystoreProxy().getKeystore();
-      builder.loadTrustMaterial(actual, trustStrategy());
-    }
-    return builder;
+    return new CustomTlsBuilder().withCipherSuites(getCipherSuites()).withHostnameVerification(getHostnameVerification()).withKeystore(getKeystore())
+        .withPrivateKeyPassword(getPrivateKeyPassword()).withTlsVersions(getTlsVersions()).withTrustSelfSigned(getTrustSelfSigned())
+        .withTrustStore(getTruststore()).configure(builder);
   }
-
-
-  private static String[] asArray(String s) {
-    if (isEmpty(s)) {
-      return null;
-    }
-    return s.split("\\s*,\\s*", -1);
-  }
-
 
   public String getTlsVersions() {
     return tlsVersions;
@@ -176,9 +119,6 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
     this.hostnameVerification = hostnameVerification;
   }
 
-  HostnameVerification hostnameVerification() {
-    return getHostnameVerification() != null ? getHostnameVerification() : HostnameVerification.STANDARD;
-  }
 
   public Boolean getTrustSelfSigned() {
     return trustSelfSigned;
@@ -191,14 +131,6 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
    */
   public void setTrustSelfSigned(Boolean b) {
     this.trustSelfSigned = b;
-  }
-
-  boolean trustSelfSigned() {
-    return getTrustSelfSigned() != null ? getTrustSelfSigned().booleanValue() : false;
-  }
-
-  TrustStrategy trustStrategy() {
-    return trustSelfSigned() ? TrustSelfSignedStrategy.INSTANCE : null;
   }
 
   public PrivateKeyPasswordProvider getPrivateKeyPassword() {

@@ -22,6 +22,7 @@ import java.net.Authenticator;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.hibernate.validator.constraints.NotBlank;
@@ -80,6 +81,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   private String method;
 
   @AdvancedConfig
+  @Deprecated
   private String httpProxy;
 
   @AdvancedConfig
@@ -98,6 +100,10 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   @NotNull
   @AutoPopulated
   private HttpAuthenticator authenticator = new NoAuthentication();
+
+  @Valid
+  @AdvancedConfig
+  private HttpClientBuilderConfigurator clientConfig;
 
   public HttpRequestServiceImpl() {
     super();
@@ -127,16 +133,30 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   protected ApacheHttpProducer buildProducer(AdaptrisMessage msg) {
     ApacheHttpProducer p = new ApacheHttpProducer();
     p.setMessageFactory(msg.getFactory());
-    p.setHttpProxy(getHttpProxy());
+    p.setClientConfig(clientConfig());
     p.setDestination(new ConfiguredProduceDestination(msg.resolve(getUrl())));
     p.setContentTypeProvider(new RawContentTypeProvider(msg.resolve(getContentType())));
     p.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.valueOf(msg.resolve(getMethod()).toUpperCase())));
     p.setAuthenticator(getAuthenticator());
     p.setRequestHeaderProvider(getRequestHeaderProvider());
     p.setResponseHeaderHandler(getResponseHeaderHandler());
-    p.setAllowRedirect(true);
     p.registerConnection(new NullConnection());
     return p;
+  }
+
+  protected HttpClientBuilderConfigurator clientConfig() {
+    if (getClientConfig() == null && hasDeprecatedBuilderConfig()) {
+      log.warn("Use of deprecated #httpProxy; use a {} instead",
+          HttpClientBuilderConfigurator.class.getName());
+      return new DefaultClientBuilder().withProxy(getHttpProxy());
+    }
+    // If it's still null, it will get defaulted anyway by the underlying producer.
+    // so we should be good.
+    return getClientConfig();
+  }
+
+  protected boolean hasDeprecatedBuilderConfig() {
+    return !StringUtils.isEmpty(getHttpProxy());
   }
 
   /**
@@ -229,7 +249,10 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
 
   /**
    * @return the httpProxy
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} via {@link #setClientConfig(HttpClientBuilderConfigurator)}
+   *             instead.
    */
+  @Deprecated
   public String getHttpProxy() {
     return httpProxy;
   }
@@ -238,8 +261,24 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
    * Explicitly configure a proxy server.
    * 
    * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
+   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} via {@link #setClientConfig(HttpClientBuilderConfigurator)}
+   *             instead.
    */
+  @Deprecated
   public void setHttpProxy(String proxy) {
     this.httpProxy = proxy;
+  }
+
+  public HttpClientBuilderConfigurator getClientConfig() {
+    return clientConfig;
+  }
+
+  /**
+   * Specify any custom {@code HttpClientBuilder} configuration.
+   * 
+   * @param clientConfig a {@link HttpClientBuilderConfigurator} instance.
+   */
+  public void setClientConfig(HttpClientBuilderConfigurator clientConfig) {
+    this.clientConfig = clientConfig;
   }
 }
