@@ -42,13 +42,14 @@ import com.adaptris.security.keystore.ConfiguredKeystore;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
+ * {@link HttpClientBuilderConfigurator} implementation that allows you to customise keystores etc.
  * 
- * @config default-apache-http-client-builder
+ * @config custom-tls-apache-http-client-builder
  *
  */
 @DisplayOrder(order =
 {
-    "httpProxy", "allowRedirect", "connectTimeout", "readTimeout"
+    "keystore", "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites"
 })
 @XStreamAlias("custom-tls-apache-http-client-builder")
 public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
