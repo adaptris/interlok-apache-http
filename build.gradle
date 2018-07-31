@@ -75,7 +75,7 @@ configurations.all {
 dependencies {
   compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
-  compile ("org.apache.httpcomponents:httpclient:4.5.2")
+  compile ("org.apache.httpcomponents:httpclient:4.5.6")
 
   annotationProcessor ("com.adaptris:interlok-common:$interlokCoreVersion") {changing= true}
   umlDoclet("nl.talsmasoftware:umldoclet:1.0.18")
