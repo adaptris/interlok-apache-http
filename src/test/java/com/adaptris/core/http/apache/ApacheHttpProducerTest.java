@@ -145,31 +145,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
-  @SuppressWarnings("deprecation")
-  public void testProduce_LegacyMethod() throws Exception {
-    MockMessageProducer mock = new MockMessageProducer();
-
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
-    http.setMethod(ApacheHttpProducer.HttpMethod.POST);
-    StandaloneProducer producer = new StandaloneProducer(http);
-    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
-    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
-    try {
-      start(producer);
-      producer.doService(msg);
-      waitForMessages(mock, 1);
-    } finally {
-      stopAndRelease(c);
-      stop(producer);
-    }
-    doAssertions(mock, true);
-    AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
-    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
-  }
-
-
   public void testProduce_WithMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);

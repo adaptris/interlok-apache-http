@@ -113,8 +113,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @AutoPopulated
   @Valid
   private RequestMethodProvider methodProvider;
-  @Deprecated
-  private HttpMethod method;
 
   @Deprecated
   private String userName = null;
@@ -322,26 +320,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     this.contentTypeProvider = ctp;
   }
 
-  /**
-   * @deprecated since 3.0.6; use {@link #getMethodProvider()} instead.
-   */
-  @Deprecated
-  public HttpMethod getMethod() {
-    return method;
-  }
-
-  /**
-   * Set the HTTP method to be used.
-   * 
-   * @param method the method; defaults to {@link HttpMethod#POST}
-   * @deprecated since 3.0.6 use {@link #setMethodProvider(RequestMethodProvider)} instead.
-   */
-  @Deprecated
-  public void setMethod(HttpMethod method) {
-    this.method = Args.notNull(method, "Method");
-  }
-
-
   public ResponseHeaderHandler<HttpResponse> getResponseHeaderHandler() {
     return responseHeaderHandler;
   }
@@ -394,10 +372,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   protected HttpMethod getMethod(AdaptrisMessage msg) {
-    if (getMethod() != null) {
-      log.warn("Configured using deprecated setMethod(), configure using #setMethodProvider() instead.");
-      return getMethod();
-    }
     RequestMethod m = getMethodProvider().getMethod(msg);
     log.trace("HTTP Request Method is : [{}]", m);
     return HttpMethod.valueOf(m.name());
