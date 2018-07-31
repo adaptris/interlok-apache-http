@@ -35,6 +35,7 @@ import com.adaptris.core.StandaloneRequestor;
 import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.RawContentTypeProvider;
+import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
 import com.adaptris.core.http.auth.MetadataUsernamePassword;
@@ -122,30 +123,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     p.setResponseHeaderHandler(new ResponseHeadersAsMetadata());
     assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHeaderHandler().getClass());
   }
-
-  @SuppressWarnings("deprecation")
-  public void testProduce_LegacyContentType() throws Exception {
-    MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
-    http.setContentTypeProvider(new StaticContentTypeProvider());
-    StandaloneProducer producer = new StandaloneProducer(http);
-    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
-    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
-    try {
-      start(producer);
-      producer.doService(msg);
-      waitForMessages(mock, 1);
-    } finally {
-      stopAndRelease(c);
-      stop(producer);
-    }
-    doAssertions(mock, true);
-    AdaptrisMessage m2 = mock.getMessages().get(0);
-    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
-    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
-  }
-
 
   public void testProduce() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
@@ -674,6 +651,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
   protected Object retrieveObjectForSampleConfig() {
     ApacheHttpProducer producer = new ApacheHttpProducer(new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));
     producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
+    producer.setClientConfig(new CompositeClientBuilder().withBuilders(new DefaultClientBuilder().withProxy("http://my.proxy:3128"),
+        new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement()));
     StandaloneProducer result = new StandaloneProducer(producer);
     return result;
   }
