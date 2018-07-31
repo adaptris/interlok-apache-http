@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.util.Args;
 
@@ -19,7 +18,6 @@ import com.adaptris.core.http.ContentTypeProvider;
  * 
  * @see AbstractHttpEntity
  */
-@NotThreadSafe
 public final class AdaptrisMessageEntity extends AbstractHttpEntity {
 
   private transient final AdaptrisMessage msg;
