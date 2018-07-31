@@ -22,7 +22,6 @@ import java.net.Authenticator;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.hibernate.validator.constraints.NotBlank;
@@ -156,7 +155,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   }
 
   protected boolean hasDeprecatedBuilderConfig() {
-    return !StringUtils.isEmpty(getHttpProxy());
+    return !isEmpty(getHttpProxy());
   }
 
   /**

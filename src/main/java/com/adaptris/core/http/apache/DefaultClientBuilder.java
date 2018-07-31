@@ -74,7 +74,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
       builder.setRedirectStrategy(new LaxRedirectStrategy());
     }
     String httpProxy = getHttpProxy();
-    if (!isBlank(httpProxy) && !httpProxy.equals(":")) {
+    if (!isBlank(httpProxy) && !":".equals(httpProxy)) {
       builder.setProxy(HttpHost.create(httpProxy));
     }
     return builder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider()).useSystemProperties();

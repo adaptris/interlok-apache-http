@@ -8,7 +8,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -164,8 +163,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Valid
   @AdvancedConfig
   private HttpClientBuilderConfigurator clientConfig;
-
-  private transient String authString = null;
 
   public HttpProducer() {
     super();
@@ -426,7 +423,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   protected boolean hasDeprecatedBuilderConfig() {
-    return !StringUtils.isEmpty(getHttpProxy()) || getAllowRedirect() != null || getReadTimeout() != null
+    return !isEmpty(getHttpProxy()) || getAllowRedirect() != null || getReadTimeout() != null
         || getConnectTimeout() != null;
   }
 
