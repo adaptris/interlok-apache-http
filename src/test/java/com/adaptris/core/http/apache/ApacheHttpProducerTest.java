@@ -13,7 +13,6 @@ import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -44,6 +43,7 @@ import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.jetty.ConfigurableSecurityHandler;
 import com.adaptris.core.http.jetty.HashLoginServiceFactory;
 import com.adaptris.core.http.jetty.HttpConnection;
+import com.adaptris.core.http.jetty.JettyConstants;
 import com.adaptris.core.http.jetty.JettyMessageConsumer;
 import com.adaptris.core.http.jetty.SecurityConstraint;
 import com.adaptris.core.http.jetty.StandardResponseProducer;
@@ -613,12 +613,9 @@ public class ApacheHttpProducerTest extends ProducerCase {
     if (assertPayload) {
       assertEquals(TEXT, msg.getContent());
     }
-    assertTrue(msg.headersContainsKey(CoreConstants.JETTY_URI));
-    assertEquals(URL_TO_POST_TO, msg.getMetadataValue(CoreConstants.JETTY_URI));
-    assertTrue(msg.headersContainsKey(CoreConstants.JETTY_URL));
-    Map objMetadata = msg.getObjectHeaders();
-    assertNotNull(objMetadata.get(CoreConstants.JETTY_REQUEST_KEY));
-    assertNotNull(objMetadata.get(CoreConstants.JETTY_RESPONSE_KEY));
+    assertTrue(msg.headersContainsKey(JettyConstants.JETTY_URI));
+    assertEquals(URL_TO_POST_TO, msg.getMetadataValue(JettyConstants.JETTY_URI));
+    assertTrue(msg.headersContainsKey(JettyConstants.JETTY_URL));
     return msg;
   }
 
