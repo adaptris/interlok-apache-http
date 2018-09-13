@@ -34,6 +34,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * @see {@link CustomTlsBuilder}
  * @see {@link DefaultClientBuilder}
  * @see {@link NoConnectionManagement}
+ * @see {@link RequestInterceptorClientBuilder}
  */
 @XStreamAlias("composite-apache-http-client-builder")
 public class CompositeClientBuilder implements HttpClientBuilderConfigurator {
