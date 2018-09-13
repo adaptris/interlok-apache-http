@@ -19,10 +19,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
-import org.apache.http.util.Args;
 
+import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
@@ -35,10 +38,12 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 public class AcceptEncoding implements RequestInterceptorBuilder {
 
   @XStreamImplicit(itemFieldName = "accept-encoding")
+  @NotNull
+  @AutoPopulated
   private List<String> acceptEncodings;
 
   public AcceptEncoding() {
-
+    setAcceptEncodings(new ArrayList());
   }
 
   public AcceptEncoding(String... list) {
@@ -54,8 +59,8 @@ public class AcceptEncoding implements RequestInterceptorBuilder {
     return acceptEncodings;
   }
 
-  public void setAcceptEncodings(List<String> acceptEncodings) {
-    this.acceptEncodings = Args.notNull(acceptEncodings, "acceptEncodings");
+  public void setAcceptEncodings(List<String> l) {
+    this.acceptEncodings = Args.notNull(l, "acceptEncodings");
   }
 
   @Override

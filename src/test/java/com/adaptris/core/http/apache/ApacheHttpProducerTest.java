@@ -35,6 +35,10 @@ import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.RawContentTypeProvider;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
+import com.adaptris.core.http.apache.request.BasicHMACSignature;
+import com.adaptris.core.http.apache.request.DateHeader;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
 import com.adaptris.core.http.apache.request.RemoveHeaders;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
@@ -198,7 +202,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     ApacheHttpProducer http = new ApacheHttpProducer();
     // empty RequestInterceptorClientBuilder just to get an empty list for coverage
     CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
-        new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("Accept-Encoding", "User-Agent", "Connection")),
+        new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("Accept-Encoding", "User-Agent", "Connection"),
+            new DateHeader()),
         new RequestInterceptorClientBuilder());
     http.setClientConfig(builder);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
@@ -206,7 +211,29 @@ public class ApacheHttpProducerTest extends ProducerCase {
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
     // User-Agent should have been removed.
+    assertTrue(m2.headersContainsKey("Date"));
     assertFalse(m2.headersContainsKey("User-Agent"));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
+    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
+  }
+
+  public void testProduce_With_HMAC() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyIdentity").withHeaders("Date")
+        .withSecretKey("MySecretKey").withTargetHeader("hmac").withEncoding(Encoding.BASE64)
+        .withHmacAlgorithm(Algorithm.HMAC_SHA256);
+    CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
+        new RequestInterceptorClientBuilder().withInterceptors(new DateHeader(), hmac));
+    http.setClientConfig(builder);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    doProduce(mock, http, msg);
+    doAssertions(mock, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    // User-Agent should have been removed.
+    assertTrue(m2.headersContainsKey("Date"));
+    assertTrue(m2.headersContainsKey("hmac"));
+    assertTrue(m2.getMetadataValue("hmac").startsWith("MyIdentity:"));
     assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
@@ -548,7 +575,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     ApacheHttpProducer producer = new ApacheHttpProducer(new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));
     producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
     producer.setClientConfig(new CompositeClientBuilder().withBuilders(new DefaultClientBuilder().withProxy("http://my.proxy:3128"),
-        new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement()));
+        new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement(),
+        new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("User-Agent"))));
     StandaloneProducer result = new StandaloneProducer(producer);
     return result;
   }

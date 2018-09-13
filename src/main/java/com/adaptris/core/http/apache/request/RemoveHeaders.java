@@ -19,11 +19,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 
+import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
@@ -40,10 +43,12 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 public class RemoveHeaders implements RequestInterceptorBuilder {
 
   @XStreamImplicit(itemFieldName = "header")
+  @NotNull
+  @AutoPopulated
   private List<String> headers;
 
   public RemoveHeaders() {
-
+    setHeaders(new ArrayList());
   }
 
   public RemoveHeaders(String... list) {
@@ -67,7 +72,7 @@ public class RemoveHeaders implements RequestInterceptorBuilder {
   public HttpRequestInterceptor build() {
     return new HttpRequestInterceptor() {
       public void process(HttpRequest request, HttpContext context) {
-        for (String hdr : headers) {
+        for (String hdr : getHeaders()) {
           request.removeHeaders(hdr);
         }
       }
