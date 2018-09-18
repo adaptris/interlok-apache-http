@@ -8,14 +8,11 @@ import java.net.URI;
 
 import javax.validation.Valid;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.HttpContext;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
@@ -62,7 +59,6 @@ public class ApacheHttpProducer extends HttpProducer {
   @AdvancedConfig
   @Valid
   private ResponseHandlerFactory responseHandlerFactory;
-
 
 
   public ApacheHttpProducer() {
@@ -121,13 +117,6 @@ public class ApacheHttpProducer extends HttpProducer {
   private CloseableHttpClient createClient(long timeout) throws Exception {
     HttpClientBuilder builder = customise(
         HttpClientBuilderConfigurator.defaultIfNull(clientConfig()).configure(HttpClients.custom(), timeout));
-    builder.addInterceptorLast(new HttpRequestInterceptor() {
-      public void process(HttpRequest request, HttpContext context) {
-        request.removeHeaders("Accept-Encoding");
-        request.removeHeaders("Connection");
-        request.removeHeaders("User-Agent");
-      }
-    });
     return builder.build();
   }
 
