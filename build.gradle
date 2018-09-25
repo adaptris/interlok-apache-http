@@ -84,7 +84,7 @@ dependencies {
   compile ("org.apache.httpcomponents:httpclient:4.5.6")
 
   annotationProcessor ("com.adaptris:interlok-common:$interlokCoreVersion") {changing= true}
-  umlDoclet("nl.talsmasoftware:umldoclet:1.0.18")
+  umlDoclet("nl.talsmasoftware:umldoclet:1.1.0")
 
   testCompile ('junit:junit:4.12')
   testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
