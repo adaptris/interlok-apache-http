@@ -73,11 +73,6 @@ configurations.all {
   resolutionStrategy.cacheChangingModulesFor 0, "seconds"
 }
 
-compileJava {
-  options.compilerArgs.addAll(['-AxstreamImplicitDebug=true'])
-  options.compilerArgs.addAll(['-XprintRounds'])
-}
-
 dependencies {
   compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
