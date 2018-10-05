@@ -25,8 +25,8 @@ import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MetadataElement;
-import com.adaptris.core.PortManager;
 import com.adaptris.core.ProducerCase;
+import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
@@ -35,6 +35,11 @@ import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.RawContentTypeProvider;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
+import com.adaptris.core.http.apache.request.BasicHMACSignature;
+import com.adaptris.core.http.apache.request.DateHeader;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
+import com.adaptris.core.http.apache.request.RemoveHeaders;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
 import com.adaptris.core.http.auth.MetadataUsernamePassword;
@@ -54,6 +59,7 @@ import com.adaptris.core.services.WaitService;
 import com.adaptris.core.services.metadata.AddMetadataService;
 import com.adaptris.core.services.metadata.PayloadFromMetadataService;
 import com.adaptris.core.stubs.MockMessageProducer;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
@@ -124,44 +130,121 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHeaderHandler().getClass());
   }
 
-  public void testProduce() throws Exception {
-    MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
-    StandaloneProducer producer = new StandaloneProducer(http);
-    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
-    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
+  private static void doAuthenticatedProduce(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg)
+      throws Exception {
+    Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO),
+        mock);
     try {
-      start(producer);
-      producer.doService(msg);
+      start(c);
+      http.setDestination(createProduceDestination(c));
+      StandaloneProducer producer = new StandaloneProducer(http);
+      ServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
-      stop(producer);
     }
+  }
+
+  private static void doProduce(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
+    Channel c = createAndStartChannel(mock);
+    http.setDestination(createProduceDestination(c));
+    StandaloneProducer producer = new StandaloneProducer(http);
+    try {
+      ServiceCase.execute(producer, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+  }
+
+  private static void doRequest(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
+    Channel c = createAndStartChannel(mock);
+    http.setDestination(createProduceDestination(c));
+    StandaloneRequestor producer = new StandaloneRequestor(http);
+    try {
+      ServiceCase.execute(producer, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+  }
+
+  private static void doAuthenticatedRequest(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg)
+      throws Exception {
+    Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO),
+        mock);
+    http.setDestination(createProduceDestination(c));
+    StandaloneRequestor producer = new StandaloneRequestor(http);
+    try {
+      start(c);
+      ServiceCase.execute(producer, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+  }
+
+  public void testProduce() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
+    doProduce(mock, http, msg);
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
+    assertTrue(m2.headersContainsKey("User-Agent"));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
+    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
+  }
+
+  public void testProduce_WithInterceptors() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    // empty RequestInterceptorClientBuilder just to get an empty list for coverage
+    CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
+        new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("Accept-Encoding", "User-Agent", "Connection"),
+            new DateHeader()),
+        new RequestInterceptorClientBuilder());
+    http.setClientConfig(builder);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    doProduce(mock, http, msg);
+    doAssertions(mock, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    // User-Agent should have been removed.
+    assertTrue(m2.headersContainsKey("Date"));
+    assertFalse(m2.headersContainsKey("User-Agent"));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
+    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
+  }
+
+  public void testProduce_With_HMAC() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyIdentity").withHeaders("Date")
+        .withSecretKey("MySecretKey").withTargetHeader("hmac").withEncoding(Encoding.BASE64)
+        .withHmacAlgorithm(Algorithm.HMAC_SHA256);
+    CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
+        new RequestInterceptorClientBuilder().withInterceptors(new DateHeader(), hmac));
+    http.setClientConfig(builder);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    doProduce(mock, http, msg);
+    doAssertions(mock, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    // User-Agent should have been removed.
+    assertTrue(m2.headersContainsKey("Date"));
+    assertTrue(m2.headersContainsKey("hmac"));
+    assertTrue(m2.getMetadataValue("hmac").startsWith("MyIdentity:"));
     assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
   public void testProduce_WithMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer();
     http.setRequestHeaderProvider(new MetadataRequestHeaders(new NoOpMetadataFilter()));
-    StandaloneProducer producer = new StandaloneProducer(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
-    try {
-      c.requestStart();
-      start(producer);
-      producer.doService(msg);
-      waitForMessages(mock, 1);
-    } finally {
-      stopAndRelease(c);
-      stop(producer);
-    }
+    doProduce(mock, http, msg);
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
     assertTrue(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
@@ -186,12 +269,10 @@ public class ApacheHttpProducerTest extends ProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      start(producer);
-      producer.doService(msg);
+      ServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
-      stop(producer);
     }
     assertEquals("UTF-8", msg.getContentEncoding());
   }
@@ -215,12 +296,10 @@ public class ApacheHttpProducerTest extends ProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      start(producer);
-      producer.doService(msg);
+      ServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
-      stop(producer);
     }
     doAssertions(mock, true);
     assertEquals(0, msg.getSize());
@@ -228,20 +307,11 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testProduce_WithContentTypeMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer();
     http.setContentTypeProvider(new RawContentTypeProvider("%message{" + METADATA_KEY_CONTENT_TYPE + "}"));
-    StandaloneProducer producer = new StandaloneProducer(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
-    try {
-      start(producer);
-      producer.doService(msg);
-      waitForMessages(mock, 1);
-    } finally {
-      stopAndRelease(c);
-      stop(producer);
-    }
+    doProduce(mock, http, msg);
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
     assertTrue(m2.headersContainsKey("Content-Type"));
@@ -251,21 +321,9 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testRequest_GetMethod_ZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer();
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
-    StandaloneRequestor producer = new StandaloneRequestor(http);
-    AdaptrisMessage msg = new DefaultMessageFactory().newMessage();
-    try {
-      start(c);
-      start(producer);
-      producer.doService(msg);
-      waitForMessages(mock, 1);
-    }
-    finally {
-      stopAndRelease(c);
-      stop(producer);
-    }
+    doRequest(mock, http, new DefaultMessageFactory().newMessage());
     doAssertions(mock, false);
     AdaptrisMessage m2 = mock.getMessages().get(0);
     assertEquals("GET", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
@@ -274,21 +332,10 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   public void testRequest_GetMethod_NonZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
-    Channel c = createAndStartChannel(mock);
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer();
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
     StandaloneRequestor producer = new StandaloneRequestor(http);
-    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
-    try {
-      start(c);
-      start(producer);
-      producer.doService(msg);
-      waitForMessages(mock, 1);
-    }
-    finally {
-      stopAndRelease(c);
-      stop(producer);
-    }
+    doRequest(mock, http, new DefaultMessageFactory().newMessage(TEXT));
     doAssertions(mock, false);
     AdaptrisMessage m2 = mock.getMessages().get(0);
     assertEquals("GET", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
@@ -306,8 +353,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      start(producer);
-      producer.doService(msg);
+      ServiceCase.execute(producer, msg);
       fail();
     } catch (ServiceException expected) {
 
@@ -334,8 +380,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      start(producer);
-      producer.doService(msg); // msg will now contain the response!
+      ServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -352,28 +397,15 @@ public class ApacheHttpProducerTest extends ProducerCase {
   @SuppressWarnings("deprecation")
   public void testProduce_WithUsernamePassword() throws Exception {
     String threadName = Thread.currentThread().getName();
-    Thread.currentThread().setName(getName());
-    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
-
-
-    HttpConnection connection = createConnection(securityWrapper);
-    MockMessageProducer mockProducer = new MockMessageProducer();
-    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
-    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
-    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
     try {
-      c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
-
-      httpProducer.setUserName("user");
-      httpProducer.setPassword("password");
-      StandaloneProducer producer = new StandaloneProducer(httpProducer);
-      start(producer);
-      producer.doService(msg);
-      doAssertions(mockProducer, true);
+      http.setUserName("user");
+      http.setPassword("password");
+      doAuthenticatedProduce(mock, http, msg);
+      doAssertions(mock, true);
     } finally {
-      stop(httpProducer);
-      stopAndRelease(c);
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -382,27 +414,15 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithDynamicUsernamePassword() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
-
-
-    HttpConnection connection = createConnection(securityWrapper);
-    MockMessageProducer mockProducer = new MockMessageProducer();
-    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
-    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
-    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
     try {
-      c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
-
       DynamicBasicAuthorizationHeader auth = new DynamicBasicAuthorizationHeader("user", "password");
-      httpProducer.setAuthenticator(auth);
-      StandaloneProducer producer = new StandaloneProducer(httpProducer);
-      start(producer);
-      producer.doService(msg);
-      doAssertions(mockProducer, true);
+      http.setAuthenticator(auth);
+      doAuthenticatedProduce(mock, http, msg);
+      doAssertions(mock, true);
     } finally {
-      stop(httpProducer);
-      stopAndRelease(c);
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -412,30 +432,17 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithUsernamePassword_BadCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
-
-
-    HttpConnection connection = createConnection(securityWrapper);
-    MockMessageProducer mockProducer = new MockMessageProducer();
-    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
-    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
-    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
     try {
-      c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
-
-      httpProducer.setAuthenticator(new ConfiguredUsernamePassword(getName(), getName()));
-      StandaloneProducer producer = new StandaloneProducer(httpProducer);
-      start(producer);
-      producer.doService(msg);
+      http.setAuthenticator(new ConfiguredUsernamePassword(getName(), getName()));
+      doAuthenticatedProduce(mock, http, msg);
       fail();
     } catch (ServiceException expected) {
 
     } finally {
-      stop(httpProducer);
-      stopAndRelease(c);
       Thread.currentThread().setName(threadName);
-      PortManager.release(connection.getPort());
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
   }
@@ -443,30 +450,20 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithMetadataCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
-
-    HttpConnection connection = createConnection(securityWrapper);
-    MockMessageProducer mockProducer = new MockMessageProducer();
-    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
-    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
-    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
     try {
-      c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
       msg.addMetadata("apacheUser", "user");
       msg.addMetadata("apachePassword", "password");
       MetadataUsernamePassword acl = new MetadataUsernamePassword();
       acl.setPasswordMetadataKey("apachePassword");
       acl.setUsernameMetadataKey("apacheUser");
-      httpProducer.setAuthenticator(acl);
-      StandaloneProducer producer = new StandaloneProducer(httpProducer);
-      start(producer);
-      producer.doService(msg);
-      doAssertions(mockProducer, true);
+      http.setAuthenticator(acl);
+      doAuthenticatedProduce(mock, http, msg);
+      doAssertions(mock, true);
     }
     finally {
-      stop(httpProducer);
-      stopAndRelease(c);
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -475,26 +472,16 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithAuthHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    ConfigurableSecurityHandler securityWrapper = createSecurityWrapper();
-
-    HttpConnection connection = createConnection(securityWrapper);
-    MockMessageProducer mockProducer = new MockMessageProducer();
-    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
-    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
-    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
     try {
-      c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
       ConfiguredAuthorizationHeader acl = new ConfiguredAuthorizationHeader(buildAuthHeader("user", "password"));
-      httpProducer.setAuthenticator(acl);
-      StandaloneProducer producer = new StandaloneProducer(httpProducer);
-      start(producer);
-      producer.doService(msg);
-      doAssertions(mockProducer, true);
+      http.setAuthenticator(acl);
+      doAuthenticatedProduce(mock, http, msg);
+      doAssertions(mock, true);
     }
     finally {
-      stop(httpProducer);
-      stopAndRelease(c);
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -503,25 +490,17 @@ public class ApacheHttpProducerTest extends ProducerCase {
   public void testProduce_WithMetadataAuthHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
-    HttpConnection connection = createConnection(createSecurityWrapper());
-    MockMessageProducer mockProducer = new MockMessageProducer();
-    JettyMessageConsumer consumer = JettyHelper.createConsumer(URL_TO_POST_TO);
-    Channel c = JettyHelper.createChannel(connection, consumer, mockProducer);
-    ApacheHttpProducer httpProducer = new ApacheHttpProducer(createProduceDestination(c));
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
     try {
-      c.requestStart();
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
       MetadataAuthorizationHeader acl = new MetadataAuthorizationHeader("apacheAuth");
       msg.addMetadata("apacheAuth", buildAuthHeader("user", "password"));
-      httpProducer.setAuthenticator(acl);
-      StandaloneProducer producer = new StandaloneProducer(httpProducer);
-      start(producer);
-      producer.doService(msg);
-      doAssertions(mockProducer, true);
+      http.setAuthenticator(acl);
+      doAuthenticatedProduce(mock, http, msg);
+      doAssertions(mock, true);
     }
     finally {
-      stop(httpProducer);
-      stopAndRelease(c);
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -538,20 +517,17 @@ public class ApacheHttpProducerTest extends ProducerCase {
     responder.setContentTypeProvider(new ConfiguredContentTypeProvider("%message{" + getName() + "}"));
 
     sl.add(new StandaloneProducer(responder));
-    Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
+    Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, sl)));
 
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
     http.setResponseHandlerFactory(new MetadataResponseHandlerFactory(getName()));
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
-      start(c);
-      start(requestor);
-      requestor.doService(msg);
+      ServiceCase.execute(requestor, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
-      stop(requestor);
     }
     doAssertions(mock, false);
 
@@ -572,7 +548,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     services.add(new WaitService(new TimeInterval(2L, TimeUnit.SECONDS)));
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)));
 
-    Channel c = createChannel(jc, createWorkflow(mc, mock, services));
+    Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, services)));
 
     ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
@@ -585,14 +561,11 @@ public class ApacheHttpProducerTest extends ProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
 
     try {
-      start(c);
-      start(requestor);
-      requestor.doService(msg);
+      ServiceCase.execute(requestor, msg);
       assertEquals(TEXT, msg.getContent());
     }
     finally {
       stopAndRelease(c);
-      stop(requestor);
       Thread.currentThread().setName(threadName);
     }
   }
@@ -602,7 +575,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     ApacheHttpProducer producer = new ApacheHttpProducer(new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));
     producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
     producer.setClientConfig(new CompositeClientBuilder().withBuilders(new DefaultClientBuilder().withProxy("http://my.proxy:3128"),
-        new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement()));
+        new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement(),
+        new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("User-Agent"))));
     StandaloneProducer result = new StandaloneProducer(producer);
     return result;
   }
@@ -629,7 +603,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     return authString;
   }
 
-  private ConfigurableSecurityHandler createSecurityWrapper() {
+  private static ConfigurableSecurityHandler createSecurityWrapper() {
     ConfigurableSecurityHandler handler = new ConfigurableSecurityHandler();
     HashLoginServiceFactory login = new HashLoginServiceFactory("InterlokJetty", PROPERTIES.getProperty(JETTY_USER_REALM));
     SecurityConstraint securityConstraint = new SecurityConstraint();
