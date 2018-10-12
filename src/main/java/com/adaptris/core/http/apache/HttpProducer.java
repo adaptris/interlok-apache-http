@@ -481,7 +481,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   /**
    * Specify any custom {@code HttpClientBuilder} configuration.
    * 
-   * @param clientConfig a {@link HttpClientBuilderConfigurator} instance.
+   * @param httpClientCustomiser a {@link HttpClientBuilderConfigurator} instance.
    */
   public void setClientConfig(HttpClientBuilderConfigurator httpClientCustomiser) {
     this.clientConfig = httpClientCustomiser;
