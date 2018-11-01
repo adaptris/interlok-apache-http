@@ -1,13 +1,14 @@
 package com.adaptris.core.http.apache;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.io.IOException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -414,8 +415,10 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   protected boolean hasDeprecatedBuilderConfig() {
-    return !isEmpty(getHttpProxy()) || getAllowRedirect() != null || getReadTimeout() != null
-        || getConnectTimeout() != null;
+    return BooleanUtils.or(new boolean[]
+    {
+        getReadTimeout() != null, getAllowRedirect() != null, getConnectTimeout() != null, isNotBlank(getHttpProxy())
+    });
   }
 
   public void prepare() throws CoreException {
