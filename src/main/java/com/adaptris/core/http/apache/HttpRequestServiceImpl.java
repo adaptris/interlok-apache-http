@@ -30,6 +30,7 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.CoreException;
@@ -81,6 +82,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
 
   @AdvancedConfig
   @Deprecated
+  @Removal(version = "3.11.0")
   private String httpProxy;
 
   @AdvancedConfig
@@ -252,6 +254,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
    *             instead.
    */
   @Deprecated
+  @Removal(version = "3.11.0")
   public String getHttpProxy() {
     return httpProxy;
   }
@@ -264,6 +267,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
    *             instead.
    */
   @Deprecated
+  @Removal(version = "3.11.0")
   public void setHttpProxy(String proxy) {
     this.httpProxy = proxy;
   }

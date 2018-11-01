@@ -23,6 +23,7 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
@@ -115,9 +116,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   private RequestMethodProvider methodProvider;
 
   @Deprecated
+  @Removal(version = "3.9.0")
   private String userName = null;
   @Deprecated
   @InputFieldHint(style = "PASSWORD", external = true)
+  @Removal(version = "3.9.0")
   private String password = null;
 
   @NotNull
@@ -144,19 +147,23 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @AdvancedConfig
   @InputFieldDefault(value = "true")
   @Deprecated
+  @Removal(version = "3.11.0")
   private Boolean allowRedirect;
   @AdvancedConfig
   @Deprecated
+  @Removal(version = "3.11.0")
   private String httpProxy;
   @Valid
   private HttpAuthenticator authenticator;
   @Valid
   @AdvancedConfig
   @Deprecated
+  @Removal(version = "3.11.0")
   private TimeInterval connectTimeout;
   @Valid
   @AdvancedConfig
   @Deprecated
+  @Removal(version = "3.11.0")
   private TimeInterval readTimeout;
   @Valid
   @AdvancedConfig
@@ -209,7 +216,10 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   /**
    * 
    * @param s the user name
+   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
    */
+  @Deprecated
+  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
   public void setUserName(String s) {
     userName = s;
   }
@@ -224,6 +234,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
    */
   @Deprecated
+  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
   public void setPassword(String s) {
     password = s;
   }
@@ -232,7 +243,10 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Get the username.
    * 
    * @return username
+   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
    */
+  @Deprecated
+  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
   public String getUserName() {
     return userName;
   }
@@ -244,6 +258,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
    */
   @Deprecated
+  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
   public String getPassword() {
     return password;
   }
@@ -255,6 +270,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setAllowRedirect(Boolean b) {
     allowRedirect = b;
   }
@@ -266,6 +282,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public Boolean getAllowRedirect() {
     return allowRedirect;
   }
@@ -410,6 +427,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public TimeInterval getConnectTimeout() {
     return connectTimeout;
   }
@@ -422,6 +440,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setConnectTimeout(TimeInterval t) {
     this.connectTimeout = t;
   }
@@ -432,6 +451,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public TimeInterval getReadTimeout() {
     return readTimeout;
   }
@@ -448,6 +468,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setReadTimeout(TimeInterval t) {
     this.readTimeout = t;
   }
@@ -458,6 +479,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public String getHttpProxy() {
     return httpProxy;
   }
@@ -470,6 +492,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
   @Deprecated
+  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setHttpProxy(String proxy) {
     this.httpProxy = proxy;
   }
