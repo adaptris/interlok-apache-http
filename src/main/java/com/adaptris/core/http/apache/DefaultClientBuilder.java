@@ -31,7 +31,9 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.ProduceDestination;
+import com.adaptris.core.RequestReplyProducerImp;
 import com.adaptris.util.TimeInterval;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -84,7 +86,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
    * Customise any timeouts as required.
    * 
    * @param builder the builder
-   * @param timeout the timeout specified by {@link #doRequest(AdaptrisMessage, ProduceDestination, long)}
+   * @param timeout the timeout specified by {@link RequestReplyProducerImp#doRequest(AdaptrisMessage, ProduceDestination, long)}
    * @return the builder.
    */
   protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) {
@@ -176,8 +178,9 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
   /**
    * Set the read timeout.
    * <p>
-   * Note that any read timeout will be overridden by the timeout value passed in via the {{@link #request(AdaptrisMessage, long)}
-   * method, provided it differs from {@link #defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
+   * Note that any read timeout will be overridden by the timeout value passed in via the
+   * {{@link AdaptrisMessageProducer#request(AdaptrisMessage, long)} method, provided it differs from
+   * {@link RequestReplyProducerImp#defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
    * </p>
    * 
    * @param t the timeout.

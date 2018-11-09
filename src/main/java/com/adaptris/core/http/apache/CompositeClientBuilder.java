@@ -31,10 +31,10 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * {@link HttpClientBuilderConfigurator} implementation that wraps a list of implementations.
  * 
  * @config composite-apache-http-client-builder
- * @see {@link CustomTlsBuilder}
- * @see {@link DefaultClientBuilder}
- * @see {@link NoConnectionManagement}
- * @see {@link RequestInterceptorClientBuilder}
+ * @see CustomTlsBuilder
+ * @see DefaultClientBuilder
+ * @see NoConnectionManagement
+ * @see RequestInterceptorClientBuilder
  */
 @XStreamAlias("composite-apache-http-client-builder")
 public class CompositeClientBuilder implements HttpClientBuilderConfigurator {

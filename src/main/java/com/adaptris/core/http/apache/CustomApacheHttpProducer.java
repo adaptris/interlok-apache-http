@@ -19,7 +19,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Apache HTTP client producer with customised TLS/SSL settings.
  * 
  * @config custom-tls-apache-http-producer
- * @deprecated since 3.8.0 you can achieve the same thing with a {@link CustomTlsHttpClientBuilder} with {@link ApacheHttpProducer}.
+ * @deprecated since 3.8.0 you can achieve the same thing with a {@link CustomTlsBuilder} with {@link ApacheHttpProducer}.
  */
 @XStreamAlias("custom-tls-apache-http-producer")
 @AdapterComponent
