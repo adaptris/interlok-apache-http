@@ -49,6 +49,8 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   protected static final String LF = "\n";
   protected static final String COLON = ":";
+  protected static final String COMMA = ",";
+  protected static final String AMPERSEND = "&";
 
   /**
    * The encoding to use on the resulting signature.
@@ -83,36 +85,46 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
    * 
    */
   public static enum Algorithm {
-    HMAC_MD5() {
+    HMAC_MD5("HMAC-MD5") {
       @Override
       public byte[] digest(String key, String valueToDigest) {
         return HmacUtils.hmacMd5(key, valueToDigest);
       }
     },
-    HMAC_SHA1() {
+    HMAC_SHA1("HMAC-SHA1") {
       @Override
       public byte[] digest(String key, String valueToDigest) {
         return HmacUtils.hmacSha1(key, valueToDigest);
       }
     },
-    HMAC_SHA256() {
+    HMAC_SHA256("HMAC-SHA256") {
       @Override
       public byte[] digest(String key, String valueToDigest) {
         return HmacUtils.hmacSha256(key, valueToDigest);
       }
     },
-    HMAC_SHA384() {
+    HMAC_SHA384("HMAC-SHA384") {
       @Override
       public byte[] digest(String key, String valueToDigest) {
         return HmacUtils.hmacSha384(key, valueToDigest);
       }
     },
-    HMAC_SHA512() {
+    HMAC_SHA512("HMAC-SHA512") {
       @Override
       public byte[] digest(String key, String valueToDigest) {
         return HmacUtils.hmacSha256(key, valueToDigest);
       }
     };
+
+    public String name;
+
+    Algorithm(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
 
     public abstract byte[] digest(String key, String valueToDigest);
   };

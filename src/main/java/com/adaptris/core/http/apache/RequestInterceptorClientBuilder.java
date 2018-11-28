@@ -73,4 +73,7 @@ public class RequestInterceptorClientBuilder implements HttpClientBuilderConfigu
     return builder;
   }
 
+  public RequestInterceptorClientBuilder() {
+    setRequestInterceptors(new ArrayList<>());
+  }
 }
