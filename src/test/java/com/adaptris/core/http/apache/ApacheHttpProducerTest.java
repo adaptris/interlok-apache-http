@@ -35,6 +35,7 @@ import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.RawContentTypeProvider;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
+import com.adaptris.core.http.apache.HttpProducer.HttpMethod;
 import com.adaptris.core.http.apache.request.BasicHMACSignature;
 import com.adaptris.core.http.apache.request.DateHeader;
 import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
@@ -181,6 +182,12 @@ public class ApacheHttpProducerTest extends ProducerCase {
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
+    }
+  }
+
+  public void testMethod() throws Exception {
+    for (HttpMethod m : HttpMethod.values()) {
+      assertNotNull(m.create("http://localhost:8080/index.html"));
     }
   }
 
@@ -556,6 +563,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
         new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
     http.setConnectTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
     http.setReadTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
+    http.setHttpProxy(":");
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     requestor.setReplyTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");

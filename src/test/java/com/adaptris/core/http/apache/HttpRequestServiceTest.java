@@ -310,6 +310,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertTrue(msg.getObjectHeaders().containsKey("Server"));
   }
 
+  @SuppressWarnings("deprecation")
   public void testRequest_GetMethod_NonZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();

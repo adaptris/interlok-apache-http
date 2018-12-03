@@ -22,6 +22,7 @@ import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
 import com.adaptris.security.keystore.ConfiguredUrl;
 
+@SuppressWarnings("deprecation")
 public class CustomApacheHttpProducerTest extends ProducerCase {
 
   protected static Logger log = LoggerFactory.getLogger(CustomApacheHttpProducerTest.class);
