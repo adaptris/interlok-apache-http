@@ -11,13 +11,10 @@ import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -51,6 +48,8 @@ import com.adaptris.core.http.jetty.HashLoginServiceFactory;
 import com.adaptris.core.http.jetty.HttpConnection;
 import com.adaptris.core.http.jetty.JettyConstants;
 import com.adaptris.core.http.jetty.JettyMessageConsumer;
+import com.adaptris.core.http.jetty.JettyResponseService;
+import com.adaptris.core.http.jetty.MetadataResponseHeaderProvider;
 import com.adaptris.core.http.jetty.SecurityConstraint;
 import com.adaptris.core.http.jetty.StandardResponseProducer;
 import com.adaptris.core.http.server.HttpStatusProvider.HttpStatus;
@@ -541,6 +540,37 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertTrue(msg.headersContainsKey(getName()));
     assertEquals(TEXT, msg.getMetadataValue(getName()));
   }
+
+
+  public void test_ReplyMetadataOvewritesOriginal() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    HttpConnection jc = createConnection();
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
+
+    ServiceList sl = new ServiceList();
+    sl.add(new AddMetadataService(
+        Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
+    // Should at least return "getName()" as a metadata key...
+    sl.add(new JettyResponseService().withContentType("%message{" + getName() + "}")
+        .withHttpStatus("200").withResponseHeaderProvider(
+            new MetadataResponseHeaderProvider(new NoOpMetadataFilter())));
+    Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, sl)));
+
+    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    http.setResponseHeaderHandler(new ResponseHeadersAsMetadata());
+    StandaloneRequestor requestor = new StandaloneRequestor(http);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata(getName(), "original metadata value that should get overwritten");
+    try {
+      ServiceCase.execute(requestor, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+    assertTrue(msg.headersContainsKey(getName()));
+    assertEquals("text/plain; charset=UTF-8", msg.getMetadataValue(getName()));
+  }
+
 
   public void testRequest_ExpectHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
