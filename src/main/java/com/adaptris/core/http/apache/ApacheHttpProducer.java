@@ -1,11 +1,9 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -14,7 +12,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -108,7 +105,6 @@ public class ApacheHttpProducer extends HttpProducer {
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
         reply = httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       }
-      copyHeaders(msg, reply);
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
