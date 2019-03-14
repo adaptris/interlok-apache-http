@@ -26,10 +26,9 @@ import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-
+import static org.junit.Assert.assertNotEquals;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -285,6 +284,28 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertTrue(m2.headersContainsKey("Content-Type"));
     assertEquals("text/complicated", m2.getMetadataValue("Content-Type"));
     assertTrue(msg.headersContainsKey("Server"));
+  }
+
+  // INTERLOK-2682
+  public void testRequest_ReplyOverwritesExisting() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    Channel c = createAndStartChannel(mock);
+    HttpRequestService service =
+        new HttpRequestService(createProduceDestination(c).getDestination());
+    service.setContentType("text/plain");
+    service.setResponseHeaderHandler(new ResponseHeadersAsMetadata(""));
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata("Server", "Hello World");
+    try {
+      LifecycleHelper.initAndStart(c);
+      execute(service, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+    assertEquals(1, mock.messageCount());
+    assertTrue(msg.headersContainsKey("Server"));
+    assertNotEquals("Hello World", msg.getMetadataValue("Server"));
   }
 
 

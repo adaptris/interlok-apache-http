@@ -2,12 +2,8 @@ package com.adaptris.core.http.apache;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.IOException;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -19,7 +15,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -317,12 +312,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    */
   public void setIgnoreServerResponseCode(Boolean b) {
     ignoreServerResponseCode = b;
-  }
-
-  @SuppressWarnings("deprecation")
-  protected void copyHeaders(AdaptrisMessage src, AdaptrisMessage dest) throws IOException, CoreException {
-    dest.getObjectMetadata().putAll(src.getObjectMetadata());
-    dest.setMetadata(src.getMetadata());
   }
 
   public ContentTypeProvider getContentTypeProvider() {
