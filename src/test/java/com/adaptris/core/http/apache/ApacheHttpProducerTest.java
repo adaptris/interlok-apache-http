@@ -542,7 +542,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
-  public void test_ReplyMetadataOvewritesOriginal() throws Exception {
+  // INTERLOK-2682
+  public void test_ReplyMetadataReplacesOriginal() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
