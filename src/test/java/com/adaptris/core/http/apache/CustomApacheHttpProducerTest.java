@@ -6,10 +6,8 @@ import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_KEYSTORE_UR
 import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_PASSWORD;
 import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_TRUSTSTORE_PASSWORD;
 import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_TRUSTSTORE_URL;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.DefaultMessageFactory;
@@ -37,7 +35,7 @@ public class CustomApacheHttpProducerTest extends ProducerCase {
 
   public void testGet() throws Exception {
     CustomApacheHttpProducer http = new CustomApacheHttpProducer(
-        new ConfiguredProduceDestination("https://www.theguardian.com/uk"));
+        new ConfiguredProduceDestination("https://github.com"));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage();
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
