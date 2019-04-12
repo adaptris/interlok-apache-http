@@ -35,7 +35,7 @@ jobs:
       # run tests!
       - run:
           name: Run Tests
-          command: | 
+          command: |
             chmod +x ./gradlew
             ./gradlew -PverboseTests=true test jacocoTestReport
 
@@ -62,5 +62,15 @@ jobs:
 workflows:
   version: 2
   commit:
+    jobs:
+      - build
+  nightly:
+    triggers:
+      - schedule:
+          cron: "15 01 * * *"
+          filters:
+            branches:
+              only:
+                - develop
     jobs:
       - build
