@@ -266,7 +266,7 @@ publishing {
         properties.appendNode("target", "3.8.0+")
         properties.appendNode("tags", "http,https")
         properties.appendNode("license", "false")
-        properties.appendNode("externalUrl", "ttp://hc.apache.org/httpclient-3.x/")
+        properties.appendNode("externalUrl", "http://hc.apache.org")
       }
     }
   }
