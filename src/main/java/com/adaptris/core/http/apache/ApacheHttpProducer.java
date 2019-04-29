@@ -1,19 +1,17 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -32,7 +30,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
- * 
+ *
  * @config apache-http-producer
  */
 @XStreamAlias("apache-http-producer")
@@ -77,7 +75,7 @@ public class ApacheHttpProducer extends HttpProducer {
 
   /**
    * Set how to handle the response.
-   * 
+   *
    * @param fac the factory; default is {@link PayloadResponseHandlerFactory}.
    */
   public void setResponseHandlerFactory(ResponseHandlerFactory fac) {
@@ -107,7 +105,6 @@ public class ApacheHttpProducer extends HttpProducer {
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
         reply = httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       }
-      copyHeaders(msg, reply);
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
@@ -122,14 +119,14 @@ public class ApacheHttpProducer extends HttpProducer {
 
   /**
    * Do any further customisations.
-   * 
+   *
    * @param builder the builder
    * @return the builder.
    */
   protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
     return builder;
   }
-  
+
   private HttpRequestBase addData(AdaptrisMessage msg, HttpRequestBase base) throws IOException,
       CoreException {
     if (base instanceof HttpEntityEnclosingRequestBase) {
@@ -139,13 +136,13 @@ public class ApacheHttpProducer extends HttpProducer {
     return base;
   }
 
-  private class ApacheResourceTargetMatcher implements ResourceTargetMatcher {
+  protected class ApacheResourceTargetMatcher implements ResourceTargetMatcher {
 
     private URI uri;
     private String host;
     private int port;
 
-    ApacheResourceTargetMatcher(URI uri) {
+    protected ApacheResourceTargetMatcher(URI uri) {
       this.uri = uri;
       this.port = derivePort(uri);
       host = uri.getHost();
@@ -180,7 +177,13 @@ public class ApacheHttpProducer extends HttpProducer {
       boolean rc = false;
       try {
         if (target.getRequestingURL() == null) {
-          rc = host.equalsIgnoreCase(target.getRequestingHost()) && port == target.getRequestingPort();
+          rc = BooleanUtils.and(new boolean[]
+          {
+              host.equalsIgnoreCase(target.getRequestingHost()), port == target.getRequestingPort(),
+              // Do we need to check the scheme ? would you have different logins
+              // for https vs http ?
+              // uri.getScheme().equalsIgnoreCase(target.getRequestingScheme())
+          });
         }
         else {
           rc = uri.toURL().equals(target.getRequestingURL());

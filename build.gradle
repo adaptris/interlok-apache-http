@@ -1,6 +1,14 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
+plugins {
+  id 'java'
+  id 'maven'
+  id 'maven-publish'
+  id  "jacoco"
+  id 'com.github.spotbugs' version '1.6.10'
+}
+
 ext {
   interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.8-SNAPSHOT'
   releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.8-SNAPSHOT'
@@ -17,7 +25,8 @@ ext {
   componentName='Interlok/Apache HTTP'
   organizationName = "Adaptris Ltd"
   organizationUrl = "http://interlok.adaptris.net"
-  slf4jVersion = '1.7.25'
+  slf4jVersion = '1.7.26'
+  log4j2Version = '2.11.2'
 }
 
 ext.hasGraphViz = { ->
@@ -38,10 +47,7 @@ if (JavaVersion.current().isJava8Compatible()) {
   }
 }
 
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply plugin: "jacoco"
+
 
 sourceCompatibility = 1.8
 group   = 'com.adaptris'
@@ -79,7 +85,7 @@ configurations.all {
 dependencies {
   compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
-  compile ("org.apache.httpcomponents:httpclient:4.5.7")
+  compile ("org.apache.httpcomponents:httpclient:4.5.8")
   compile ("org.apache.commons:commons-lang3:3.8.1")
 
   annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") {changing= true}
@@ -87,9 +93,9 @@ dependencies {
 
   testCompile ('junit:junit:4.12')
   testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
-  testCompile ("org.apache.logging.log4j:log4j-core:2.8.1")
-  testCompile ("org.apache.logging.log4j:log4j-1.2-api:2.8.1")
-  testCompile ("org.apache.logging.log4j:log4j-api:2.8.1")
+  testCompile ("org.apache.logging.log4j:log4j-core:$log4j2Version")
+  testCompile ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
+  testCompile ("org.apache.logging.log4j:log4j-api:$log4j2Version")
   testCompile ("org.mockito:mockito-all:1.10.19")
 
   javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
@@ -97,7 +103,6 @@ dependencies {
   offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
 
 }
-
 
 jar {
   manifest {
@@ -261,7 +266,7 @@ publishing {
         properties.appendNode("target", "3.8.0+")
         properties.appendNode("tags", "http,https")
         properties.appendNode("license", "false")
-        properties.appendNode("externalUrl", "ttp://hc.apache.org/httpclient-3.x/")
+        properties.appendNode("externalUrl", "http://hc.apache.org")
       }
     }
   }
@@ -273,5 +278,27 @@ publishing {
       }
       url mavenPublishUrl
     }
+  }
+}
+
+spotbugs {
+  // showProgress = "true"
+  effort = "max"
+  // Ignore failures?
+  // ignoreFailures = false
+
+  // We only care about "high priority" issues...
+  reportLevel = "high"
+  includeFilter = new File("$rootDir/gradle/spotbugs-filter.xml")
+  excludeFilter = new File("$rootDir/gradle/spotbugs-exclude.xml")
+}
+
+// disable spotbugsTests which checks our test code..
+spotbugsTest.enabled = false
+
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+  reports {
+    xml.enabled = false
+    html.enabled = true
   }
 }

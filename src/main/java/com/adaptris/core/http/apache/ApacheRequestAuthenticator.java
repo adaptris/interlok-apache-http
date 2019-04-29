@@ -1,7 +1,6 @@
 package com.adaptris.core.http.apache;
 
 import org.apache.http.client.methods.HttpRequestBase;
-
 import com.adaptris.core.http.auth.HttpAuthenticator;
 
 /**
@@ -18,6 +17,6 @@ public interface ApacheRequestAuthenticator extends HttpAuthenticator {
   /**
    * Perform whatever actions are required to the HttpRequestBase.
    */
-  public void configure(HttpRequestBase req);
+  public void configure(HttpRequestBase req) throws Exception;
 
 }
