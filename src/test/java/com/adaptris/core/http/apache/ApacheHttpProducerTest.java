@@ -11,10 +11,13 @@ import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
+
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -397,24 +400,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("POST", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
     assertEquals("401", msg.getMetadataValue(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE));
     assertNotNull(msg.getMetadata("HTTP_Server"));
-  }
-
-
-  @SuppressWarnings("deprecation")
-  public void testProduce_WithUsernamePassword() throws Exception {
-    String threadName = Thread.currentThread().getName();
-    MockMessageProducer mock = new MockMessageProducer();
-    ApacheHttpProducer http = new ApacheHttpProducer();
-    try {
-      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
-      http.setUserName("user");
-      http.setPassword("password");
-      doAuthenticatedProduce(mock, http, msg);
-      doAssertions(mock, true);
-    } finally {
-      Thread.currentThread().setName(threadName);
-      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
-    }
   }
 
   public void testProduce_WithDynamicUsernamePassword() throws Exception {
