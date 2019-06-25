@@ -1,10 +1,12 @@
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -15,10 +17,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
@@ -38,7 +40,6 @@ import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
-import com.adaptris.security.password.Password;
 import com.adaptris.util.TimeInterval;
 
 /**
@@ -110,14 +111,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @AutoPopulated
   @Valid
   private RequestMethodProvider methodProvider;
-
-  @Deprecated
-  @Removal(version = "3.9.0")
-  private String userName = null;
-  @Deprecated
-  @InputFieldHint(style = "PASSWORD", external = true)
-  @Removal(version = "3.9.0")
-  private String password = null;
 
   @NotNull
   @Valid
@@ -209,55 +202,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     doRequest(msg, dest, defaultTimeout());
   }
 
-  /**
-   * 
-   * @param s the user name
-   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
-   */
-  @Deprecated
-  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
-  public void setUserName(String s) {
-    userName = s;
-  }
-
-  /**
-   * Set the RFC 2617 password.
-   * <p>
-   * In additional to plain text passwords, the passwords can also be encoded using the appropriate {@link Password}
-   * </p>
-   * 
-   * @param s the password
-   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
-   */
-  @Deprecated
-  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
-  public void setPassword(String s) {
-    password = s;
-  }
-
-  /**
-   * Get the username.
-   * 
-   * @return username
-   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
-   */
-  @Deprecated
-  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
-  public String getUserName() {
-    return userName;
-  }
-
-  /**
-   * Get the password.
-   * 
-   * @return the password
-   * @deprecated since 3.6.0 use {@link #setAuthenticator(HttpAuthenticator)} instead
-   */
-  @Deprecated
-  @Removal(version = "3.9.0", message = "Use #setAuthenticate(HttpAuthenticator) instead")
-  public String getPassword() {
-    return password;
-  }
 
   /**
    * Specify whether to automatically handle redirection.
@@ -385,12 +329,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   protected HttpAuthenticator authenticator() {
-    HttpAuthenticator authToUse = getAuthenticator() != null ? getAuthenticator() : new NoAuthentication();
-    // If deprecated username/password are set and no authenticator is configured, transparently create a static authenticator
-    if (authToUse instanceof NoAuthentication && !isEmpty(getUserName())) {
-      authToUse = new ConfiguredUsernamePassword(getUserName(), getPassword());
-    }
-    return authToUse;
+    return ObjectUtils.defaultIfNull(getAuthenticator(), new NoAuthentication());
   }
 
   protected HttpClientBuilderConfigurator clientConfig() {
@@ -410,6 +349,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     });
   }
 
+  @Override
   public void prepare() throws CoreException {
   }
 
