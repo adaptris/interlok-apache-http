@@ -37,6 +37,7 @@ import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.StandaloneRequestor;
 import com.adaptris.core.http.RawContentTypeProvider;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
+import com.adaptris.core.http.auth.HttpAuthenticator;
 import com.adaptris.core.http.auth.NoAuthentication;
 import com.adaptris.core.http.client.ConfiguredRequestMethodProvider;
 import com.adaptris.core.http.client.RequestHeaderProvider;
