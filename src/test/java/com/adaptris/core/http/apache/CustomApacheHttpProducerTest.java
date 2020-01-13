@@ -6,6 +6,8 @@ import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_KEYSTORE_UR
 import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_PASSWORD;
 import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_TRUSTSTORE_PASSWORD;
 import static com.adaptris.core.http.apache.CustomTlsBuilderTest.KEY_TRUSTSTORE_URL;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.adaptris.core.AdaptrisMessage;
@@ -24,15 +26,11 @@ import com.adaptris.security.keystore.ConfiguredUrl;
 public class CustomApacheHttpProducerTest extends ProducerCase {
 
   protected static Logger log = LoggerFactory.getLogger(CustomApacheHttpProducerTest.class);
-
-  public CustomApacheHttpProducerTest(String name) {
-    super(name);
-  }
-
   @Override
-  protected void setUp() throws Exception {
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
-
+  @Test
   public void testGet() throws Exception {
     CustomApacheHttpProducer http = new CustomApacheHttpProducer(
         new ConfiguredProduceDestination("https://github.com"));
@@ -49,6 +47,7 @@ public class CustomApacheHttpProducerTest extends ProducerCase {
     assertTrue(msg.getSize() > 0);
   }
 
+  @Test
   public void testGet_CustomTLS() throws Exception {
 
     String keystore = PROPERTIES.getProperty(KEY_KEYSTORE);

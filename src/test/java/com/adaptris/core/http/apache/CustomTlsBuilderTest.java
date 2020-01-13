@@ -14,9 +14,14 @@
  * limitations under the License.
 */
 package com.adaptris.core.http.apache;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.apache.http.impl.client.HttpClients;
-
+import org.junit.Test;
 import com.adaptris.core.BaseCase;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
@@ -30,7 +35,11 @@ public class CustomTlsBuilderTest extends BaseCase {
   protected static final String KEY_KEYSTORE_URL = "jetty.keystore.url";
   protected static final String KEY_TRUSTSTORE_URL = "jetty.trust.url";
   protected static final String KEY_TRUSTSTORE_PASSWORD = "jetty.trust.password";
-
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
+  }
+  @Test
   public void testSetTrustSelfSigned() throws Exception {
     CustomTlsBuilder p = new CustomTlsBuilder();
     assertFalse(p.trustSelfSigned());
@@ -40,6 +49,7 @@ public class CustomTlsBuilderTest extends BaseCase {
     assertFalse(p.trustSelfSigned());
   }
 
+  @Test
   public void testSetHostnameVerification() throws Exception {
     CustomTlsBuilder p = new CustomTlsBuilder();
     assertEquals(HostnameVerification.STANDARD, p.hostnameVerification());
@@ -50,6 +60,7 @@ public class CustomTlsBuilderTest extends BaseCase {
     assertEquals(HostnameVerification.STANDARD, p.hostnameVerification());
   }
 
+  @Test
   public void testBuilder_WithKeystores() throws Exception {
     String keystore = PROPERTIES.getProperty(KEY_KEYSTORE);
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
@@ -67,6 +78,7 @@ public class CustomTlsBuilderTest extends BaseCase {
     assertNotNull(http.configure(HttpClients.custom(), 10));
   }
 
+  @Test
   public void testBuilder_WithKeystores_NoPassword() throws Exception {
     String keystore = PROPERTIES.getProperty(KEY_KEYSTORE);
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
@@ -88,6 +100,7 @@ public class CustomTlsBuilderTest extends BaseCase {
     }
   }
 
+  @Test
   public void testTrustSelfSigned() throws Exception {
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.withTrustSelfSigned(false);
@@ -96,12 +109,14 @@ public class CustomTlsBuilderTest extends BaseCase {
     assertNotNull(http.trustStrategy());
   }
 
+  @Test
   public void testBuilder_WithTls() throws Exception {
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.setTlsVersions("SSLv3,TLSv1.1");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 
+  @Test
   public void testBuilder_WithCipherSuites() throws Exception {
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.setCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
