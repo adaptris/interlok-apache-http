@@ -15,11 +15,14 @@
 */
 
 package com.adaptris.core.http.apache;
-
 import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.BranchingServiceCollection;
 import com.adaptris.core.Channel;
@@ -38,20 +41,19 @@ import com.adaptris.core.stubs.MockMessageProducer;
 public class BranchingHttpRequestServiceTest extends ServiceCase {
   private static final String TEXT = "ABCDEFG";
 
-  public BranchingHttpRequestServiceTest(String name) {
-    super(name);
-  }
-
   @Override
-  protected void setUp() throws Exception {
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
 
+  @Test
   public void testIsBranching() throws Exception {
     BranchingHttpRequestService service = new BranchingHttpRequestService();
     assertTrue(service.isBranching());
     assertNull(service.getDefaultServiceId());
   }
 
+  @Test
   public void testService_Error() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -72,6 +74,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
     }
   }
 
+  @Test
   public void testService_DefaultServiceId() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -92,6 +95,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
     assertEquals("DefaultServiceId", msg.getNextServiceId());
   }
 
+  @Test
   public void testService_ExactMatch() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -114,6 +118,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
     assertEquals("200 OK", msg.getNextServiceId());
   }
 
+  @Test
   public void testService_RangeMatch() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);

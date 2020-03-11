@@ -26,9 +26,14 @@ import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import org.junit.Test;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -61,14 +66,12 @@ import com.adaptris.util.TimeInterval;
 public class HttpRequestServiceTest extends ServiceCase {
   private static final String TEXT = "ABCDEFG";
 
-  public HttpRequestServiceTest(String name) {
-    super(name);
-  }
-
   @Override
-  protected void setUp() throws Exception {
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
-
+  
+  @Test
   public void testService_init() throws Exception {
     HttpRequestService service = new HttpRequestService();
     try {
@@ -85,6 +88,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     LifecycleHelper.stop(service);
   }
 
+  @Test
   public void testService() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -111,6 +115,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertEquals(TEXT, msg.getContent());
   }
 
+  @Test
   public void testService_WithContentTypeMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -132,6 +137,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertEquals("text/complicated", m2.getMetadataValue("Content-Type"));
   }
 
+  @Test
   public void testService_MetadataRequestHeaders() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -153,6 +159,7 @@ public class HttpRequestServiceTest extends ServiceCase {
   }
 
 
+  @Test
   public void testService_WithMetadataMethod() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -180,6 +187,7 @@ public class HttpRequestServiceTest extends ServiceCase {
   }
 
 
+  @Test
   public void testRequest_GetMethod_ZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -206,6 +214,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertEquals(TEXT, msg.getContent());
   }
 
+  @Test
   public void testRequest_PostMethod_ZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -232,6 +241,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertEquals(TEXT, msg.getContent());
   }
 
+  @Test
   public void testRequest_EmptyReply() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -262,6 +272,7 @@ public class HttpRequestServiceTest extends ServiceCase {
 
 
 
+  @Test
   public void testRequest_MetadataResponseHeaders() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -287,6 +298,7 @@ public class HttpRequestServiceTest extends ServiceCase {
   }
 
   // INTERLOK-2682
+  @Test
   public void testRequest_ReplyOverwritesExisting() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -309,6 +321,7 @@ public class HttpRequestServiceTest extends ServiceCase {
   }
 
 
+  @Test
   public void testRequest_ObjectMetadataResponseHeaders() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
@@ -332,6 +345,7 @@ public class HttpRequestServiceTest extends ServiceCase {
   }
 
   @SuppressWarnings("deprecation")
+  @Test
   public void testRequest_GetMethod_NonZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -360,6 +374,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     assertEquals(TEXT, msg.getContent());
   }
   
+  @Test
   public void testRequest_GetMethod_NonZeroBytes_WithErrorResponse() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -393,6 +408,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     return auth;
   }
 
+  @Test
   public void testProduce_WithUsernamePassword() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
@@ -429,6 +445,7 @@ public class HttpRequestServiceTest extends ServiceCase {
     }
   }
 
+  @Test
   public void testRequest_ExpectHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());

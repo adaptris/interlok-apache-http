@@ -11,13 +11,16 @@ import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -72,14 +75,12 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   protected static Logger log = LoggerFactory.getLogger(ApacheHttpProducerTest.class);
 
-  public ApacheHttpProducerTest(String name) {
-    super(name);
-  }
-
   @Override
-  protected void setUp() throws Exception {
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
 
+  @Test
   public void testSetHandleRedirection() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
     p.setAllowRedirect(true);
@@ -90,6 +91,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(Boolean.FALSE, p.getAllowRedirect());
   }
 
+  @Test
   public void testSetIgnoreServerResponse() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
     assertFalse(p.ignoreServerResponseCode());
@@ -104,6 +106,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  @Test
   public void testSetRequestHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
     assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
@@ -119,6 +122,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  @Test
   public void testSetResponseHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
     assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
@@ -187,12 +191,14 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  @Test
   public void testMethod() throws Exception {
     for (HttpMethod m : HttpMethod.values()) {
       assertNotNull(m.create("http://localhost:8080/index.html"));
     }
   }
 
+  @Test
   public void testProduce() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -206,6 +212,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
+  @Test
   public void testProduce_WithInterceptors() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -226,6 +233,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
+  @Test
   public void testProduce_With_HMAC() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -247,6 +255,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
+  @Test
   public void testProduce_WithMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -260,6 +269,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
   }
 
+  @Test
   public void testProduce_ReplyHasCharset() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -287,6 +297,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  @Test
   public void testProduce_ReplyHasNoData() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -314,6 +325,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(0, msg.getSize());
   }
 
+  @Test
   public void testProduce_WithContentTypeMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -328,6 +340,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals("text/complicated", m2.getMetadataValue("Content-Type"));
   }
 
+  @Test
   public void testRequest_GetMethod_ZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -339,6 +352,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(0, m2.getSize());
   }
 
+  @Test
   public void testRequest_GetMethod_NonZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -351,6 +365,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertEquals(0, m2.getSize());
   }
 
+  @Test
   public void testRequest_ProduceException_401() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -373,6 +388,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  @Test
   public void testRequest_WithErrorResponse() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -402,6 +418,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     assertNotNull(msg.getMetadata("HTTP_Server"));
   }
 
+  @Test
   public void testProduce_WithDynamicUsernamePassword() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
@@ -420,6 +437,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  @Test
   public void testProduce_WithUsernamePassword_BadCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
@@ -438,6 +456,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  @Test
   public void testProduce_WithMetadataCredentials() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
@@ -460,6 +479,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  @Test
   public void testProduce_WithAuthHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
@@ -478,6 +498,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  @Test
   public void testProduce_WithMetadataAuthHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());
@@ -497,6 +518,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     }
   }
 
+  @Test
   public void testRequest_WithReplyAsMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -528,6 +550,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
 
   // INTERLOK-2682
+  @Test
   public void test_ReplyMetadataReplacesOriginal() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
@@ -558,6 +581,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
 
+  @Test
   public void testRequest_ExpectHeader() throws Exception {
     String threadName = Thread.currentThread().getName();
     Thread.currentThread().setName(getName());

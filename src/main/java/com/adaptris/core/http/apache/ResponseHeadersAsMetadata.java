@@ -1,12 +1,10 @@
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
-
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
