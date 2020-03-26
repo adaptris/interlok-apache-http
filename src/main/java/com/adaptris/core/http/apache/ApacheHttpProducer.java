@@ -1,20 +1,16 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-
 import javax.validation.Valid;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -100,6 +96,7 @@ public class ApacheHttpProducer extends HttpProducer {
       String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
+      log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getURI());
       try (CloseableHttpClient httpclient = createClient(timeout)) {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
