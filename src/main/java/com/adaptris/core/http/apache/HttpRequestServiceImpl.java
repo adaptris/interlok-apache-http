@@ -18,16 +18,15 @@ package com.adaptris.core.http.apache;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.net.Authenticator;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.util.Args;
-import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
@@ -74,11 +73,6 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   @InputFieldDefault(value = "POST")
   @InputFieldHint(expression = true, style = "com.adaptris.core.http.client.RequestMethodProvider.RequestMethod")
   private String method;
-
-  @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private String httpProxy;
 
   @AdvancedConfig
   @Valid
@@ -141,18 +135,9 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   }
 
   protected HttpClientBuilderConfigurator clientConfig() {
-    if (getClientConfig() == null && hasDeprecatedBuilderConfig()) {
-      log.warn("Use of deprecated #httpProxy; use a {} instead",
-          HttpClientBuilderConfigurator.class.getName());
-      return new DefaultClientBuilder().withProxy(getHttpProxy());
-    }
     // If it's still null, it will get defaulted anyway by the underlying producer.
     // so we should be good.
     return getClientConfig();
-  }
-
-  protected boolean hasDeprecatedBuilderConfig() {
-    return !isEmpty(getHttpProxy());
   }
 
   /**
@@ -241,30 +226,6 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
    */
   public void setAuthenticator(HttpAuthenticator auth) {
     authenticator = auth;
-  }
-
-  /**
-   * @return the httpProxy
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} via {@link #setClientConfig(HttpClientBuilderConfigurator)}
-   *             instead.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0")
-  public String getHttpProxy() {
-    return httpProxy;
-  }
-
-  /**
-   * Explicitly configure a proxy server.
-   *
-   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} via {@link #setClientConfig(HttpClientBuilderConfigurator)}
-   *             instead.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0")
-  public void setHttpProxy(String proxy) {
-    httpProxy = proxy;
   }
 
   public HttpClientBuilderConfigurator getClientConfig() {

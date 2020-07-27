@@ -81,17 +81,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
   @Test
-  public void testSetHandleRedirection() throws Exception {
-    ApacheHttpProducer p = new ApacheHttpProducer();
-    p.setAllowRedirect(true);
-    assertNotNull(p.getAllowRedirect());
-    assertEquals(Boolean.TRUE, p.getAllowRedirect());
-    p.setAllowRedirect(false);
-    assertNotNull(p.getAllowRedirect());
-    assertEquals(Boolean.FALSE, p.getAllowRedirect());
-  }
-
-  @Test
   public void testSetIgnoreServerResponse() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
     assertFalse(p.ignoreServerResponseCode());
@@ -310,7 +299,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
 
     ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
-    http.setAllowRedirect(true);
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
@@ -602,9 +590,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
     http.setRequestHeaderProvider(
         new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
-    http.setConnectTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
-    http.setReadTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
-    http.setHttpProxy(":");
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     requestor.setReplyTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");

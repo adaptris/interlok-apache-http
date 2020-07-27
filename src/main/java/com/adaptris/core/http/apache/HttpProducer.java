@@ -2,7 +2,6 @@ package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
 import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.BooleanUtils;
@@ -42,7 +41,6 @@ import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.DestinationHelper;
 import com.adaptris.core.util.LoggingHelper;
-import com.adaptris.util.TimeInterval;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -137,27 +135,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @AdvancedConfig
   @InputFieldDefault(value = "false")
   private Boolean ignoreServerResponseCode;
-  @AdvancedConfig
-  @InputFieldDefault(value = "true")
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private Boolean allowRedirect;
-  @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private String httpProxy;
   @Valid
   private HttpAuthenticator authenticator;
-  @Valid
-  @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private TimeInterval connectTimeout;
-  @Valid
-  @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private TimeInterval readTimeout;
   @Valid
   @AdvancedConfig
   private HttpClientBuilderConfigurator clientConfig;
@@ -200,30 +179,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return DEFAULT_TIMEOUT;
   }
 
-
-  /**
-   * Specify whether to automatically handle redirection.
-   *
-   * @param b true or false.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setAllowRedirect(Boolean b) {
-    allowRedirect = b;
-  }
-
-  /**
-   * Get the handle redirection flag.
-   *
-   * @return true or false.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public Boolean getAllowRedirect() {
-    return allowRedirect;
-  }
 
   /**
    * Get the currently configured flag for ignoring server response code.
@@ -331,22 +286,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   protected HttpClientBuilderConfigurator clientConfig() {
-    if (getClientConfig() == null && hasDeprecatedBuilderConfig()) {
-      log.warn("Use of deprecated #allowRedirectory, #httpProxy, #readTimeout, #connectTimeout; use a {} instead",
-          HttpClientBuilderConfigurator.class.getName());
-      return new DefaultClientBuilder().withAllowRedirect(getAllowRedirect()).withConnectTimeout(getConnectTimeout())
-          .withProxy(getHttpProxy()).withReadTimeout(getReadTimeout());
-    }
     return getClientConfig();
   }
-
-  protected boolean hasDeprecatedBuilderConfig() {
-    return BooleanUtils.or(new boolean[]
-    {
-        getReadTimeout() != null, getAllowRedirect() != null, getConnectTimeout() != null, isNotBlank(getHttpProxy())
-    });
-  }
-
 
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
@@ -358,82 +299,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
         "{} uses destination, use 'url' instead", LoggingHelper.friendlyName(this));
     mustHaveEither(getUrl(), getDestination());
-  }
-
-  /**
-   *
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public TimeInterval getConnectTimeout() {
-    return connectTimeout;
-  }
-
-  /**
-   * Set the connect timeout.
-   *
-   * @param t the timeout.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setConnectTimeout(TimeInterval t) {
-    connectTimeout = t;
-  }
-
-  /**
-   *
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public TimeInterval getReadTimeout() {
-    return readTimeout;
-  }
-
-  /**
-   * Set the read timeout.
-   * <p>
-   * Note that any read timeout will be overridden by the timeout value passed in via the {{@link #request(AdaptrisMessage, long)}
-   * method, provided it differs from {@link #defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
-   * </p>
-   *
-   * @param t the timeout.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setReadTimeout(TimeInterval t) {
-    readTimeout = t;
-  }
-
-  /**
-   * @return the httpProxy
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public String getHttpProxy() {
-    return httpProxy;
-  }
-
-  /**
-   * Explicitly configure a proxy server.
-   *
-   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setHttpProxy(String proxy) {
-    httpProxy = proxy;
   }
 
   public HttpClientBuilderConfigurator getClientConfig() {
