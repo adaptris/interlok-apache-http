@@ -1,5 +1,7 @@
 package com.adaptris.core.http.apache;
 
+import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
+import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -18,6 +20,7 @@ import org.apache.http.client.methods.HttpTrace;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
@@ -37,20 +40,24 @@ import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
+import com.adaptris.core.util.DestinationHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.util.TimeInterval;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Abstract base class for all Apache HTTP producer classes.
- * 
+ *
  * @author lchan
- * 
+ *
  */
 public abstract class HttpProducer extends RequestReplyProducerImp {
 
   protected static final long DEFAULT_TIMEOUT = -1;
   /**
    * Maps various methods supported by the Apache Http client.
-   * 
+   *
    */
   public static enum HttpMethod {
     DELETE {
@@ -154,6 +161,27 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Valid
   @AdvancedConfig
   private HttpClientBuilderConfigurator clientConfig;
+  /**
+   * The ProduceDestination contains the url we will access.
+   *
+   */
+  @Getter
+  @Setter
+  @Deprecated
+  @Valid
+  @Removal(version = "4.0.0", message = "Use 'url' instead")
+  private ProduceDestination destination;
+
+  /**
+   * The URL endpoint to access.
+   */
+  @InputFieldHint(expression = true)
+  @Getter
+  @Setter
+  // Needs to be @NotBlank when destination is removed.
+  private String url;
+
+  private transient boolean destWarning;
 
   public HttpProducer() {
     super();
@@ -163,25 +191,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
   }
 
-  @Override
-  public void start() throws CoreException {
-  }
-
-  @Override
-  public void stop() {
-  }
-
-  @Override
-  public void close() {
-  }
-
-  @Override
-  public void init() throws CoreException {
-  }
-
-
   /**
-   * 
+   *
    * @see com.adaptris.core.RequestReplyProducerImp#defaultTimeout()
    */
   @Override
@@ -191,18 +202,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
 
   /**
-   * 
-   * @see RequestReplyProducerImp#produce(AdaptrisMessage, ProduceDestination)
-   */
-  @Override
-  public void produce(AdaptrisMessage msg, ProduceDestination dest) throws ProduceException {
-    doRequest(msg, dest, defaultTimeout());
-  }
-
-
-  /**
    * Specify whether to automatically handle redirection.
-   * 
+   *
    * @param b true or false.
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
    */
@@ -214,7 +215,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Get the handle redirection flag.
-   * 
+   *
    * @return true or false.
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
    */
@@ -226,7 +227,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Get the currently configured flag for ignoring server response code.
-   * 
+   *
    * @return true or false
    * @see #setIgnoreServerResponseCode(Boolean)
    */
@@ -247,7 +248,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * <p>
    * In all cases the metadata key {@link CoreConstants#HTTP_PRODUCER_RESPONSE_CODE} is populated with the last server response.
    * </p>
-   * 
+   *
    * @see CoreConstants#HTTP_PRODUCER_RESPONSE_CODE
    * @param b true
    */
@@ -261,11 +262,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Specify the Content-Type header associated with the HTTP operation.
-   * 
+   *
    * @param ctp
    */
   public void setContentTypeProvider(ContentTypeProvider ctp) {
-    this.contentTypeProvider = ctp;
+    contentTypeProvider = ctp;
   }
 
   public ResponseHeaderHandler<HttpResponse> getResponseHeaderHandler() {
@@ -274,11 +275,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Specify how we handle headers from the HTTP response.
-   * 
+   *
    * @param handler the handler, default is a {@link DiscardResponseHeaders}.
    */
   public void setResponseHeaderHandler(ResponseHeaderHandler<HttpResponse> handler) {
-    this.responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
+    responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
   }
 
   public RequestHeaderProvider<HttpRequestBase> getRequestHeaderProvider() {
@@ -287,11 +288,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Specify how we want to generate the initial set of HTTP Headers.
-   * 
+   *
    * @param handler the handler, default is a {@link NoOpRequestHeaders}
    */
   public void setRequestHeaderProvider(RequestHeaderProvider<HttpRequestBase> handler) {
-    this.requestHeaderProvider = Args.notNull(handler, "Request Header Handler");
+    requestHeaderProvider = Args.notNull(handler, "Request Header Handler");
   }
 
   public RequestMethodProvider getMethodProvider() {
@@ -299,7 +300,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   public void setMethodProvider(RequestMethodProvider p) {
-    this.methodProvider = Args.notNull(p, "Method Provider");
+    methodProvider = Args.notNull(p, "Method Provider");
   }
 
   public HttpAuthenticator getAuthenticator() {
@@ -308,7 +309,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Set the authentication method to use for the HTTP request
-   * 
+   *
    * @see ApacheRequestAuthenticator
    * @see ConfiguredUsernamePassword
    * @see MetadataUsernamePassword
@@ -346,12 +347,21 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     });
   }
 
+
+  @Override
+  protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
+    doRequest(msg, endpoint, defaultTimeout());
+  }
+
   @Override
   public void prepare() throws CoreException {
+    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
+        "{} uses destination, use 'url' instead", LoggingHelper.friendlyName(this));
+    mustHaveEither(getUrl(), getDestination());
   }
 
   /**
-   * 
+   *
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
@@ -363,7 +373,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Set the connect timeout.
-   * 
+   *
    * @param t the timeout.
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
@@ -371,11 +381,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Deprecated
   @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setConnectTimeout(TimeInterval t) {
-    this.connectTimeout = t;
+    connectTimeout = t;
   }
 
   /**
-   * 
+   *
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
    */
@@ -391,7 +401,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Note that any read timeout will be overridden by the timeout value passed in via the {{@link #request(AdaptrisMessage, long)}
    * method, provided it differs from {@link #defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
    * </p>
-   * 
+   *
    * @param t the timeout.
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
@@ -399,7 +409,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Deprecated
   @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setReadTimeout(TimeInterval t) {
-    this.readTimeout = t;
+    readTimeout = t;
   }
 
   /**
@@ -415,7 +425,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Explicitly configure a proxy server.
-   * 
+   *
    * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
    * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
    *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
@@ -423,7 +433,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Deprecated
   @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
   public void setHttpProxy(String proxy) {
-    this.httpProxy = proxy;
+    httpProxy = proxy;
   }
 
   public HttpClientBuilderConfigurator getClientConfig() {
@@ -432,11 +442,21 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   /**
    * Specify any custom {@code HttpClientBuilder} configuration.
-   * 
+   *
    * @param httpClientCustomiser a {@link HttpClientBuilderConfigurator} instance.
    */
   public void setClientConfig(HttpClientBuilderConfigurator httpClientCustomiser) {
-    this.clientConfig = httpClientCustomiser;
+    clientConfig = httpClientCustomiser;
+  }
+
+  @Override
+  public String endpoint(AdaptrisMessage msg) throws ProduceException {
+    return DestinationHelper.resolveProduceDestination(getUrl(), getDestination(), msg);
+  }
+
+  public <T extends HttpProducer> T withURL(String s) {
+    setUrl(s);
+    return (T) this;
   }
 
 }

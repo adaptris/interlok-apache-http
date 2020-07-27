@@ -57,9 +57,14 @@ public class JettyHelper {
   }
 
 
+  @Deprecated
   public static ConfiguredProduceDestination createProduceDestination(Channel channel) {
-    ConfiguredProduceDestination d = new ConfiguredProduceDestination("http://localhost:" + getPort(channel) + URL_TO_POST_TO);
+    ConfiguredProduceDestination d = new ConfiguredProduceDestination(createURL(channel));
     return d;
+  }
+
+  public static String createURL(Channel channel) {
+    return "http://localhost:" + getPort(channel) + URL_TO_POST_TO;
   }
 
   public static Channel createChannel(AdaptrisConnection connection, Workflow w) throws Exception {

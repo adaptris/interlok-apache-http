@@ -9,6 +9,7 @@ import static com.adaptris.core.http.apache.JettyHelper.createChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createConnection;
 import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
+import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MetadataElement;
@@ -282,7 +282,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     sl.add(new StandaloneProducer(responder));
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
 
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
@@ -309,7 +309,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     sl.add(new StandaloneProducer(responder));
     Channel c = createChannel(jc, createWorkflow(mc, mock, sl));
 
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setAllowRedirect(true);
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
     StandaloneRequestor producer = new StandaloneRequestor(http);
@@ -373,7 +373,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
     ServiceList services = new ServiceList();
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
     Channel c = createChannel(jc, createWorkflow(mc, mock, services));
-    StandaloneRequestor producer = new StandaloneRequestor(new ApacheHttpProducer(createProduceDestination(c)));
+    StandaloneRequestor producer =
+        new StandaloneRequestor(new ApacheHttpProducer().withURL(createURL(c)));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
@@ -397,7 +398,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
     Channel c = createChannel(jc, createWorkflow(mc, mock, services));
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
     http.setIgnoreServerResponseCode(true);
     http.setResponseHeaderHandler(new ResponseHeadersAsMetadata("HTTP_"));
@@ -532,7 +533,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     sl.add(new StandaloneProducer(responder));
     Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, sl)));
 
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setResponseHandlerFactory(new MetadataResponseHandlerFactory(getName()));
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
@@ -565,7 +566,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
             new MetadataResponseHeaderProvider(new NoOpMetadataFilter())));
     Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, sl)));
 
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setResponseHeaderHandler(new ResponseHeadersAsMetadata());
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
@@ -597,7 +598,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
     Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, services)));
 
-    ApacheHttpProducer http = new ApacheHttpProducer(createProduceDestination(c));
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
     http.setRequestHeaderProvider(
         new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
@@ -620,7 +621,8 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   @Override
   protected Object retrieveObjectForSampleConfig() {
-    ApacheHttpProducer producer = new ApacheHttpProducer(new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));
+    ApacheHttpProducer producer =
+        new ApacheHttpProducer().withURL("http://myhost.com/url/to/post/to");
     producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
     producer.setClientConfig(new CompositeClientBuilder().withBuilders(new DefaultClientBuilder().withProxy("http://my.proxy:3128"),
         new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement(),

@@ -16,10 +16,8 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageProducerImp;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.http.ResourceAuthenticator.ResourceTarget;
 import com.adaptris.core.http.auth.HttpAuthenticator;
@@ -44,7 +42,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 }, author = "Adaptris Ltd")
 @DisplayOrder(order =
 {
-    "username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode",
+    "url", "authenticator", "ignoreServerResponseCode",
     "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory",
     "clientConfig"
 })
@@ -56,16 +54,9 @@ public class ApacheHttpProducer extends HttpProducer {
   @Valid
   private ResponseHandlerFactory responseHandlerFactory;
 
-
   public ApacheHttpProducer() {
     super();
   }
-
-  public ApacheHttpProducer(ProduceDestination d) {
-    this();
-    setDestination(d);
-  }
-
 
   public ResponseHandlerFactory getResponseHandlerFactory() {
     return responseHandlerFactory;
@@ -77,7 +68,7 @@ public class ApacheHttpProducer extends HttpProducer {
    * @param fac the factory; default is {@link PayloadResponseHandlerFactory}.
    */
   public void setResponseHandlerFactory(ResponseHandlerFactory fac) {
-    this.responseHandlerFactory = fac;
+    responseHandlerFactory = fac;
   }
 
   protected ResponseHandlerFactory responseHandlerFactory() {
@@ -85,15 +76,12 @@ public class ApacheHttpProducer extends HttpProducer {
   }
 
 
-  /**
-   * @see AdaptrisMessageProducerImp #request(AdaptrisMessage, ProduceDestination, long)
-   */
   @Override
-  protected AdaptrisMessage doRequest(AdaptrisMessage msg, ProduceDestination destination, long timeout) throws ProduceException {
+  protected AdaptrisMessage doRequest(AdaptrisMessage msg, String uri, long timeout)
+      throws ProduceException {
     AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
 
     try (HttpAuthenticator auth = authenticator()) {
-      String uri = destination.getDestination(msg);
       HttpRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
       log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getURI());
@@ -102,7 +90,8 @@ public class ApacheHttpProducer extends HttpProducer {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
         }
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
-        reply = httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
+        reply =
+            httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       }
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
@@ -143,7 +132,7 @@ public class ApacheHttpProducer extends HttpProducer {
 
     protected ApacheResourceTargetMatcher(URI uri) {
       this.uri = uri;
-      this.port = derivePort(uri);
+      port = derivePort(uri);
       host = uri.getHost();
     }
 
@@ -194,5 +183,6 @@ public class ApacheHttpProducer extends HttpProducer {
       return rc;
     }
   }
+
 
 }
