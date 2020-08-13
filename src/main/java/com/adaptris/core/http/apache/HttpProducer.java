@@ -216,8 +216,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * <p>
    * If not explicitly configured will be a {@link DefaultClientBuilder} with its defaults.
    * </p>
-   *
-   * @param httpClientCustomiser a {@link HttpClientBuilderConfigurator} instance.
    */
   @Valid
   @AdvancedConfig
