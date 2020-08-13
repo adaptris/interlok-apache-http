@@ -1,12 +1,12 @@
 /*
  * Copyright 2015 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,9 @@
 package com.adaptris.core.http.apache;
 import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
+import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
   public void testIsBranching() throws Exception {
     BranchingHttpRequestService service = new BranchingHttpRequestService();
     assertTrue(service.isBranching());
-    assertNull(service.getDefaultServiceId());
+    assertEquals("", service.getDefaultServiceId());
   }
 
   @Test
@@ -94,6 +94,51 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
     assertEquals(1, mock.messageCount());
     assertEquals("DefaultServiceId", msg.getNextServiceId());
   }
+
+  @Test
+  public void testService_BlankServiceId() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    Channel c = createAndStartChannel(mock);
+    BranchingHttpRequestService service = new BranchingHttpRequestService();
+    service.setContentType("text/complicated");
+    service.setDefaultServiceId("");
+    service.setUrl(createURL(c));
+
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.setNextServiceId("should-be-overriden");
+    try {
+      c.requestStart();
+      execute(service, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+    assertEquals(1, mock.messageCount());
+    assertEquals("", msg.getNextServiceId());
+  }
+
+  @Test
+  public void testService_NullServiceId() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    Channel c = createAndStartChannel(mock);
+    BranchingHttpRequestService service = new BranchingHttpRequestService();
+    service.setUrl(createURL(c));
+
+    service.setContentType("text/complicated");
+    service.setDefaultServiceId(null);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.setNextServiceId("should-not-be-overriden");
+    try {
+      c.requestStart();
+      execute(service, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+    assertEquals(1, mock.messageCount());
+    assertEquals("should-not-be-overriden", msg.getNextServiceId());
+  }
+
 
   @Test
   public void testService_ExactMatch() throws Exception {
