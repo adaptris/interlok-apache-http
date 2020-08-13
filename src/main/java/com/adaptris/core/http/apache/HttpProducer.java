@@ -38,10 +38,10 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
-import com.adaptris.core.util.Args;
 import com.adaptris.core.util.DestinationHelper;
 import com.adaptris.core.util.LoggingHelper;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -109,36 +109,117 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     public abstract HttpRequestBase create(String url);
   }
 
+  /**
+   * The HTTP method.
+   * <p>
+   * The default is {@code POST}
+   * </p>
+   */
   @NotNull
   @AutoPopulated
   @Valid
+  @NonNull
+  @Getter
+  @Setter
   private RequestMethodProvider methodProvider;
 
+  /**
+   * The Content-Type header associated with the HTTP operation.
+   * <p>
+   * The default is {@code text/plain} based on the default from
+   * {@link ConfiguredContentTypeProvider}.
+   * </p>
+   *
+   */
   @NotNull
   @Valid
   @AutoPopulated
   @AdvancedConfig
+  @NonNull
+  @Getter
+  @Setter
   private ContentTypeProvider contentTypeProvider;
 
+  /**
+   * Specify how we handle headers from the HTTP response.
+   *
+   * <p>
+   * If not explicitly configured then the default is {@link DiscardResponseHeaders}
+   * </p>
+   */
   @AdvancedConfig
   @Valid
+  @NonNull
   @NotNull
   @AutoPopulated
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "discard response headers")
   private ResponseHeaderHandler<HttpResponse> responseHeaderHandler;
 
+  /**
+   * Any additional HTTP headers we wish to send with the request.
+   * <p>
+   * If not explicitly configured then the default is {@link NoOpRequestHeaders}
+   * </p>
+   *
+   */
   @AdvancedConfig
   @Valid
   @NotNull
   @AutoPopulated
+  @NonNull
+  @Getter
+  @Setter
   private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
 
+  /**
+   * Control whether or not to ignore the server response code.
+   * <p>
+   * In some cases, you may wish to ignore any server response code (such as 500) as this may return
+   * meaningful data that you wish to use. If that's the case, make sure this flag is true. It
+   * defaults to false.
+   * </p>
+   * <p>
+   * In all cases the metadata key {@link CoreConstants#HTTP_PRODUCER_RESPONSE_CODE} is populated
+   * with the last server response.
+   * </p>
+   *
+   */
   @AdvancedConfig
   @InputFieldDefault(value = "false")
+  @Getter
+  @Setter
   private Boolean ignoreServerResponseCode;
+  /**
+   * Set the authentication method to use for the HTTP request
+   * <p>
+   * If not explicitly configured then defaults to {@link NoAuthentication}.
+   * </p>
+   *
+   * @see ApacheRequestAuthenticator
+   * @see ConfiguredUsernamePassword
+   * @see MetadataUsernamePassword
+   * @see ConfiguredAuthorizationHeader
+   * @see MetadataAuthorizationHeader
+   */
   @Valid
+  @Getter
+  @Setter
   private HttpAuthenticator authenticator;
+  /**
+   * Customise the underlying Apache {@code HttpClientBuilder} before the request is made.
+   *
+   * <p>
+   * If not explicitly configured will be a {@link DefaultClientBuilder} with its defaults.
+   * </p>
+   *
+   * @param httpClientCustomiser a {@link HttpClientBuilderConfigurator} instance.
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private HttpClientBuilderConfigurator clientConfig;
   /**
    * The ProduceDestination contains the url we will access.
@@ -180,99 +261,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
 
-  /**
-   * Get the currently configured flag for ignoring server response code.
-   *
-   * @return true or false
-   * @see #setIgnoreServerResponseCode(Boolean)
-   */
-  public Boolean getIgnoreServerResponseCode() {
-    return ignoreServerResponseCode;
-  }
-
   protected boolean ignoreServerResponseCode() {
     return BooleanUtils.toBooleanDefaultIfNull(getIgnoreServerResponseCode(), false);
-  }
-
-  /**
-   * Set whether to ignore the server response code.
-   * <p>
-   * In some cases, you may wish to ignore any server response code (such as 500) as this may return meaningful data that you wish
-   * to use. If that's the case, make sure this flag is true. It defaults to false.
-   * </p>
-   * <p>
-   * In all cases the metadata key {@link CoreConstants#HTTP_PRODUCER_RESPONSE_CODE} is populated with the last server response.
-   * </p>
-   *
-   * @see CoreConstants#HTTP_PRODUCER_RESPONSE_CODE
-   * @param b true
-   */
-  public void setIgnoreServerResponseCode(Boolean b) {
-    ignoreServerResponseCode = b;
-  }
-
-  public ContentTypeProvider getContentTypeProvider() {
-    return contentTypeProvider;
-  }
-
-  /**
-   * Specify the Content-Type header associated with the HTTP operation.
-   *
-   * @param ctp
-   */
-  public void setContentTypeProvider(ContentTypeProvider ctp) {
-    contentTypeProvider = ctp;
-  }
-
-  public ResponseHeaderHandler<HttpResponse> getResponseHeaderHandler() {
-    return responseHeaderHandler;
-  }
-
-  /**
-   * Specify how we handle headers from the HTTP response.
-   *
-   * @param handler the handler, default is a {@link DiscardResponseHeaders}.
-   */
-  public void setResponseHeaderHandler(ResponseHeaderHandler<HttpResponse> handler) {
-    responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
-  }
-
-  public RequestHeaderProvider<HttpRequestBase> getRequestHeaderProvider() {
-    return requestHeaderProvider;
-  }
-
-  /**
-   * Specify how we want to generate the initial set of HTTP Headers.
-   *
-   * @param handler the handler, default is a {@link NoOpRequestHeaders}
-   */
-  public void setRequestHeaderProvider(RequestHeaderProvider<HttpRequestBase> handler) {
-    requestHeaderProvider = Args.notNull(handler, "Request Header Handler");
-  }
-
-  public RequestMethodProvider getMethodProvider() {
-    return methodProvider;
-  }
-
-  public void setMethodProvider(RequestMethodProvider p) {
-    methodProvider = Args.notNull(p, "Method Provider");
-  }
-
-  public HttpAuthenticator getAuthenticator() {
-    return authenticator;
-  }
-
-  /**
-   * Set the authentication method to use for the HTTP request
-   *
-   * @see ApacheRequestAuthenticator
-   * @see ConfiguredUsernamePassword
-   * @see MetadataUsernamePassword
-   * @see ConfiguredAuthorizationHeader
-   * @see MetadataAuthorizationHeader
-   */
-  public void setAuthenticator(HttpAuthenticator authenticator) {
-    this.authenticator = Args.notNull(authenticator, "authenticator");
   }
 
   protected HttpMethod getMethod(AdaptrisMessage msg) {
@@ -285,10 +275,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return ObjectUtils.defaultIfNull(getAuthenticator(), new NoAuthentication());
   }
 
-  protected HttpClientBuilderConfigurator clientConfig() {
-    return getClientConfig();
-  }
-
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     doRequest(msg, endpoint, defaultTimeout());
@@ -299,19 +285,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
         "{} uses destination, use 'url' instead", LoggingHelper.friendlyName(this));
     mustHaveEither(getUrl(), getDestination());
-  }
-
-  public HttpClientBuilderConfigurator getClientConfig() {
-    return clientConfig;
-  }
-
-  /**
-   * Specify any custom {@code HttpClientBuilder} configuration.
-   *
-   * @param httpClientCustomiser a {@link HttpClientBuilderConfigurator} instance.
-   */
-  public void setClientConfig(HttpClientBuilderConfigurator httpClientCustomiser) {
-    clientConfig = httpClientCustomiser;
   }
 
   @Override

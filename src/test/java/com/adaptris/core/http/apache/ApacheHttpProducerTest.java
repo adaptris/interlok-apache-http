@@ -103,7 +103,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     try {
       p.setRequestHeaderProvider(null);
       fail();
-    } catch (IllegalArgumentException expected) {
+    } catch (Exception expected) {
 
     }
     assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
@@ -119,7 +119,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     try {
       p.setResponseHeaderHandler(null);
       fail();
-    } catch (IllegalArgumentException expected) {
+    } catch (Exception expected) {
 
     }
     assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
@@ -541,7 +541,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   // INTERLOK-2682
   @Test
-  public void test_ReplyMetadataReplacesOriginal() throws Exception {
+  public void test_ReplyMetadata_ShouldNotOverwrite() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
