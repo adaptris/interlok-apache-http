@@ -1,5 +1,6 @@
 package com.adaptris.core.http.apache;
 
+import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
 import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
 import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import javax.validation.Valid;
@@ -40,6 +41,7 @@ import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.DestinationHelper;
 import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.core.util.MessageHelper;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -51,6 +53,7 @@ import lombok.Setter;
  *
  */
 public abstract class HttpProducer extends RequestReplyProducerImp {
+
 
   protected static final long DEFAULT_TIMEOUT = -1;
   /**
@@ -297,4 +300,17 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return (T) this;
   }
 
+  /**
+   * Ensures that if the reply hasn't got a new payload then we copy the request payload into the
+   * response.
+   *
+   */
+  protected void preserveRequestPayload(AdaptrisMessage request, AdaptrisMessage response)
+      throws Exception {
+    boolean responseModifiedPayload =
+        ((Boolean) response.getObjectHeaders().get(OBJ_METADATA_PAYLOAD_MODIFIED)).booleanValue();
+    if (!responseModifiedPayload) {
+      MessageHelper.copyPayload(request, response);
+    }
+  }
 }
