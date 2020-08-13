@@ -6,6 +6,8 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.Removal;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.security.PrivateKeyPasswordProvider;
@@ -28,12 +30,13 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 {
     NullConnection.class
 }, author = "Adaptris Ltd")
-@DisplayOrder(order = {"url", "authenticator", 
+@DisplayOrder(order = {"url", "authenticator",
     "ignoreServerResponseCode",
     "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory", "keystore",
     "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites", "clientConfig"
 })
 @Deprecated
+@Removal(version = "3.12.0")
 public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   @AdvancedConfig
@@ -51,19 +54,24 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   private Boolean trustSelfSigned;
 
-  private static boolean warningLogged = false;
+  private boolean warningLogged = false;
 
   public CustomApacheHttpProducer() {
     super();
   }
 
   @Override
-  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
+  public void prepare() throws CoreException {
     if (!warningLogged) {
-      log.warn("{} is deprecated, use {} with {} instead", this.getClass().getSimpleName(), ApacheHttpProducer.class.getName(),
-          CustomTlsBuilder.class.getName());
+      log.warn("{} is deprecated, use {} with {} instead", this.getClass().getSimpleName(),
+          ApacheHttpProducer.class.getName(), CustomTlsBuilder.class.getName());
       warningLogged = true;
     }
+    super.prepare();
+  }
+
+  @Override
+  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
     return new CustomTlsBuilder().withCipherSuites(getCipherSuites()).withHostnameVerification(getHostnameVerification()).withKeystore(getKeystore())
         .withPrivateKeyPassword(getPrivateKeyPassword()).withTlsVersions(getTlsVersions()).withTrustSelfSigned(getTrustSelfSigned())
         .withTrustStore(getTruststore()).configure(builder);
