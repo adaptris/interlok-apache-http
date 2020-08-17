@@ -63,9 +63,10 @@ import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.core.services.WaitService;
 import com.adaptris.core.services.metadata.AddMetadataService;
-import com.adaptris.core.services.metadata.PayloadFromMetadataService;
+import com.adaptris.core.services.metadata.PayloadFromTemplateService;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
@@ -102,7 +103,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     try {
       p.setRequestHeaderProvider(null);
       fail();
-    } catch (IllegalArgumentException expected) {
+    } catch (Exception expected) {
 
     }
     assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
@@ -118,7 +119,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     try {
       p.setResponseHeaderHandler(null);
       fail();
-    } catch (IllegalArgumentException expected) {
+    } catch (Exception expected) {
 
     }
     assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
@@ -540,7 +541,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   // INTERLOK-2682
   @Test
-  public void test_ReplyMetadataReplacesOriginal() throws Exception {
+  public void test_ReplyMetadata_ShouldNotOverwrite() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
@@ -580,7 +581,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
     mc.setSendProcessingInterval(new TimeInterval(100L, TimeUnit.MILLISECONDS));
     ServiceList services = new ServiceList();
-    services.add(new PayloadFromMetadataService(TEXT));
+    services.add(new PayloadFromTemplateService().withTemplate(TEXT));
     services.add(new WaitService(new TimeInterval(2L, TimeUnit.SECONDS)));
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)));
 
@@ -603,6 +604,39 @@ public class ApacheHttpProducerTest extends ProducerCase {
       Thread.currentThread().setName(threadName);
     }
   }
+
+
+  // This is INTERLOK-3396 effectively. Send data, but put the reply into metadata.
+  @Test
+  public void testRequest_ReplyIntoMetadata() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    String responseText = new GuidGeneratorWithTime().create(this);
+    HttpConnection jc = createConnection();
+    JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
+
+    ServiceList services = new ServiceList();
+    services.add(new PayloadFromTemplateService().withTemplate(responseText));
+    services.add(new JettyResponseService(HttpStatus.OK_200.getStatusCode(), "text/plain"));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, services));
+
+    ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
+    http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
+    http.setResponseHandlerFactory(new MetadataResponseHandlerFactory("httpReplyPayload"));
+
+    StandaloneRequestor producer = new StandaloneRequestor(http);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    try {
+      start(c);
+      ServiceCase.execute(producer, msg);
+      waitForMessages(mock, 1);
+    } finally {
+      stopAndRelease(c);
+    }
+    assertTrue(msg.containsKey("httpReplyPayload"));
+    assertEquals(responseText, msg.getMetadataValue("httpReplyPayload"));
+    assertEquals(TEXT, msg.getContent());
+  }
+
 
   @Override
   protected Object retrieveObjectForSampleConfig() {

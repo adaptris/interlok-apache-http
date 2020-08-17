@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import javax.validation.Valid;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -24,6 +25,9 @@ import com.adaptris.core.http.auth.HttpAuthenticator;
 import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
@@ -46,33 +50,26 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory",
     "clientConfig"
 })
+@NoArgsConstructor
 public class ApacheHttpProducer extends HttpProducer {
 
   private static final ResponseHandlerFactory DEFAULT_HANDLER = new PayloadResponseHandlerFactory();
 
+  /**
+   * How to handle the response from the HTTP Server.
+   * <p>
+   * If not explicitly configured then the response payload is stored as the payload of the
+   * resulting {@link AdaptrisMessage}.
+   * </p>
+   */
   @AdvancedConfig
   @Valid
+  @Getter
+  @Setter
   private ResponseHandlerFactory responseHandlerFactory;
 
-  public ApacheHttpProducer() {
-    super();
-  }
-
-  public ResponseHandlerFactory getResponseHandlerFactory() {
-    return responseHandlerFactory;
-  }
-
-  /**
-   * Set how to handle the response.
-   *
-   * @param fac the factory; default is {@link PayloadResponseHandlerFactory}.
-   */
-  public void setResponseHandlerFactory(ResponseHandlerFactory fac) {
-    responseHandlerFactory = fac;
-  }
-
   protected ResponseHandlerFactory responseHandlerFactory() {
-    return getResponseHandlerFactory() != null ? getResponseHandlerFactory() : DEFAULT_HANDLER;
+    return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
   }
 
 
@@ -92,6 +89,7 @@ public class ApacheHttpProducer extends HttpProducer {
         addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
         reply =
             httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
+        preserveRequestPayload(msg, reply);
       }
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
@@ -101,7 +99,8 @@ public class ApacheHttpProducer extends HttpProducer {
 
   private CloseableHttpClient createClient(long timeout) throws Exception {
     HttpClientBuilder builder = customise(
-        HttpClientBuilderConfigurator.defaultIfNull(clientConfig()).configure(HttpClients.custom(), timeout));
+        HttpClientBuilderConfigurator.defaultIfNull(getClientConfig())
+            .configure(HttpClients.custom(), timeout));
     return builder.build();
   }
 
