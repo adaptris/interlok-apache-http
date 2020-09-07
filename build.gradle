@@ -135,7 +135,7 @@ dependencies {
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
   compile ("org.apache.httpcomponents:httpclient:4.5.12")
   compile ("org.apache.commons:commons-lang3:3.11")
-  compile ("commons-codec:commons-codec:1.14")
+  compile ("commons-codec:commons-codec:1.15")
 
   annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") {changing= true}
   umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
