@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.ProducerCase;
 import com.adaptris.core.StandaloneProducer;
@@ -32,8 +31,7 @@ public class CustomApacheHttpProducerTest extends ProducerCase {
   }
   @Test
   public void testGet() throws Exception {
-    CustomApacheHttpProducer http = new CustomApacheHttpProducer(
-        new ConfiguredProduceDestination("https://github.com"));
+    CustomApacheHttpProducer http = new CustomApacheHttpProducer().withURL("https://github.com");
     StandaloneRequestor producer = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage();
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
@@ -57,8 +55,8 @@ public class CustomApacheHttpProducerTest extends ProducerCase {
 
     String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
     String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
-    
-    CustomApacheHttpProducer http = new CustomApacheHttpProducer(new ConfiguredProduceDestination("https://github.com"));
+
+    CustomApacheHttpProducer http = new CustomApacheHttpProducer().withURL("https://github.com");
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
     http.setHostnameVerification(HostnameVerification.NONE);
     http.setPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword));
@@ -82,8 +80,8 @@ public class CustomApacheHttpProducerTest extends ProducerCase {
 
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
-    CustomApacheHttpProducer producer = new CustomApacheHttpProducer(
-        new ConfiguredProduceDestination("http://myhost.com/url/to/post/to"));
+    CustomApacheHttpProducer producer =
+        new CustomApacheHttpProducer().withURL("http://myhost.com/url/to/post/to");
     producer.setTruststore(new ConfiguredUrl("file:///path/to/my/keystore?keystoreType=JKS", "PW:AAAAEH9N.....AQAjM"));
     producer.setKeystore(new ConfiguredUrl("file:///path/to/my/keystore?keystoreType=JKS", "PW:AAAAEH9N.....AQAjM"));
     producer.setPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider("PW:AAAAEH9N.....AQAjM"));

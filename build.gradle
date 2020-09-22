@@ -6,13 +6,15 @@ plugins {
   id 'maven'
   id 'maven-publish'
   id  "jacoco"
-  id 'com.github.spotbugs' version '4.2.3'
+  id 'com.github.spotbugs' version '4.5.0'
   id 'org.owasp.dependencycheck' version '5.3.2.1'
+  id "io.freefair.lombok" version "5.1.1"
+
 }
 
 ext {
-  interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.10-SNAPSHOT'
-  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.10-SNAPSHOT'
+  interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.11-SNAPSHOT'
+  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.11-SNAPSHOT'
   nexusBaseUrl = project.hasProperty('nexusBaseUrl') ? project.getProperty('nexusBaseUrl') : 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -21,6 +23,8 @@ ext {
   defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
   offlineJavadocPackageDir = new File(project.buildDir, "offline-javadoc-packages")
 
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
+
   interlokJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
   interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   componentName='Interlok/Apache HTTP'
@@ -28,6 +32,27 @@ ext {
   organizationUrl = "http://interlok.adaptris.net"
   slf4jVersion = '1.7.30'
 }
+
+ext.testResourcesDir = { ->
+  return "${project.projectDir}/src/test/resources".replaceAll("\\\\", "/")
+}
+
+
+ext.hostname = { ->
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    return System.getenv("COMPUTERNAME")
+  }
+  return System.getenv("HOSTNAME")
+}
+
+ext.propertyTemplate = { dir, filename ->
+  def file = new File(dir, filename + "." + hostname())
+  if (file.exists()) {
+    return file.getName()
+  }
+  return filename
+}
+
 
 ext.hasGraphViz = { ->
   def app = "dot"
@@ -71,6 +96,7 @@ sourceCompatibility = 1.8
 group   = 'com.adaptris'
 version = releaseVersion
 def versionDir = "$buildDir/version"
+generateLombokConfig.enabled = false
 
 repositories {
   mavenCentral()
@@ -108,7 +134,7 @@ dependencies {
   compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
   compile ("com.adaptris:interlok-common:$interlokCoreVersion") { changing= true}
   compile ("org.apache.httpcomponents:httpclient:4.5.12")
-  compile ("org.apache.commons:commons-lang3:3.10")
+  compile ("org.apache.commons:commons-lang3:3.11")
   compile ("commons-codec:commons-codec:1.14")
 
   annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") {changing= true}
@@ -122,7 +148,8 @@ dependencies {
     changing= true
     exclude group: "org.apache.logging.log4j"
   }
-  testCompile ("org.mockito:mockito-all:1.10.19")
+  testCompile ("org.mockito:mockito-core:3.5.9")
+  testCompile ("org.mockito:mockito-inline:3.5.9")
 
   javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
   offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
@@ -176,20 +203,23 @@ task offlinePackageList(type: Copy) {
   into offlineJavadocPackageDir
 }
 
-task copyUnitTestProperties(type: Copy) {
-    delete file('src/test/resources/unit-tests.properties')
-    from file('src/test/resources/unit-tests.properties.template')
-    into ('src/test/resources/')
-    rename { String fileName ->
-      fileName.replace('unit-tests.properties.template', 'unit-tests.properties')
-    }
-    filter(ReplaceTokens, tokens: [JAVA_HOME: System.getProperty("java.home").replaceAll("\\\\", "/")])
-    filter(ReplaceTokens, tokens: [BASE_DIR: project.rootDir.getCanonicalPath().replaceAll("\\\\", "/")])
+task buildUnitTestProperties(type: Copy) {
+  def propertyFile = propertyTemplate(testResourcesDir(), "unit-tests.properties.template")
+  delete file(testResourcesDir() + "/unit-tests.properties")
+  from file(testResourcesDir() + "/" + propertyFile)
+  into (testResourcesDir())
+  rename { String fileName ->
+    fileName.replace(propertyFile, 'unit-tests.properties')
+  }
+  filter(ReplaceTokens, tokens: [JAVA_HOME: System.getProperty("java.home").replaceAll("\\\\", "/")])
+  filter(ReplaceTokens, tokens: [BASE_DIR: project.projectDir.getCanonicalPath().replaceAll("\\\\", "/")])
+  filter(ReplaceTokens, tokens: [BUILD_DIR: project.buildDir.getCanonicalPath().replaceAll("\\\\", "/")])
 }
 
-task deleteUnitTestProperties(type: Delete) {
-    delete file('src/test/resources/unit-tests.properties')
+task deleteGeneratedFiles(type: Delete) {
+  delete file("src/test/resources/unit-tests.properties"), delombokTargetDir
 }
+
 
 javadoc {
   onlyIf {
@@ -233,7 +263,7 @@ task umlJavadoc(type: Javadoc) {
   onlyIf {
     hasGraphViz()
   }
-  source = sourceSets.main.allJava
+  source = sourceSets.main.extensions.delombokTask
   classpath = project.sourceSets.main.compileClasspath
   configure(options) {
     options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
@@ -260,11 +290,6 @@ task umlJavadoc(type: Javadoc) {
     title= componentName
   }
 }
-
-javadoc.dependsOn offlinePackageList,umlJavadoc
-check.dependsOn jacocoTestReport
-processTestResources.dependsOn copyUnitTestProperties
-clean.dependsOn deleteUnitTestProperties
 
 artifacts {
   archives javadocJar
@@ -327,5 +352,25 @@ dependencyCheck  {
     assemblyEnabled=false
   }
 }
+
+delombok {
+  target = delombokTargetDir
+}
+
+task lgtmCompile(type: JavaCompile, dependsOn: delombok) {
+  group 'Build'
+  description 'Compile for lgtm'
+
+  source = sourceSets.main.extensions.delombokTask
+  destinationDir = sourceSets.main.java.outputDir
+  classpath = project.sourceSets.main.compileClasspath
+}
+
+
   // disable spotbugsTests which checks our test code..
 spotbugsTest.enabled = false
+
+javadoc.dependsOn offlinePackageList,umlJavadoc
+check.dependsOn jacocoTestReport
+processTestResources.dependsOn buildUnitTestProperties
+clean.dependsOn deleteGeneratedFiles

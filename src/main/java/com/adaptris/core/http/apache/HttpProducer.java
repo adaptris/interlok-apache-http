@@ -1,6 +1,8 @@
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
+import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
+import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.BooleanUtils;
@@ -18,6 +20,7 @@ import org.apache.http.client.methods.HttpTrace;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
@@ -36,21 +39,26 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
-import com.adaptris.core.util.Args;
-import com.adaptris.util.TimeInterval;
+import com.adaptris.core.util.DestinationHelper;
+import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.core.util.MessageHelper;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * Abstract base class for all Apache HTTP producer classes.
- * 
+ *
  * @author lchan
- * 
+ *
  */
 public abstract class HttpProducer extends RequestReplyProducerImp {
+
 
   protected static final long DEFAULT_TIMEOUT = -1;
   /**
    * Maps various methods supported by the Apache Http client.
-   * 
+   *
    */
   public static enum HttpMethod {
     DELETE {
@@ -104,56 +112,137 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     public abstract HttpRequestBase create(String url);
   }
 
+  /**
+   * The HTTP method.
+   * <p>
+   * The default is {@code POST}
+   * </p>
+   */
   @NotNull
   @AutoPopulated
   @Valid
+  @NonNull
+  @Getter
+  @Setter
   private RequestMethodProvider methodProvider;
 
+  /**
+   * The Content-Type header associated with the HTTP operation.
+   * <p>
+   * The default is {@code text/plain} based on the default from
+   * {@link ConfiguredContentTypeProvider}.
+   * </p>
+   *
+   */
   @NotNull
   @Valid
   @AutoPopulated
   @AdvancedConfig
+  @NonNull
+  @Getter
+  @Setter
   private ContentTypeProvider contentTypeProvider;
 
+  /**
+   * Specify how we handle headers from the HTTP response.
+   *
+   * <p>
+   * If not explicitly configured then the default is {@link DiscardResponseHeaders}
+   * </p>
+   */
   @AdvancedConfig
   @Valid
+  @NonNull
   @NotNull
   @AutoPopulated
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "discard response headers")
   private ResponseHeaderHandler<HttpResponse> responseHeaderHandler;
 
+  /**
+   * Any additional HTTP headers we wish to send with the request.
+   * <p>
+   * If not explicitly configured then the default is {@link NoOpRequestHeaders}
+   * </p>
+   *
+   */
   @AdvancedConfig
   @Valid
   @NotNull
   @AutoPopulated
+  @NonNull
+  @Getter
+  @Setter
   private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
 
+  /**
+   * Control whether or not to ignore the server response code.
+   * <p>
+   * In some cases, you may wish to ignore any server response code (such as 500) as this may return
+   * meaningful data that you wish to use. If that's the case, make sure this flag is true. It
+   * defaults to false.
+   * </p>
+   * <p>
+   * In all cases the metadata key {@link CoreConstants#HTTP_PRODUCER_RESPONSE_CODE} is populated
+   * with the last server response.
+   * </p>
+   *
+   */
   @AdvancedConfig
   @InputFieldDefault(value = "false")
+  @Getter
+  @Setter
   private Boolean ignoreServerResponseCode;
-  @AdvancedConfig
-  @InputFieldDefault(value = "true")
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private Boolean allowRedirect;
-  @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private String httpProxy;
+  /**
+   * Set the authentication method to use for the HTTP request
+   * <p>
+   * If not explicitly configured then defaults to {@link NoAuthentication}.
+   * </p>
+   *
+   * @see ApacheRequestAuthenticator
+   * @see ConfiguredUsernamePassword
+   * @see MetadataUsernamePassword
+   * @see ConfiguredAuthorizationHeader
+   * @see MetadataAuthorizationHeader
+   */
   @Valid
+  @Getter
+  @Setter
   private HttpAuthenticator authenticator;
+  /**
+   * Customise the underlying Apache {@code HttpClientBuilder} before the request is made.
+   *
+   * <p>
+   * If not explicitly configured will be a {@link DefaultClientBuilder} with its defaults.
+   * </p>
+   */
   @Valid
   @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private TimeInterval connectTimeout;
-  @Valid
-  @AdvancedConfig
-  @Deprecated
-  @Removal(version = "3.11.0")
-  private TimeInterval readTimeout;
-  @Valid
-  @AdvancedConfig
+  @Getter
+  @Setter
   private HttpClientBuilderConfigurator clientConfig;
+  /**
+   * The ProduceDestination contains the url we will access.
+   *
+   */
+  @Getter
+  @Setter
+  @Deprecated
+  @Valid
+  @Removal(version = "4.0.0", message = "Use 'url' instead")
+  private ProduceDestination destination;
+
+  /**
+   * The URL endpoint to access.
+   */
+  @InputFieldHint(expression = true)
+  @Getter
+  @Setter
+  // Needs to be @NotBlank when destination is removed.
+  private String url;
+
+  private transient boolean destWarning;
 
   public HttpProducer() {
     super();
@@ -163,25 +252,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
   }
 
-  @Override
-  public void start() throws CoreException {
-  }
-
-  @Override
-  public void stop() {
-  }
-
-  @Override
-  public void close() {
-  }
-
-  @Override
-  public void init() throws CoreException {
-  }
-
-
   /**
-   * 
+   *
    * @see com.adaptris.core.RequestReplyProducerImp#defaultTimeout()
    */
   @Override
@@ -190,133 +262,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
 
-  /**
-   * 
-   * @see RequestReplyProducerImp#produce(AdaptrisMessage, ProduceDestination)
-   */
-  @Override
-  public void produce(AdaptrisMessage msg, ProduceDestination dest) throws ProduceException {
-    doRequest(msg, dest, defaultTimeout());
-  }
-
-
-  /**
-   * Specify whether to automatically handle redirection.
-   * 
-   * @param b true or false.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setAllowRedirect(Boolean b) {
-    allowRedirect = b;
-  }
-
-  /**
-   * Get the handle redirection flag.
-   * 
-   * @return true or false.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public Boolean getAllowRedirect() {
-    return allowRedirect;
-  }
-
-  /**
-   * Get the currently configured flag for ignoring server response code.
-   * 
-   * @return true or false
-   * @see #setIgnoreServerResponseCode(Boolean)
-   */
-  public Boolean getIgnoreServerResponseCode() {
-    return ignoreServerResponseCode;
-  }
-
   protected boolean ignoreServerResponseCode() {
     return BooleanUtils.toBooleanDefaultIfNull(getIgnoreServerResponseCode(), false);
-  }
-
-  /**
-   * Set whether to ignore the server response code.
-   * <p>
-   * In some cases, you may wish to ignore any server response code (such as 500) as this may return meaningful data that you wish
-   * to use. If that's the case, make sure this flag is true. It defaults to false.
-   * </p>
-   * <p>
-   * In all cases the metadata key {@link CoreConstants#HTTP_PRODUCER_RESPONSE_CODE} is populated with the last server response.
-   * </p>
-   * 
-   * @see CoreConstants#HTTP_PRODUCER_RESPONSE_CODE
-   * @param b true
-   */
-  public void setIgnoreServerResponseCode(Boolean b) {
-    ignoreServerResponseCode = b;
-  }
-
-  public ContentTypeProvider getContentTypeProvider() {
-    return contentTypeProvider;
-  }
-
-  /**
-   * Specify the Content-Type header associated with the HTTP operation.
-   * 
-   * @param ctp
-   */
-  public void setContentTypeProvider(ContentTypeProvider ctp) {
-    this.contentTypeProvider = ctp;
-  }
-
-  public ResponseHeaderHandler<HttpResponse> getResponseHeaderHandler() {
-    return responseHeaderHandler;
-  }
-
-  /**
-   * Specify how we handle headers from the HTTP response.
-   * 
-   * @param handler the handler, default is a {@link DiscardResponseHeaders}.
-   */
-  public void setResponseHeaderHandler(ResponseHeaderHandler<HttpResponse> handler) {
-    this.responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
-  }
-
-  public RequestHeaderProvider<HttpRequestBase> getRequestHeaderProvider() {
-    return requestHeaderProvider;
-  }
-
-  /**
-   * Specify how we want to generate the initial set of HTTP Headers.
-   * 
-   * @param handler the handler, default is a {@link NoOpRequestHeaders}
-   */
-  public void setRequestHeaderProvider(RequestHeaderProvider<HttpRequestBase> handler) {
-    this.requestHeaderProvider = Args.notNull(handler, "Request Header Handler");
-  }
-
-  public RequestMethodProvider getMethodProvider() {
-    return methodProvider;
-  }
-
-  public void setMethodProvider(RequestMethodProvider p) {
-    this.methodProvider = Args.notNull(p, "Method Provider");
-  }
-
-  public HttpAuthenticator getAuthenticator() {
-    return authenticator;
-  }
-
-  /**
-   * Set the authentication method to use for the HTTP request
-   * 
-   * @see ApacheRequestAuthenticator
-   * @see ConfiguredUsernamePassword
-   * @see MetadataUsernamePassword
-   * @see ConfiguredAuthorizationHeader
-   * @see MetadataAuthorizationHeader
-   */
-  public void setAuthenticator(HttpAuthenticator authenticator) {
-    this.authenticator = Args.notNull(authenticator, "authenticator");
   }
 
   protected HttpMethod getMethod(AdaptrisMessage msg) {
@@ -329,114 +276,39 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return ObjectUtils.defaultIfNull(getAuthenticator(), new NoAuthentication());
   }
 
-  protected HttpClientBuilderConfigurator clientConfig() {
-    if (getClientConfig() == null && hasDeprecatedBuilderConfig()) {
-      log.warn("Use of deprecated #allowRedirectory, #httpProxy, #readTimeout, #connectTimeout; use a {} instead",
-          HttpClientBuilderConfigurator.class.getName());
-      return new DefaultClientBuilder().withAllowRedirect(getAllowRedirect()).withConnectTimeout(getConnectTimeout())
-          .withProxy(getHttpProxy()).withReadTimeout(getReadTimeout());
-    }
-    return getClientConfig();
-  }
-
-  protected boolean hasDeprecatedBuilderConfig() {
-    return BooleanUtils.or(new boolean[]
-    {
-        getReadTimeout() != null, getAllowRedirect() != null, getConnectTimeout() != null, isNotBlank(getHttpProxy())
-    });
+  @Override
+  protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
+    doRequest(msg, endpoint, defaultTimeout());
   }
 
   @Override
   public void prepare() throws CoreException {
+    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
+        "{} uses destination, use 'url' instead", LoggingHelper.friendlyName(this));
+    mustHaveEither(getUrl(), getDestination());
+  }
+
+  @Override
+  public String endpoint(AdaptrisMessage msg) throws ProduceException {
+    return DestinationHelper.resolveProduceDestination(getUrl(), getDestination(), msg);
+  }
+
+  public <T extends HttpProducer> T withURL(String s) {
+    setUrl(s);
+    return (T) this;
   }
 
   /**
-   * 
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
+   * Ensures that if the reply hasn't got a new payload then we copy the request payload into the
+   * response.
+   *
    */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public TimeInterval getConnectTimeout() {
-    return connectTimeout;
+  protected void preserveRequestPayload(AdaptrisMessage request, AdaptrisMessage response)
+      throws Exception {
+    boolean responseModifiedPayload =
+        ((Boolean) response.getObjectHeaders().get(OBJ_METADATA_PAYLOAD_MODIFIED)).booleanValue();
+    if (!responseModifiedPayload) {
+      MessageHelper.copyPayload(request, response);
+    }
   }
-
-  /**
-   * Set the connect timeout.
-   * 
-   * @param t the timeout.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setConnectTimeout(TimeInterval t) {
-    this.connectTimeout = t;
-  }
-
-  /**
-   * 
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public TimeInterval getReadTimeout() {
-    return readTimeout;
-  }
-
-  /**
-   * Set the read timeout.
-   * <p>
-   * Note that any read timeout will be overridden by the timeout value passed in via the {{@link #request(AdaptrisMessage, long)}
-   * method, provided it differs from {@link #defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
-   * </p>
-   * 
-   * @param t the timeout.
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setReadTimeout(TimeInterval t) {
-    this.readTimeout = t;
-  }
-
-  /**
-   * @return the httpProxy
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public String getHttpProxy() {
-    return httpProxy;
-  }
-
-  /**
-   * Explicitly configure a proxy server.
-   * 
-   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
-   * @deprecated since 3.8.0 Use a {@link HttpClientBuilderConfigurator} instead via
-   *             {@link #setClientConfig(HttpClientBuilderConfigurator)}.
-   */
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use HttpClientBuilderConfigurator instead")
-  public void setHttpProxy(String proxy) {
-    this.httpProxy = proxy;
-  }
-
-  public HttpClientBuilderConfigurator getClientConfig() {
-    return clientConfig;
-  }
-
-  /**
-   * Specify any custom {@code HttpClientBuilder} configuration.
-   * 
-   * @param httpClientCustomiser a {@link HttpClientBuilderConfigurator} instance.
-   */
-  public void setClientConfig(HttpClientBuilderConfigurator httpClientCustomiser) {
-    this.clientConfig = httpClientCustomiser;
-  }
-
 }

@@ -1,12 +1,12 @@
 /*
  * Copyright 2018 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,14 +29,13 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.RequestReplyProducerImp;
 import com.adaptris.util.TimeInterval;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * default {@link HttpClientBuilderConfigurator} instance
- * 
+ *
  * @config default-apache-http-client-builder
  *
  */
@@ -81,9 +80,10 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Customise any timeouts as required.
-   * 
+   *
    * @param builder the builder
-   * @param timeout the timeout specified by {@link RequestReplyProducerImp#doRequest(AdaptrisMessage, ProduceDestination, long)}
+   * @param timeout the timeout specified by
+   *        {@link RequestReplyProducerImp#doRequest(AdaptrisMessage, String, long)}
    * @return the builder.
    */
   protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) {
@@ -104,7 +104,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Specify whether to automatically handle redirection.
-   * 
+   *
    * @param b true or false.
    */
   public void setAllowRedirect(Boolean b) {
@@ -117,7 +117,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Get the handle redirection flag.
-   * 
+   *
    * @return true or false.
    */
   public Boolean getAllowRedirect() {
@@ -138,11 +138,11 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Explicitly configure a proxy server.
-   * 
+   *
    * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
    */
   public void setHttpProxy(String proxy) {
-    this.httpProxy = proxy;
+    httpProxy = proxy;
   }
 
   public <T extends DefaultClientBuilder> T withProxy(String b) {
@@ -156,17 +156,17 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Set the connect timeout.
-   * 
+   *
    * @param t the timeout.
    */
   public void setConnectTimeout(TimeInterval t) {
-    this.connectTimeout = t;
+    connectTimeout = t;
   }
 
   public <T extends DefaultClientBuilder> T withConnectTimeout(TimeInterval b) {
     setConnectTimeout(b);
     return (T) this;
-  }  
+  }
 
   public TimeInterval getReadTimeout() {
     return readTimeout;
@@ -179,11 +179,11 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
    * {{@link AdaptrisMessageProducer#request(AdaptrisMessage, long)} method, provided it differs from
    * {@link RequestReplyProducerImp#defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
    * </p>
-   * 
+   *
    * @param t the timeout.
    */
   public void setReadTimeout(TimeInterval t) {
-    this.readTimeout = t;
+    readTimeout = t;
   }
 
   public <T extends DefaultClientBuilder> T withReadTimeout(TimeInterval b) {

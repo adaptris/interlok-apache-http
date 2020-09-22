@@ -356,8 +356,6 @@ public class HttpRequestServiceTest extends ServiceCase {
     })));
 
     HttpRequestService service = new HttpRequestService(createProduceDestination(c).getDestination());
-    // this shouldn't create a proxy.
-    service.setHttpProxy(":");
     service.setMethod("GET");
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
     try {

@@ -1,15 +1,14 @@
 package com.adaptris.core.http.apache;
 
 import javax.validation.Valid;
-
 import org.apache.http.impl.client.HttpClientBuilder;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.Removal;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.security.PrivateKeyPasswordProvider;
 import com.adaptris.security.keystore.ConfiguredKeystore;
@@ -17,7 +16,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Apache HTTP client producer with customised TLS/SSL settings.
- * 
+ *
  * @config custom-tls-apache-http-producer
  * @deprecated since 3.8.0 you can achieve the same thing with a {@link CustomTlsBuilder} with {@link ApacheHttpProducer}.
  */
@@ -31,11 +30,13 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 {
     NullConnection.class
 }, author = "Adaptris Ltd")
-@DisplayOrder(order = {"username", "password", "authenticator", "httpProxy", "allowRedirect", "ignoreServerResponseCode",
+@DisplayOrder(order = {"url", "authenticator",
+    "ignoreServerResponseCode",
     "methodProvider", "contentTypeProvider", "requestHeaderProvider", "responseHeaderHandler", "responseHandlerFactory", "keystore",
     "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites", "clientConfig"
 })
 @Deprecated
+@Removal(version = "3.12.0")
 public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   @AdvancedConfig
@@ -53,23 +54,24 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   private Boolean trustSelfSigned;
 
-  private static boolean warningLogged = false;
+  private boolean warningLogged = false;
 
   public CustomApacheHttpProducer() {
     super();
   }
 
-  public CustomApacheHttpProducer(ProduceDestination d) {
-    super(d);
-  }
-
-
-  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
+  @Override
+  public void prepare() throws CoreException {
     if (!warningLogged) {
-      log.warn("{} is deprecated, use {} with {} instead", this.getClass().getSimpleName(), ApacheHttpProducer.class.getName(),
-          CustomTlsBuilder.class.getName());
+      log.warn("{} is deprecated, use {} with {} instead", this.getClass().getSimpleName(),
+          ApacheHttpProducer.class.getName(), CustomTlsBuilder.class.getName());
       warningLogged = true;
     }
+    super.prepare();
+  }
+
+  @Override
+  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
     return new CustomTlsBuilder().withCipherSuites(getCipherSuites()).withHostnameVerification(getHostnameVerification()).withKeystore(getKeystore())
         .withPrivateKeyPassword(getPrivateKeyPassword()).withTlsVersions(getTlsVersions()).withTrustSelfSigned(getTrustSelfSigned())
         .withTrustStore(getTruststore()).configure(builder);
@@ -80,13 +82,13 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
   }
 
   /**
-   * 
+   *
    * Set the list of tls versions that will be supported (comma separated)
-   * 
+   *
    * @param tls the tls versions to support; default is null
    */
   public void setTlsVersions(String tls) {
-    this.tlsVersions = tls;
+    tlsVersions = tls;
   }
 
   /**
@@ -98,11 +100,11 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   /**
    * Set the cipher suites to support.
-   * 
+   *
    * @param ciphers the cipherSuites to support; default is null
    */
   public void setCipherSuites(String ciphers) {
-    this.cipherSuites = ciphers;
+    cipherSuites = ciphers;
   }
 
   /**
@@ -126,11 +128,11 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   /**
    * Do we trust self-signed certificates or not.
-   * 
+   *
    * @param b if set to true the {@code TrustSelfSignedStrategy.INSTANCE} is used; default null/false.
    */
   public void setTrustSelfSigned(Boolean b) {
-    this.trustSelfSigned = b;
+    trustSelfSigned = b;
   }
 
   public PrivateKeyPasswordProvider getPrivateKeyPassword() {
@@ -138,7 +140,7 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
   }
 
   public void setPrivateKeyPassword(PrivateKeyPasswordProvider pk) {
-    this.privateKeyPassword = pk;
+    privateKeyPassword = pk;
   }
 
   public ConfiguredKeystore getTruststore() {
@@ -147,7 +149,7 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   /**
    * Set the trustore to be used.
-   * 
+   *
    */
   public void setTruststore(ConfiguredKeystore truststore) {
     this.truststore = truststore;
@@ -159,7 +161,7 @@ public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   /**
    * Set the keystore to be used.
-   * 
+   *
    */
   public void setKeystore(ConfiguredKeystore keystore) {
     this.keystore = keystore;
