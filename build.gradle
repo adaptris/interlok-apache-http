@@ -315,6 +315,7 @@ publishing {
         properties.appendNode("tags", "http,https")
         properties.appendNode("license", "false")
         properties.appendNode("externalUrl", "http://hc.apache.org")
+        properties.appendNode("repository", "https://github.com/adaptris/interlok-apache-http")
       }
     }
   }
