@@ -21,7 +21,7 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
@@ -230,7 +230,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Setter
   @Deprecated
   @Valid
-  @Removal(version = "4.0.0", message = "Use 'url' instead")
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'url' instead", groups = Deprecated.class)
   private ProduceDestination destination;
 
   /**
