@@ -6,7 +6,7 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites", "clientConfig"
 })
 @Deprecated
-@Removal(version = "3.12.0")
+@ConfigDeprecated(removalVersion = "3.12.0", groups = Deprecated.class)
 public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   @AdvancedConfig

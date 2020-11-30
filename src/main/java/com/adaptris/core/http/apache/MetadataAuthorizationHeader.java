@@ -18,7 +18,7 @@ package com.adaptris.core.http.apache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.hibernate.validator.constraints.NotBlank;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.http.HttpConstants;
@@ -35,8 +35,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("apache-http-metadata-authorization-header")
 @Deprecated
-@Removal(version = "4.0.0",
-    message = "Use 'apache-http-configured-authorization-header' instead with an expression")
+@ConfigDeprecated(removalVersion = "4.0.0",
+    message = "Use 'apache-http-configured-authorization-header' instead with an expression", groups = Deprecated.class)
 public class MetadataAuthorizationHeader implements ApacheRequestAuthenticator {
 
   @NotBlank
