@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites", "clientConfig"
 })
 @Deprecated
-@ConfigDeprecated(removalVersion = "3.12.0", groups = Deprecated.class)
+@ConfigDeprecated(removalVersion = "4.0.0", groups = Deprecated.class)
 public class CustomApacheHttpProducer extends ApacheHttpProducer {
 
   @AdvancedConfig
