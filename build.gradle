@@ -310,8 +310,8 @@ publishing {
       pom.withXml {
         asNode().appendNode("name", componentName)
         asNode().appendNode("description", "HTTP(s) using Apache http client")
+        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/pages/cookbook/cookbook-http-client")
         def properties = asNode().appendNode("properties")
-        properties.appendNode("url", "https://interlok.adaptris.net/interlok-docs/cookbook-http-client.html")
         properties.appendNode("target", "3.8.0+")
         properties.appendNode("tags", "http,https")
         properties.appendNode("license", "false")
