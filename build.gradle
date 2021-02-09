@@ -13,8 +13,8 @@ plugins {
 }
 
 ext {
-  interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.12-SNAPSHOT'
-  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.12-SNAPSHOT'
+  interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '4.0-SNAPSHOT'
+  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '4.0-SNAPSHOT'
   nexusBaseUrl = project.hasProperty('nexusBaseUrl') ? project.getProperty('nexusBaseUrl') : 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -55,13 +55,14 @@ ext.propertyTemplate = { dir, filename ->
 
 
 ext.hasGraphViz = { ->
-  def app = "dot"
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    app = app + ".exe"
-  }
-  return System.getenv("PATH").split(File.pathSeparator).any{
-    java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
-  }
+  // def app = "dot"
+  // if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+  //   app = app + ".exe"
+  // }
+  // return System.getenv("PATH").split(File.pathSeparator).any{
+  //   java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
+  // }
+  return false
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -92,8 +93,8 @@ ext.buildInfo = { ->
 }
 
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 group   = 'com.adaptris'
 version = releaseVersion
 def versionDir = "$buildDir/version"
@@ -201,6 +202,7 @@ task offlinePackageList(type: Copy) {
     }
   }
   include "package-list"
+  include "element-list"
   into offlineJavadocPackageDir
 }
 
@@ -230,6 +232,7 @@ javadoc {
     options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
     options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
     taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
+    options.addBooleanOption "-no-module-directories", true
     options.addStringOption "tagletpath", configurations.javadoc.asPath
     title= componentName
   }
@@ -270,6 +273,7 @@ task umlJavadoc(type: Javadoc) {
     options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
     options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
     taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
+    options.addBooleanOption "-no-module-directories", true
     options.addStringOption "tagletpath", configurations.javadoc.asPath
     options.docletpath = configurations.umlDoclet.files.asType(List)
     options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
