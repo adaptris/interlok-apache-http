@@ -8,7 +8,6 @@ import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createConnection;
 import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
-import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
@@ -133,7 +132,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
         mock);
     try {
       start(c);
-      http.setDestination(createProduceDestination(c));
+      http.setUrl(createURL(c));
       StandaloneProducer producer = new StandaloneProducer(http);
       ServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
@@ -144,7 +143,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   private static void doProduce(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
     Channel c = createAndStartChannel(mock);
-    http.setDestination(createProduceDestination(c));
+    http.setUrl(createURL(c));
     StandaloneProducer producer = new StandaloneProducer(http);
     try {
       ServiceCase.execute(producer, msg);
@@ -156,7 +155,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   private static void doRequest(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
     Channel c = createAndStartChannel(mock);
-    http.setDestination(createProduceDestination(c));
+    http.setUrl(createURL(c));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     try {
       ServiceCase.execute(producer, msg);
@@ -170,7 +169,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
       throws Exception {
     Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO),
         mock);
-    http.setDestination(createProduceDestination(c));
+    http.setUrl(createURL(c));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     try {
       start(c);

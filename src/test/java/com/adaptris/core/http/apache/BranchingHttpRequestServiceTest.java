@@ -16,7 +16,6 @@
 
 package com.adaptris.core.http.apache;
 import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
-import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 import static org.junit.Assert.assertEquals;
@@ -28,7 +27,6 @@ import com.adaptris.core.BranchingServiceCollection;
 import com.adaptris.core.Channel;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.NullService;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.http.client.ExactMatch;
 import com.adaptris.core.http.client.RangeMatch;
@@ -37,14 +35,10 @@ import com.adaptris.core.services.exception.ConfiguredException;
 import com.adaptris.core.services.exception.ThrowExceptionService;
 import com.adaptris.core.stubs.DefectiveMessageFactory;
 import com.adaptris.core.stubs.MockMessageProducer;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 
-public class BranchingHttpRequestServiceTest extends ServiceCase {
+public class BranchingHttpRequestServiceTest extends ExampleServiceCase {
   private static final String TEXT = "ABCDEFG";
-
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
 
   @Test
   public void testIsBranching() throws Exception {
@@ -57,7 +51,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
   public void testService_Error() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
-    BranchingHttpRequestService service = new BranchingHttpRequestService(createProduceDestination(c).getDestination());
+    BranchingHttpRequestService service = new BranchingHttpRequestService(createURL(c));
     service.setContentType("text/complicated");
     service.setDefaultServiceId("DefaultServiceId");
     AdaptrisMessage msg = new DefectiveMessageFactory().newMessage(TEXT);
@@ -78,7 +72,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
   public void testService_DefaultServiceId() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
-    BranchingHttpRequestService service = new BranchingHttpRequestService(createProduceDestination(c).getDestination());
+    BranchingHttpRequestService service = new BranchingHttpRequestService(createURL(c));
 
     service.setContentType("text/complicated");
     service.setDefaultServiceId("DefaultServiceId");
@@ -144,7 +138,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
   public void testService_ExactMatch() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
-    BranchingHttpRequestService service = new BranchingHttpRequestService(createProduceDestination(c).getDestination());
+    BranchingHttpRequestService service = new BranchingHttpRequestService(createURL(c));
 
     service.setContentType("text/complicated");
     service.setDefaultServiceId("DefaultServiceId");
@@ -167,7 +161,7 @@ public class BranchingHttpRequestServiceTest extends ServiceCase {
   public void testService_RangeMatch() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     Channel c = createAndStartChannel(mock);
-    BranchingHttpRequestService service = new BranchingHttpRequestService(createProduceDestination(c).getDestination());
+    BranchingHttpRequestService service = new BranchingHttpRequestService(createURL(c));
 
     service.setContentType("text/complicated");
     service.setDefaultServiceId("DefaultServiceId");

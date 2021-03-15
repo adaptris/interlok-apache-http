@@ -3,10 +3,8 @@ package com.adaptris.core.http.apache;
 import java.io.UnsupportedEncodingException;
 import java.net.PasswordAuthentication;
 import java.net.URLConnection;
-
+import javax.validation.constraints.NotBlank;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.hibernate.validator.constraints.NotBlank;
-
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -28,9 +26,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * behaviour of {@link URLConnection} to request a {@link PasswordAuthentication} object when accessing protected resources (this is
  * what happens if you use {@link UserPassAuthentication}). You can use this class to create a Basic authorization.
  * </p>
- * 
+ *
  * @config apache-http-dynamic-authorization-header
- * 
+ *
  */
 @XStreamAlias("apache-http-dynamic-authorization-header")
 public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticator {
@@ -41,9 +39,9 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
   @NotBlank
   @InputFieldHint(expression = true, style = "PASSWORD", external = true)
   private String password;
-  
+
   private transient String authHeader;
-  
+
   public DynamicBasicAuthorizationHeader() {
 
   }
@@ -83,7 +81,7 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
    * Set the username
    */
   public void setUsername(String s) {
-    this.username = Args.notBlank(s, "username");
+    username = Args.notBlank(s, "username");
   }
 
   /**
@@ -97,7 +95,7 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
    * @param pw the password to set
    */
   public void setPassword(String pw) {
-    this.password = Args.notBlank(pw, "password");
+    password = Args.notBlank(pw, "password");
   }
 
 }

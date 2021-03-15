@@ -1,9 +1,8 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
-import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
-import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -21,11 +20,9 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.RequestReplyProducerImp;
 import com.adaptris.core.http.ConfiguredContentTypeProvider;
@@ -40,8 +37,8 @@ import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.core.util.MessageHelper;
+import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -222,16 +219,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Getter
   @Setter
   private HttpClientBuilderConfigurator clientConfig;
-  /**
-   * The ProduceDestination contains the url we will access.
-   *
-   */
-  @Getter
-  @Setter
-  @Deprecated
-  @Valid
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'url' instead", groups = Deprecated.class)
-  private ProduceDestination destination;
 
   /**
    * The URL endpoint to access.
@@ -239,7 +226,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @InputFieldHint(expression = true)
   @Getter
   @Setter
-  // Needs to be @NotBlank when destination is removed.
+  @NotBlank
   private String url;
 
   private transient boolean destWarning;
@@ -283,14 +270,12 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   @Override
   public void prepare() throws CoreException {
-    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
-        "{} uses destination, use 'url' instead", LoggingHelper.friendlyName(this));
-    mustHaveEither(getUrl(), getDestination());
+    Args.notBlank(getUrl(), "url");
   }
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return DestinationHelper.resolveProduceDestination(getUrl(), getDestination(), msg);
+    return DestinationHelper.resolveProduceDestination(getUrl(), msg);
   }
 
   public <T extends HttpProducer> T withURL(String s) {

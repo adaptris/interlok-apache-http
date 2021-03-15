@@ -1,12 +1,12 @@
 /*
  * Copyright 2018 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.HmacUtils;
@@ -28,7 +29,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.protocol.HttpContext;
-import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -49,12 +49,12 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
 
   /**
    * The encoding to use on the resulting signature.
-   * 
+   *
    */
   public static enum Encoding {
     /**
      * Turn each byte into its hex representation.
-     * 
+     *
      */
     HEX() {
       @Override
@@ -64,7 +64,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
     },
     /**
      * Turn it into a Base64 string.
-     * 
+     *
      */
     BASE64() {
       @Override
@@ -77,7 +77,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
 
   /**
    * The algorithm to use when creating the message authentication code.
-   * 
+   *
    */
   public static enum Algorithm {
     HMAC_MD5() {
@@ -144,7 +144,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   }
 
   public void setHeaders(List<String> list) {
-    this.headers = Args.notNull(list, "headers");
+    headers = Args.notNull(list, "headers");
   }
 
   public <T extends HMACSignatureImpl> T withHeaders(List<String> list) {
@@ -191,7 +191,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   }
 
   public void setHmacAlgorithm(Algorithm algorithm) {
-    this.hmacAlgorithm = Args.notNull(algorithm, "algorithm");
+    hmacAlgorithm = Args.notNull(algorithm, "algorithm");
   }
 
   public <T extends HMACSignatureImpl> T withHmacAlgorithm(Algorithm s) {
@@ -204,7 +204,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   }
 
   public void setSecretKey(String key) {
-    this.secretKey = Args.notBlank(key, "secretKey");
+    secretKey = Args.notBlank(key, "secretKey");
   }
 
   public <T extends HMACSignatureImpl> T withSecretKey(String s) {

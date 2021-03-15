@@ -1,8 +1,7 @@
 package com.adaptris.core.http.apache;
 
+import javax.validation.constraints.NotBlank;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.hibernate.validator.constraints.NotBlank;
-
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -13,7 +12,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Build an {@link HttpConstants#AUTHORIZATION} header from static data.
- * 
+ *
  * @config apache-http-configured-authorization-header
  */
 @XStreamAlias("apache-http-configured-authorization-header")
@@ -22,7 +21,7 @@ public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator
   @NotBlank
   @InputFieldHint(expression = true)
   private String headerValue;
-  
+
   private transient String actualHeaderValue;
 
   public ConfiguredAuthorizationHeader() {
