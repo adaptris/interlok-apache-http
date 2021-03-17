@@ -36,7 +36,7 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
-import com.adaptris.core.util.DestinationHelper;
+import com.adaptris.core.http.client.net.MetadataAuthorizationHeader;
 import com.adaptris.core.util.MessageHelper;
 import com.adaptris.interlok.util.Args;
 import lombok.Getter;
@@ -275,7 +275,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return DestinationHelper.resolveProduceDestination(getUrl(), msg);
+    return msg.resolve(getUrl());
   }
 
   public <T extends HttpProducer> T withURL(String s) {

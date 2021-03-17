@@ -27,7 +27,6 @@ import com.adaptris.core.Channel;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MetadataElement;
-import com.adaptris.core.ProducerCase;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
@@ -65,20 +64,17 @@ import com.adaptris.core.services.metadata.AddMetadataService;
 import com.adaptris.core.services.metadata.PayloadFromTemplateService;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
 
 @SuppressWarnings("deprecation")
-public class ApacheHttpProducerTest extends ProducerCase {
+public class ApacheHttpProducerTest extends ExampleProducerCase {
 
   protected static Logger log = LoggerFactory.getLogger(ApacheHttpProducerTest.class);
 
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
 
   @Test
   public void testSetIgnoreServerResponse() throws Exception {
