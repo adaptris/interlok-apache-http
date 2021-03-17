@@ -68,7 +68,7 @@ public class CustomTlsBuilderTest extends BaseCase {
     String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.setHostnameVerification(HostnameVerification.NONE);
-    http.setPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword));
+    http.withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword));
     http.setTrustSelfSigned(true);
     http.setTruststore(new ConfiguredUrl(truststoreURL, truststorePassword));
     http.setKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
@@ -87,8 +87,8 @@ public class CustomTlsBuilderTest extends BaseCase {
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.setHostnameVerification(HostnameVerification.NONE);
     http.setTrustSelfSigned(true);
-    http.setTruststore(new ConfiguredUrl(truststoreURL, truststorePassword));
-    http.setKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
+    http.withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword));
+    http.withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
     try {
       http.configure(HttpClients.custom(), 10);
       fail();
@@ -108,15 +108,14 @@ public class CustomTlsBuilderTest extends BaseCase {
 
   @Test
   public void testBuilder_WithTls() throws Exception {
-    CustomTlsBuilder http = new CustomTlsBuilder();
-    http.setTlsVersions("SSLv3,TLSv1.1");
+    CustomTlsBuilder http = new CustomTlsBuilder().withTlsVersions("SSLv3,TLSv1.1");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 
   @Test
   public void testBuilder_WithCipherSuites() throws Exception {
-    CustomTlsBuilder http = new CustomTlsBuilder();
-    http.setCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
+    CustomTlsBuilder http = new CustomTlsBuilder().withCipherSuites(
+        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 
