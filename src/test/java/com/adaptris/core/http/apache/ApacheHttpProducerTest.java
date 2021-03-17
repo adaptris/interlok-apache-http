@@ -488,26 +488,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
   }
 
   @Test
-  public void testProduce_WithMetadataAuthHeader() throws Exception {
-    String threadName = Thread.currentThread().getName();
-    Thread.currentThread().setName(getName());
-    MockMessageProducer mock = new MockMessageProducer();
-    ApacheHttpProducer http = new ApacheHttpProducer();
-    try {
-      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
-      MetadataAuthorizationHeader acl = new MetadataAuthorizationHeader("apacheAuth");
-      msg.addMetadata("apacheAuth", buildAuthHeader("user", "password"));
-      http.setAuthenticator(acl);
-      doAuthenticatedProduce(mock, http, msg);
-      doAssertions(mock, true);
-    }
-    finally {
-      Thread.currentThread().setName(threadName);
-      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
-    }
-  }
-
-  @Test
   public void testRequest_WithReplyAsMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
