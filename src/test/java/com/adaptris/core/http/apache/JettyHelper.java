@@ -4,13 +4,10 @@ import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.Channel;
 import com.adaptris.core.ComponentLifecycle;
-import com.adaptris.core.ConfiguredConsumeDestination;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.DefaultEventHandler;
 import com.adaptris.core.EventHandler;
 import com.adaptris.core.NullProcessingExceptionHandler;
-import com.adaptris.core.PortManager;
 import com.adaptris.core.Service;
 import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
@@ -25,6 +22,7 @@ import com.adaptris.core.management.webserver.SecurityHandlerWrapper;
 import com.adaptris.core.stubs.MockChannel;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.util.PortManager;
 import com.adaptris.util.KeyValuePair;
 
 /**
@@ -54,13 +52,6 @@ public class JettyHelper {
                                       AdaptrisMessageProducer producer)
       throws Exception {
     return createChannel(connection, createWorkflow(consumer, producer));
-  }
-
-
-  @Deprecated
-  public static ConfiguredProduceDestination createProduceDestination(Channel channel) {
-    ConfiguredProduceDestination d = new ConfiguredProduceDestination(createURL(channel));
-    return d;
   }
 
   public static String createURL(Channel channel) {
@@ -100,7 +91,7 @@ public class JettyHelper {
   public static JettyMessageConsumer createConsumer(String dest) {
     JettyMessageConsumer consumer = new JettyMessageConsumer();
     consumer.setAdditionalDebug(true);
-    consumer.setDestination(new ConfiguredConsumeDestination(dest));
+    consumer.setPath(dest);
     return consumer;
   }
 

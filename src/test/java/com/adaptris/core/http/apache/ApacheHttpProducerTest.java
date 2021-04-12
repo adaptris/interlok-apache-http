@@ -8,7 +8,6 @@ import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createConnection;
 import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
-import static com.adaptris.core.http.apache.JettyHelper.createProduceDestination;
 import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
@@ -28,7 +27,6 @@ import com.adaptris.core.Channel;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MetadataElement;
-import com.adaptris.core.ProducerCase;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
@@ -66,20 +64,17 @@ import com.adaptris.core.services.metadata.AddMetadataService;
 import com.adaptris.core.services.metadata.PayloadFromTemplateService;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
 
 @SuppressWarnings("deprecation")
-public class ApacheHttpProducerTest extends ProducerCase {
+public class ApacheHttpProducerTest extends ExampleProducerCase {
 
   protected static Logger log = LoggerFactory.getLogger(ApacheHttpProducerTest.class);
 
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
 
   @Test
   public void testSetIgnoreServerResponse() throws Exception {
@@ -133,7 +128,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
         mock);
     try {
       start(c);
-      http.setDestination(createProduceDestination(c));
+      http.setUrl(createURL(c));
       StandaloneProducer producer = new StandaloneProducer(http);
       ServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
@@ -144,7 +139,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   private static void doProduce(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
     Channel c = createAndStartChannel(mock);
-    http.setDestination(createProduceDestination(c));
+    http.setUrl(createURL(c));
     StandaloneProducer producer = new StandaloneProducer(http);
     try {
       ServiceCase.execute(producer, msg);
@@ -156,7 +151,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
 
   private static void doRequest(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
     Channel c = createAndStartChannel(mock);
-    http.setDestination(createProduceDestination(c));
+    http.setUrl(createURL(c));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     try {
       ServiceCase.execute(producer, msg);
@@ -170,7 +165,7 @@ public class ApacheHttpProducerTest extends ProducerCase {
       throws Exception {
     Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO),
         mock);
-    http.setDestination(createProduceDestination(c));
+    http.setUrl(createURL(c));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     try {
       start(c);
@@ -478,26 +473,6 @@ public class ApacheHttpProducerTest extends ProducerCase {
     try {
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
       ConfiguredAuthorizationHeader acl = new ConfiguredAuthorizationHeader(buildAuthHeader("user", "password"));
-      http.setAuthenticator(acl);
-      doAuthenticatedProduce(mock, http, msg);
-      doAssertions(mock, true);
-    }
-    finally {
-      Thread.currentThread().setName(threadName);
-      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
-    }
-  }
-
-  @Test
-  public void testProduce_WithMetadataAuthHeader() throws Exception {
-    String threadName = Thread.currentThread().getName();
-    Thread.currentThread().setName(getName());
-    MockMessageProducer mock = new MockMessageProducer();
-    ApacheHttpProducer http = new ApacheHttpProducer();
-    try {
-      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
-      MetadataAuthorizationHeader acl = new MetadataAuthorizationHeader("apacheAuth");
-      msg.addMetadata("apacheAuth", buildAuthHeader("user", "password"));
       http.setAuthenticator(acl);
       doAuthenticatedProduce(mock, http, msg);
       doAssertions(mock, true);

@@ -1,12 +1,12 @@
 /*
  * Copyright 2018 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,9 +22,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.Test;
-import com.adaptris.core.BaseCase;
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import com.adaptris.security.keystore.ConfiguredUrl;
 
 public class CustomTlsBuilderTest extends BaseCase {
@@ -35,10 +35,7 @@ public class CustomTlsBuilderTest extends BaseCase {
   protected static final String KEY_KEYSTORE_URL = "jetty.keystore.url";
   protected static final String KEY_TRUSTSTORE_URL = "jetty.trust.url";
   protected static final String KEY_TRUSTSTORE_PASSWORD = "jetty.trust.password";
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
+
   @Test
   public void testSetTrustSelfSigned() throws Exception {
     CustomTlsBuilder p = new CustomTlsBuilder();
@@ -71,7 +68,7 @@ public class CustomTlsBuilderTest extends BaseCase {
     String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.setHostnameVerification(HostnameVerification.NONE);
-    http.setPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword));
+    http.withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword));
     http.setTrustSelfSigned(true);
     http.setTruststore(new ConfiguredUrl(truststoreURL, truststorePassword));
     http.setKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
@@ -90,8 +87,8 @@ public class CustomTlsBuilderTest extends BaseCase {
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.setHostnameVerification(HostnameVerification.NONE);
     http.setTrustSelfSigned(true);
-    http.setTruststore(new ConfiguredUrl(truststoreURL, truststorePassword));
-    http.setKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
+    http.withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword));
+    http.withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
     try {
       http.configure(HttpClients.custom(), 10);
       fail();
@@ -111,15 +108,14 @@ public class CustomTlsBuilderTest extends BaseCase {
 
   @Test
   public void testBuilder_WithTls() throws Exception {
-    CustomTlsBuilder http = new CustomTlsBuilder();
-    http.setTlsVersions("SSLv3,TLSv1.1");
+    CustomTlsBuilder http = new CustomTlsBuilder().withTlsVersions("SSLv3,TLSv1.1");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 
   @Test
   public void testBuilder_WithCipherSuites() throws Exception {
-    CustomTlsBuilder http = new CustomTlsBuilder();
-    http.setCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
+    CustomTlsBuilder http = new CustomTlsBuilder().withCipherSuites(
+        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 
