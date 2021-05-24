@@ -1,15 +1,14 @@
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertFalse;
-
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
+import static org.junit.Assert.assertFalse;
 
 public class NoOpRequestHeadersTest extends RequestHeadersCase {
   @Before
@@ -20,7 +19,7 @@ public class NoOpRequestHeadersTest extends RequestHeadersCase {
 
   @Test
   public void testAddHeaders() throws Exception {
-    HttpRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
+    HttpUriRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
     NoOpRequestHeaders headers = new NoOpRequestHeaders();
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     String name = testName.getMethodName();

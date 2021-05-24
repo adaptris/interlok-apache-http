@@ -1,20 +1,19 @@
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RegexMetadataFilter;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class MetadataRequestHeadersTest extends RequestHeadersCase {
 
@@ -41,7 +40,7 @@ public class MetadataRequestHeadersTest extends RequestHeadersCase {
 
   @Test
   public void testAddHeaders() throws Exception {
-    HttpRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
+    HttpUriRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
     MetadataRequestHeaders headers = new MetadataRequestHeaders();
     headers.setFilter(new RegexMetadataFilter());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");

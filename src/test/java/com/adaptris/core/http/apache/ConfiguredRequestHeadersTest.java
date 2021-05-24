@@ -1,19 +1,18 @@
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ConfiguredRequestHeadersTest extends RequestHeadersCase {
 
@@ -37,7 +36,7 @@ public class ConfiguredRequestHeadersTest extends RequestHeadersCase {
 
   @Test
   public void testAddHeaders() throws Exception {
-    HttpRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
+    HttpUriRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
     ConfiguredRequestHeaders headers = new ConfiguredRequestHeaders();
     String name = testName.getMethodName();
     headers.withHeaders(new KeyValuePair(name, name));

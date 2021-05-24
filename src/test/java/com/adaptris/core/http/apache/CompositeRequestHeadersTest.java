@@ -1,21 +1,20 @@
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.metadata.RegexMetadataFilter;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CompositeRequestHeadersTest extends RequestHeadersCase {
 
@@ -32,13 +31,13 @@ public class CompositeRequestHeadersTest extends RequestHeadersCase {
     assertEquals(0, headers.getProviders().size());
     headers.addHandler(new NoOpRequestHeaders());
     assertEquals(1, headers.getProviders().size());
-    headers.setProviders(new ArrayList<RequestHeaderProvider<HttpRequestBase>>());
+    headers.setProviders(new ArrayList<RequestHeaderProvider<HttpUriRequestBase>>());
     assertEquals(0, headers.getProviders().size());
   }
 
   @Test
   public void testAddHeaders() throws Exception {
-    HttpRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
+    HttpUriRequestBase httpOperation = new HttpPost("http://localhost:8080/anywhere");
     CompositeRequestHeaders headers = new CompositeRequestHeaders();
     MetadataRequestHeaders meta = new MetadataRequestHeaders();
     meta.setFilter(new RegexMetadataFilter());

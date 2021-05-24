@@ -15,20 +15,19 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.protocol.HttpDateGenerator;
+import com.adaptris.core.http.HttpConstants;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.core5.http.protocol.HttpDateGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.adaptris.core.http.HttpConstants;
-import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
-import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class BasicHmacSignatureTest {
 
@@ -119,7 +118,7 @@ public class BasicHmacSignatureTest {
     BasicHMACSignature hmac = new BasicHMACSignature();
     hmac.withHeaders("Content-Type", "Date", "X-Content-Encoding");
     HttpGet get = new HttpGet("http://localhost:8080/index.html");
-    String currentDate = new HttpDateGenerator().getCurrentDate();
+    String currentDate = HttpDateGenerator.INSTANCE.getCurrentDate();
     get.addHeader("Content-Type", "text/xml");
     get.addHeader("Date", currentDate);
     String stringToSign = hmac.getStringToSign(get, null);

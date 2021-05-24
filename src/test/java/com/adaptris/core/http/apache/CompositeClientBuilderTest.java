@@ -15,10 +15,10 @@
 */
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertNotNull;
-
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 public class CompositeClientBuilderTest {
 

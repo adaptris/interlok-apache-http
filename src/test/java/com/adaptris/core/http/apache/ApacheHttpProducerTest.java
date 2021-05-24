@@ -346,7 +346,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     doAssertions(mock, false);
     AdaptrisMessage m2 = mock.getMessages().get(0);
     assertEquals("GET", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
-    assertEquals(0, m2.getSize());
+    assertEquals(TEXT.length(), m2.getSize());
   }
 
   @Test

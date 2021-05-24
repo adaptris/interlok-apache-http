@@ -1,19 +1,18 @@
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.message.BasicHeader;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("deprecation")
 public class ResponseHeadersAsMetadataTest extends ResponseHeadersCase {
@@ -28,7 +27,7 @@ public class ResponseHeadersAsMetadataTest extends ResponseHeadersCase {
     String name = testName.getMethodName();
     BasicHeader header = new BasicHeader(name, name);
     HttpResponse response = Mockito.mock(HttpResponse.class);
-    Mockito.when(response.getAllHeaders()).thenReturn(new Header[] {header});
+    Mockito.when(response.getHeaders()).thenReturn(new Header[] {header});
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ResponseHeadersAsMetadata handler = new ResponseHeadersAsMetadata();
 
@@ -43,7 +42,7 @@ public class ResponseHeadersAsMetadataTest extends ResponseHeadersCase {
     String name = testName.getMethodName();
     BasicHeader header = new BasicHeader(name, name);
     HttpResponse response = Mockito.mock(HttpResponse.class);
-    Mockito.when(response.getAllHeaders()).thenReturn(new Header[] {header});
+    Mockito.when(response.getHeaders()).thenReturn(new Header[] {header});
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ResponseHeadersAsMetadata handler = new ResponseHeadersAsMetadata("Header_");
 
@@ -61,7 +60,7 @@ public class ResponseHeadersAsMetadataTest extends ResponseHeadersCase {
     String name = testName.getMethodName();
     BasicHeader header = new BasicHeader(name, name);
     HttpResponse response = Mockito.mock(HttpResponse.class);
-    Mockito.when(response.getAllHeaders()).thenReturn(new Header[0]);
+    Mockito.when(response.getHeaders()).thenReturn(new Header[0]);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ResponseHeadersAsMetadata handler = new ResponseHeadersAsMetadata();
     handler.handle(response, msg);
@@ -75,7 +74,7 @@ public class ResponseHeadersAsMetadataTest extends ResponseHeadersCase {
     String name = testName.getMethodName();
     BasicHeader header = new BasicHeader(name, name);
     HttpResponse response = Mockito.mock(HttpResponse.class);
-    Mockito.when(response.getAllHeaders()).thenReturn(null);
+    Mockito.when(response.getHeaders()).thenReturn(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ResponseHeadersAsMetadata handler = new ResponseHeadersAsMetadata();
     handler.handle(response, msg);

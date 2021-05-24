@@ -14,18 +14,20 @@
  * limitations under the License.
 */
 package com.adaptris.core.http.apache;
+
+import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
+import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import com.adaptris.security.keystore.ConfiguredUrl;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.apache.http.impl.client.HttpClients;
-import org.junit.Test;
-import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
-import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
-import com.adaptris.interlok.junit.scaffolding.BaseCase;
-import com.adaptris.security.keystore.ConfiguredUrl;
 
 public class CustomTlsBuilderTest extends BaseCase {
 
