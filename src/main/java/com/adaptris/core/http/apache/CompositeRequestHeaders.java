@@ -1,18 +1,16 @@
 package com.adaptris.core.http.apache;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.client.methods.HttpRequestBase;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that uses its own configured handlers to add headers.
@@ -26,11 +24,11 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * 
  */
 @XStreamAlias("apache-http-composite-request-headers")
-public class CompositeRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
+public class CompositeRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
   @XStreamImplicit
   @NotNull
   @AutoPopulated
-  private List<RequestHeaderProvider<HttpRequestBase>> providers;
+  private List<RequestHeaderProvider<HttpUriRequestBase>> providers;
 
   public CompositeRequestHeaders() {
     providers = new ArrayList<>();
@@ -38,25 +36,25 @@ public class CompositeRequestHeaders implements RequestHeaderProvider<HttpReques
 
 
   @Override
-  public HttpRequestBase addHeaders(AdaptrisMessage msg, HttpRequestBase target) {
-    HttpRequestBase http = target;
-    for (RequestHeaderProvider<HttpRequestBase> h : getProviders()) {
+  public HttpUriRequestBase addHeaders(AdaptrisMessage msg, HttpUriRequestBase target) {
+    HttpUriRequestBase http = target;
+    for (RequestHeaderProvider<HttpUriRequestBase> h : getProviders()) {
       http = h.addHeaders(msg, http);
     }
     return http;
   }
 
 
-  public List<RequestHeaderProvider<HttpRequestBase>> getProviders() {
+  public List<RequestHeaderProvider<HttpUriRequestBase>> getProviders() {
     return providers;
   }
 
 
-  public void setProviders(List<RequestHeaderProvider<HttpRequestBase>> handlers) {
+  public void setProviders(List<RequestHeaderProvider<HttpUriRequestBase>> handlers) {
     this.providers = Args.notNull(handlers, "Request Header Providers");
   }
 
-  public void addHandler(RequestHeaderProvider<HttpRequestBase> handler) {
+  public void addHandler(RequestHeaderProvider<HttpUriRequestBase> handler) {
     getProviders().add(Args.notNull(handler, "Request Header Provider"));
   }
 }

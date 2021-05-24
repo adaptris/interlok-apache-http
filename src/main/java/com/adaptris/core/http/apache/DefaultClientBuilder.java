@@ -15,15 +15,6 @@
 */
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import javax.validation.Valid;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
@@ -32,6 +23,17 @@ import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.RequestReplyProducerImp;
 import com.adaptris.util.TimeInterval;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Timeout;
+
+import javax.validation.Valid;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * default {@link HttpClientBuilderConfigurator} instance
@@ -69,7 +71,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
     if (!handleRedirection()) {
       builder.disableRedirectHandling();
     } else {
-      builder.setRedirectStrategy(new LaxRedirectStrategy());
+      builder.setRedirectStrategy(new DefaultRedirectStrategy());
     }
     String httpProxy = getHttpProxy();
     if (!isBlank(httpProxy) && !":".equals(httpProxy)) {
@@ -89,14 +91,14 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
   protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) {
     RequestConfig.Builder requestCfg = RequestConfig.custom();
     if (getConnectTimeout() != null) {
-      requestCfg.setConnectTimeout(Long.valueOf(getConnectTimeout().toMilliseconds()).intValue());
+      requestCfg.setConnectTimeout(Timeout.ofMilliseconds(getConnectTimeout().toMilliseconds()));
     }
     if (getReadTimeout() != null) {
-      requestCfg.setSocketTimeout(Long.valueOf(getReadTimeout().toMilliseconds()).intValue());
+      requestCfg.setResponseTimeout(Timeout.ofMilliseconds(getReadTimeout().toMilliseconds()));
     }
     if (timeout != HttpProducer.DEFAULT_TIMEOUT) {
-      requestCfg.setSocketTimeout(Long.valueOf(timeout).intValue());
-      builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(Long.valueOf(timeout).intValue()).build());
+      requestCfg.setResponseTimeout(Timeout.ofMilliseconds(timeout));
+      //builder.setDefaultRequestConfig(SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(timeout)).build());
     }
     builder.setDefaultRequestConfig(requestCfg.build());
     return builder;

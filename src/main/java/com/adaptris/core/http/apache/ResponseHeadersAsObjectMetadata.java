@@ -1,11 +1,10 @@
 package com.adaptris.core.http.apache;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
@@ -31,9 +30,8 @@ public class ResponseHeadersAsObjectMetadata extends ResponseHeadersAsMetadata {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public AdaptrisMessage handle(HttpResponse src, AdaptrisMessage msg) {
-    Header[] headers = src.getAllHeaders();
+    Header[] headers = src.getHeaders();
     if (notNull(headers)) {
       log.trace("Processing {} headers from response", headers.length);
       for (Header h : headers) {

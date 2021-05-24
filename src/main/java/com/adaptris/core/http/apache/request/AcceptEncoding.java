@@ -15,22 +15,22 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.protocol.RequestAcceptEncoding;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Add an {@code Accept-Encoding} header to the outgoing request via {@link RequestAcceptEncoding}.
+ * Add an {@code Accept-Encoding} header to the outgoing request via {@link HttpRequestInterceptor}.
  * 
  * @config apache-http-accept-encoding
  */
@@ -47,7 +47,7 @@ public class AcceptEncoding implements RequestInterceptorBuilder {
   }
 
   public AcceptEncoding(String... list) {
-    this(new ArrayList<String>(Arrays.asList(list)));
+    this(new ArrayList<>(Arrays.asList(list)));
   }
 
   public AcceptEncoding(List<String> list) {
@@ -65,7 +65,21 @@ public class AcceptEncoding implements RequestInterceptorBuilder {
 
   @Override
   public HttpRequestInterceptor build() {
-    return new RequestAcceptEncoding(getAcceptEncodings());
+    /*
+     * RequestAcceptEncoding appears to have been removed from v5, so
+     * we'll just do what it did
+     */
+    return (request, entity, context) -> {
+      final HttpClientContext clientContext = HttpClientContext.adapt(context);
+      final RequestConfig requestConfig = clientContext.getRequestConfig();
+      if (!request.containsHeader("Accept-Encoding") && requestConfig.isContentCompressionEnabled()) {
+        if (acceptEncodings.isEmpty()) {
+          request.addHeader("Accept-Encoding", "gzip,deflate");
+        } else {
+          request.addHeader("Accept-Encoding", StringUtils.join(acceptEncodings, ","));
+        }
+      }
+    };
   }
 
 }

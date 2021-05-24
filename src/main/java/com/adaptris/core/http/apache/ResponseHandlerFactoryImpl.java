@@ -1,22 +1,25 @@
 package com.adaptris.core.http.apache;
 
-import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.Optional;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.entity.ContentType;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.MetadataElement;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.util.Args;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.Optional;
+
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 
 
 @NoArgsConstructor
@@ -24,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class ResponseHandlerFactoryImpl implements ResponseHandlerFactory {
 
 
-  protected abstract class ResponseHandlerImpl implements ResponseHandler<AdaptrisMessage> {
+  protected abstract class ResponseHandlerImpl implements HttpClientResponseHandler<AdaptrisMessage> {
 
     protected HttpProducer owner;
 
@@ -60,15 +63,22 @@ public abstract class ResponseHandlerFactoryImpl implements ResponseHandlerFacto
     }
 
     protected String contentEncoding(HttpEntity entity) {
-      ContentType contentType =
-          Optional.ofNullable(ContentType.get(entity)).orElse(ContentType.create("text/plain"));
+      String s = entity.getContentType();
+      ContentType contentType;
+      if (Args.isEmpty(s)) {
+        contentType = ContentType.create("text/plain");
+      } else if (s.contains(";")) {
+        contentType = ContentType.create(s.substring(0, s.indexOf(";")), s.substring(s.indexOf("charset=") + "charset=".length()));
+      } else {
+        contentType = ContentType.create(s);
+      }
       return Optional.ofNullable(contentType.getCharset()).map((cs) -> cs.name()).orElse(null);
     }
 
     @Override
-    public AdaptrisMessage handleResponse(HttpResponse response)
+    public AdaptrisMessage handleResponse(ClassicHttpResponse response)
         throws ClientProtocolException, IOException {
-      int status = response.getStatusLine().getStatusCode();
+      int status = response.getCode();
       AdaptrisMessage reply = defaultIfNull(owner.getMessageFactory()).newMessage();
       reply.addObjectHeader(OBJ_METADATA_PAYLOAD_MODIFIED, Boolean.FALSE);
       HttpEntity entity = response.getEntity();

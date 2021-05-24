@@ -15,11 +15,10 @@
 */
 package com.adaptris.core.http.apache;
 
-import org.apache.http.impl.NoConnectionReuseStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 
 /**
  * <p>
@@ -43,7 +42,7 @@ public class NoConnectionManagement implements HttpClientBuilderConfigurator {
   public HttpClientBuilder configure(HttpClientBuilder builder) throws Exception {
     HttpClientBuilder result = builder;
     result.setConnectionManagerShared(false);
-    result.setConnectionReuseStrategy(NoConnectionReuseStrategy.INSTANCE);
+    result.setConnectionReuseStrategy(DefaultConnectionReuseStrategy.INSTANCE);
     result.setConnectionManager(new BasicHttpClientConnectionManager());
     return result;
   }

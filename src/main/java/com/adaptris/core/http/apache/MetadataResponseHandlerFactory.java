@@ -1,23 +1,24 @@
 package com.adaptris.core.http.apache;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.StringBuilderWriter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ResponseHandler;
 import com.adaptris.core.AdaptrisMessage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.StringBuilderWriter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+
+import javax.validation.constraints.NotBlank;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * Implementation {@link ResponseHandlerFactory} that writes the response to the named metadata key.
@@ -41,7 +42,7 @@ public class MetadataResponseHandlerFactory extends ResponseHandlerFactoryImpl {
   }
 
   @Override
-  public ResponseHandler<AdaptrisMessage> createResponseHandler(HttpProducer owner) {
+  public HttpClientResponseHandler<AdaptrisMessage> createResponseHandler(HttpProducer owner) {
     return new HttpResponseHandler(owner);
   }
 

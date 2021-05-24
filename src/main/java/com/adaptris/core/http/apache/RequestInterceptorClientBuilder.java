@@ -15,19 +15,17 @@
 */
 package com.adaptris.core.http.apache;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.apache.http.impl.client.HttpClientBuilder;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.http.apache.request.RequestInterceptorBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * {@link HttpClientBuilderConfigurator} instance that allows additional {@code HttpRequestInterceptor} instances to be added to the
@@ -68,7 +66,7 @@ public class RequestInterceptorClientBuilder implements HttpClientBuilderConfigu
   @Override
   public HttpClientBuilder configure(HttpClientBuilder builder) throws Exception {
     for (RequestInterceptorBuilder b : requestInterceptors()) {
-      builder.addInterceptorLast(b.build());
+      builder.addRequestInterceptorLast(b.build());
     }
     return builder;
   }

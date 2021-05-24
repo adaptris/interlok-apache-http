@@ -1,21 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpTrace;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -42,6 +26,24 @@ import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpOptions;
+import org.apache.hc.client5.http.classic.methods.HttpPatch;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpTrace;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.HttpResponse;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
 
 /**
  * Abstract base class for all Apache HTTP producer classes.
@@ -60,37 +62,37 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   public static enum HttpMethod {
     DELETE {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpDelete(url);
       }
     },
     GET {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpGet(url);
       }
     },
     HEAD {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpHead(url);
       }
     },
     OPTIONS {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpOptions(url);
       }
     },
     PATCH {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpPatch(url);
       }
     },
     PUT {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpPut(url);
       }
     },
@@ -102,11 +104,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     },
     TRACE {
       @Override
-      public HttpRequestBase create(String url) {
+      public HttpUriRequestBase create(String url) {
         return new HttpTrace(url);
       }
     };
-    public abstract HttpRequestBase create(String url);
+    public abstract HttpUriRequestBase create(String url);
   }
 
   /**
@@ -171,7 +173,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @NonNull
   @Getter
   @Setter
-  private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
+  private RequestHeaderProvider<HttpUriRequestBase> requestHeaderProvider;
 
   /**
    * Control whether or not to ignore the server response code.
@@ -228,8 +230,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Setter
   @NotBlank
   private String url;
-
-  private transient boolean destWarning;
 
   public HttpProducer() {
     super();

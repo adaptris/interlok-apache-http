@@ -15,27 +15,32 @@
 */
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.validation.Valid;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.ssl.TrustStrategy;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.security.PrivateKeyPasswordProvider;
 import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.keystore.ConfiguredKeystore;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * {@link HttpClientBuilderConfigurator} implementation that allows you to customise keystores etc.
@@ -59,7 +64,7 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
      * Standard Hostname verification
      * 
      */
-    STANDARD(SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+    STANDARD(new DefaultHostnameVerifier());
 
     private HostnameVerifier myVerifier;
 
@@ -89,11 +94,15 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
 
   @Override
   public HttpClientBuilder configure(HttpClientBuilder builder) throws Exception {
+
     HttpClientBuilder result = builder;
     SSLContext sslcontext = configure(SSLContexts.custom()).build();
     SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext, asArray(getTlsVersions()),
         asArray(getCipherSuites()), hostnameVerification().getVerifier());
-    result.setSSLSocketFactory(sslsf);
+    HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+            .setSSLSocketFactory(sslsf)
+            .build();
+    result.setConnectionManager(cm);
     return result;
   }
 

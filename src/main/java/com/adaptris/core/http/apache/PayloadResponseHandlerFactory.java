@@ -1,16 +1,17 @@
 package com.adaptris.core.http.apache;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ResponseHandler;
 import com.adaptris.core.AdaptrisMessage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Implementation {@link ResponseHandlerFactory} that writes the response to the {@link AdaptrisMessage} payload.
@@ -25,7 +26,7 @@ public class PayloadResponseHandlerFactory extends ResponseHandlerFactoryImpl {
 
 
   @Override
-  public ResponseHandler<AdaptrisMessage> createResponseHandler(HttpProducer owner) {
+  public HttpClientResponseHandler<AdaptrisMessage> createResponseHandler(HttpProducer owner) {
     return new HttpResponseHandler(owner);
   }
 

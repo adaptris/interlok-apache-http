@@ -15,20 +15,16 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.protocol.HttpContext;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Remove headers from the outgoing request.
@@ -52,7 +48,7 @@ public class RemoveHeaders implements RequestInterceptorBuilder {
   }
 
   public RemoveHeaders(String... list) {
-    this(new ArrayList<String>(Arrays.asList(list)));
+    this(new ArrayList<>(Arrays.asList(list)));
   }
 
   public RemoveHeaders(List<String> list) {
@@ -70,11 +66,9 @@ public class RemoveHeaders implements RequestInterceptorBuilder {
 
   @Override
   public HttpRequestInterceptor build() {
-    return new HttpRequestInterceptor() {
-      public void process(HttpRequest request, HttpContext context) {
-        for (String hdr : getHeaders()) {
-          request.removeHeaders(hdr);
-        }
+    return (request, entity, context) -> {
+      for (String hdr : getHeaders()) {
+        request.removeHeaders(hdr);
       }
     };
   }

@@ -15,10 +15,9 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.protocol.RequestDate;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.protocol.RequestDate;
 
 /**
  * Adds a Date header via {@code RequestDate}.

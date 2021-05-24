@@ -1,7 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import javax.validation.constraints.NotBlank;
-import org.apache.http.client.methods.HttpRequestBase;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -9,6 +7,9 @@ import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Build an {@link HttpConstants#AUTHORIZATION} header from static data.
@@ -55,7 +56,7 @@ public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator
   }
 
   @Override
-  public void configure(HttpRequestBase req) {
+  public void configure(HttpUriRequestBase req) {
     req.addHeader(HttpConstants.AUTHORIZATION, actualHeaderValue);
   }
 

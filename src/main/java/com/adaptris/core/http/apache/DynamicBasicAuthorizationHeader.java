@@ -1,10 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import java.io.UnsupportedEncodingException;
-import java.net.PasswordAuthentication;
-import java.net.URLConnection;
-import javax.validation.constraints.NotBlank;
-import org.apache.http.client.methods.HttpRequestBase;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -18,6 +13,12 @@ import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.adaptris.util.text.Base64ByteTranslator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+
+import javax.validation.constraints.NotBlank;
+import java.io.UnsupportedEncodingException;
+import java.net.PasswordAuthentication;
+import java.net.URLConnection;
 
 /**
  * Build a {@link HttpConstants#AUTHORIZATION} (Basic only) from configuration (or metadata).
@@ -65,7 +66,7 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
   }
 
   @Override
-  public void configure(HttpRequestBase req) {
+  public void configure(HttpUriRequestBase req) {
     req.addHeader(HttpConstants.AUTHORIZATION, authHeader);
   }
 

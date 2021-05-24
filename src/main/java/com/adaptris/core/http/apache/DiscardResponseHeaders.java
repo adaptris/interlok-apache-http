@@ -1,10 +1,9 @@
 package com.adaptris.core.http.apache;
 
-import org.apache.http.HttpResponse;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * {@link ResponseHeaderHandler} implementation that discards the headers from the HTTP response.

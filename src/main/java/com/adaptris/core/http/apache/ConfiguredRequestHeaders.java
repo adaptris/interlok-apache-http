@@ -1,9 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.client.methods.HttpRequestBase;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.RequestHeaderProvider;
@@ -11,6 +7,9 @@ import com.adaptris.core.util.Args;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that applies static configured values as headers.
@@ -19,7 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("apache-http-configured-request-headers")
-public class ConfiguredRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
+public class ConfiguredRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
   @NotNull
   @AutoPopulated
   private KeyValuePairSet headers;
@@ -30,7 +29,7 @@ public class ConfiguredRequestHeaders implements RequestHeaderProvider<HttpReque
 
 
   @Override
-  public HttpRequestBase addHeaders(AdaptrisMessage msg, HttpRequestBase target) {
+  public HttpUriRequestBase addHeaders(AdaptrisMessage msg, HttpUriRequestBase target) {
     for (KeyValuePair k : getHeaders()) {
       target.addHeader(k.getKey(), k.getValue());
     }

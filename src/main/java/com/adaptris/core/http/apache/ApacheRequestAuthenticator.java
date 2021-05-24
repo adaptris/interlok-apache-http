@@ -1,7 +1,7 @@
 package com.adaptris.core.http.apache;
 
-import org.apache.http.client.methods.HttpRequestBase;
 import com.adaptris.core.http.auth.HttpAuthenticator;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 /**
  * ApacheRequestAuthenticator is an interface designed to facilitate HTTP Authentication in various ways.
@@ -17,6 +17,6 @@ public interface ApacheRequestAuthenticator extends HttpAuthenticator {
   /**
    * Perform whatever actions are required to the HttpRequestBase.
    */
-  public void configure(HttpRequestBase req) throws Exception;
+  public void configure(HttpUriRequestBase req) throws Exception;
 
 }

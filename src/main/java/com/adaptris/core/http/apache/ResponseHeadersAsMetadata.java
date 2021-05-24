@@ -1,13 +1,14 @@
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 /**
  * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
@@ -35,7 +36,7 @@ public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResp
 
   @Override
   public AdaptrisMessage handle(HttpResponse response, AdaptrisMessage msg) {
-    Header[] headers = response.getAllHeaders();
+    Header[] headers = response.getHeaders();
     if (notNull(headers)) {
       log.trace("Processing {} headers from response", headers.length);
       for (Header h : headers) {

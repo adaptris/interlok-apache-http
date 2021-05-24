@@ -15,13 +15,14 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import java.util.List;
-import javax.validation.constraints.NotBlank;
-import org.apache.http.Header;
-import org.apache.http.HttpRequest;
-import org.apache.http.protocol.HttpContext;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
+
+import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * Attempts to add an HMAC signature to the outgoing request.
@@ -63,8 +64,8 @@ public class BasicHMACSignature extends HMACSignatureImpl {
 
   @Override
   protected String getStringToSign(HttpRequest request, HttpContext context) {
-    String stringToSign = request.getRequestLine().getMethod() + LF;
-    stringToSign += request.getRequestLine().getUri() + LF;
+    String stringToSign = request.getMethod() + LF;
+    stringToSign += request.getRequestUri() + LF;
     // iterate over all the headers that are configured...
     // If the headers don't exist, then we default to the blank string, because that's "more correct?"
     for (String h : getHeaders()) {

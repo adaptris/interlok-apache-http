@@ -15,9 +15,8 @@
 */
 package com.adaptris.core.http.apache;
 
-import org.apache.http.impl.client.HttpClientBuilder;
-
 import com.adaptris.core.AdaptrisMessageProducer;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 
 /**
  * Interface that allows {@link HttpClientBuilder} configuration.

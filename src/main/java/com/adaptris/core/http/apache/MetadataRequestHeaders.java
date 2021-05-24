@@ -1,10 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.client.methods.HttpRequestBase;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
@@ -12,6 +7,10 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that applies {@link AdaptrisMessage} metadata as headers using a
@@ -21,7 +20,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("apache-http-metadata-request-headers")
-public class MetadataRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
+public class MetadataRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
   @NotNull
   @Valid
   private MetadataFilter filter;
@@ -35,7 +34,7 @@ public class MetadataRequestHeaders implements RequestHeaderProvider<HttpRequest
   }
 
   @Override
-  public HttpRequestBase addHeaders(AdaptrisMessage msg, HttpRequestBase target) {
+  public HttpUriRequestBase addHeaders(AdaptrisMessage msg, HttpUriRequestBase target) {
     MetadataCollection metadataSubset = getFilter().filter(msg);
     for (MetadataElement me : metadataSubset) {
       target.addHeader(me.getKey(), me.getValue());

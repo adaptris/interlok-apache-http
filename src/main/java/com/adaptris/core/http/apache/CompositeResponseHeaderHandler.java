@@ -1,18 +1,16 @@
 package com.adaptris.core.http.apache;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.HttpResponse;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.hc.core5.http.HttpResponse;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implementation of {@link ResponseHeaderHandler} that uses nested handlers to extract headers from a {@link
@@ -42,8 +40,6 @@ public class CompositeResponseHeaderHandler implements ResponseHeaderHandler<Htt
     }
   }
 
-
-
   public List<ResponseHeaderHandler<HttpResponse>> getHandlers() {
     return handlers;
   }
@@ -55,7 +51,6 @@ public class CompositeResponseHeaderHandler implements ResponseHeaderHandler<Htt
   public void addHandler(ResponseHeaderHandler<HttpResponse> handler) {
     getHandlers().add(Args.notNull(handler, "Response Handler"));
   }
-
 
   @Override
   public AdaptrisMessage handle(HttpResponse src, AdaptrisMessage msg) {

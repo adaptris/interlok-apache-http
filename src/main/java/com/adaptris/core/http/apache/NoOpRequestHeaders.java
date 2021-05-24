@@ -1,10 +1,9 @@
 package com.adaptris.core.http.apache;
 
-import org.apache.http.client.methods.HttpRequestBase;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that adds no additional headers
@@ -14,11 +13,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("apache-http-no-request-headers")
-public class NoOpRequestHeaders implements RequestHeaderProvider<HttpRequestBase> {
+public class NoOpRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
 
 
   @Override
-  public HttpRequestBase addHeaders(AdaptrisMessage msg, HttpRequestBase target) {
+  public HttpUriRequestBase addHeaders(AdaptrisMessage msg, HttpUriRequestBase target) {
     return target;
   }
 

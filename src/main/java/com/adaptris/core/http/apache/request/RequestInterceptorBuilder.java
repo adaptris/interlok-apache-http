@@ -15,7 +15,7 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import org.apache.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
 
 public interface RequestInterceptorBuilder {
 

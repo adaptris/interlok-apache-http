@@ -15,20 +15,6 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.HmacUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.protocol.HttpContext;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -38,6 +24,19 @@ import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.protocol.HttpContext;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 
 /**
  * Base class for building a HMAC when doing HTTP requests.
@@ -232,13 +231,8 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
 
   @Override
   public HttpRequestInterceptor build() {
-    return new HttpRequestInterceptor() {
-      @Override
-      public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
+    return (request, entity, context) ->
         request.addHeader(targetHeader(), buildHeader(request, context));
-      }
-
-    };
   }
 
 }

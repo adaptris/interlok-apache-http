@@ -1,17 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import javax.validation.Valid;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -28,6 +16,19 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+
+import javax.validation.Valid;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
@@ -79,9 +80,9 @@ public class ApacheHttpProducer extends HttpProducer {
     AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
 
     try (HttpAuthenticator auth = authenticator()) {
-      HttpRequestBase httpOperation = getMethod(msg).create(uri);
-      auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getURI()));
-      log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getURI());
+      HttpUriRequestBase httpOperation = getMethod(msg).create(uri);
+      auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getUri()));
+      log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getUri());
       try (CloseableHttpClient httpclient = createClient(timeout)) {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
@@ -114,12 +115,10 @@ public class ApacheHttpProducer extends HttpProducer {
     return builder;
   }
 
-  private HttpRequestBase addData(AdaptrisMessage msg, HttpRequestBase base) throws IOException,
+  private HttpUriRequestBase addData(AdaptrisMessage msg, HttpUriRequestBase base) throws IOException,
       CoreException {
-    if (base instanceof HttpEntityEnclosingRequestBase) {
-      AdaptrisMessageEntity entity = new AdaptrisMessageEntity(msg, getContentTypeProvider());
-      ((HttpEntityEnclosingRequestBase) base).setEntity(entity);
-    }
+    AdaptrisMessageEntity entity = new AdaptrisMessageEntity(msg, getContentTypeProvider());
+    base.setEntity(entity);
     return base;
   }
 

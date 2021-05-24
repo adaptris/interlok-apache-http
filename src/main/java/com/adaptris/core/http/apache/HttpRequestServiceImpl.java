@@ -15,14 +15,6 @@
 */
 package com.adaptris.core.http.apache;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import java.net.Authenticator;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.util.Args;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -42,6 +34,16 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.http.client.net.NoRequestHeaders;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.util.Args;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.net.Authenticator;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Direct HTTP support as a service rather than wrapped via {@link StandaloneProducer} or {@link StandaloneRequestor}.
@@ -84,7 +86,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
   @Valid
   @NotNull
   @AutoPopulated
-  private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
+  private RequestHeaderProvider<HttpUriRequestBase> requestHeaderProvider;
   @Valid
   @AdvancedConfig
   @NotNull
@@ -156,7 +158,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
     responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
   }
 
-  public RequestHeaderProvider<HttpRequestBase> getRequestHeaderProvider() {
+  public RequestHeaderProvider<HttpUriRequestBase> getRequestHeaderProvider() {
     return requestHeaderProvider;
   }
 
@@ -165,7 +167,7 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
    *
    * @param handler the handler, default is a {@link NoRequestHeaders}
    */
-  public void setRequestHeaderProvider(RequestHeaderProvider<HttpRequestBase> handler) {
+  public void setRequestHeaderProvider(RequestHeaderProvider<HttpUriRequestBase> handler) {
     requestHeaderProvider = Args.notNull(handler, "Request Header Provider");
   }
 
