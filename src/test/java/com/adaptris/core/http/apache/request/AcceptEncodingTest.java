@@ -15,12 +15,12 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class AcceptEncodingTest {
 
@@ -34,9 +34,9 @@ public class AcceptEncodingTest {
 
   @Test
   public void testBuild() {
-    RemoveHeaders interceptor = new RemoveHeaders("User-Agent", "Connection", "Accept-Encoding");
-    assertEquals(3, interceptor.getHeaders().size());
-    assertNotNull(interceptor.build());
+    AcceptEncoding enc = new AcceptEncoding("gzip", "compress", "deflate", "*");
+    assertEquals(4, enc.getAcceptEncodings().size());
+    assertNotNull(enc.build());
   }
 
   // Can't actually test it in operation; do that in ApacheHttpProducerTest

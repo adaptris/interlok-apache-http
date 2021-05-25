@@ -18,6 +18,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+
+import com.adaptris.core.http.apache.request.AcceptEncoding;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -204,6 +206,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     // empty RequestInterceptorClientBuilder just to get an empty list for coverage
     CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
         new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("Accept-Encoding", "User-Agent", "Connection"),
+            new AcceptEncoding("gzip", "compress", "deflate", "*"),
             new DateHeader()),
         new RequestInterceptorClientBuilder());
     http.setClientConfig(builder);
@@ -219,6 +222,23 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   }
 
   @Test
+  public void testProduce_WithFewerInterceptors() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    // empty RequestInterceptorClientBuilder just to get an empty list for coverage
+    CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
+            new RequestInterceptorClientBuilder().withInterceptors(new AcceptEncoding()));
+    http.setClientConfig(builder);
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    doProduce(mock, http, msg);
+    doAssertions(mock, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    // User-Agent should have been removed.
+    assertTrue(m2.headersContainsKey("Accept-Encoding"));
+    assertEquals("gzip, x-gzip, deflate", m2.getMetadataValue("Accept-Encoding"));
+  }
+
+  @Test
   public void testProduce_With_HMAC() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -226,7 +246,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
         .withSecretKey("MySecretKey").withTargetHeader("hmac").withEncoding(Encoding.BASE64)
         .withHmacAlgorithm(Algorithm.HMAC_SHA256);
     CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
-        new RequestInterceptorClientBuilder().withInterceptors(new DateHeader(), hmac));
+        new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("Accept-Encoding"), new AcceptEncoding(), new DateHeader(), hmac));
     http.setClientConfig(builder);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     doProduce(mock, http, msg);
