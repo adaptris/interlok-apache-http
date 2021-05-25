@@ -69,10 +69,18 @@ public class ApacheHttpProducer extends HttpProducer {
   @Setter
   private ResponseHandlerFactory responseHandlerFactory;
 
+  /*
+   * IMPORTANT: Always re-use CloseableHttpClient instances. They are
+   * expensive to create, but they are also fully thread safe, so
+   * multiple threads can use the same instance of CloseableHttpClient
+   * to execute multiple requests concurrently taking full advantage of
+   * persistent connection re-use and connection pooling.
+   */
+  private static CloseableHttpClient httpClient;
+
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
   }
-
 
   @Override
   protected AdaptrisMessage doRequest(AdaptrisMessage msg, String uri, long timeout)
@@ -83,26 +91,27 @@ public class ApacheHttpProducer extends HttpProducer {
       HttpUriRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getUri()));
       log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getUri());
-      try (CloseableHttpClient httpclient = createClient(timeout)) {
-        if (auth instanceof ApacheRequestAuthenticator) {
-          ((ApacheRequestAuthenticator) auth).configure(httpOperation);
-        }
-        addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
-        reply =
-            httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
-        preserveRequestPayload(msg, reply);
+      httpClient = createClient(timeout);
+      if (auth instanceof ApacheRequestAuthenticator) {
+        ((ApacheRequestAuthenticator) auth).configure(httpOperation);
       }
+      addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
+      reply = httpClient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
+      preserveRequestPayload(msg, reply);
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
     return reply;
   }
 
-  private CloseableHttpClient createClient(long timeout) throws Exception {
-    HttpClientBuilder builder = customise(
-        HttpClientBuilderConfigurator.defaultIfNull(getClientConfig())
-            .configure(HttpClients.custom(), timeout));
-    return builder.build();
+  private synchronized CloseableHttpClient createClient(long timeout) throws Exception {
+    if (httpClient == null) {
+      HttpClientBuilder builder = customise(
+              HttpClientBuilderConfigurator.defaultIfNull(getClientConfig())
+                      .configure(HttpClients.custom(), timeout));
+      httpClient = builder.build();
+    }
+    return httpClient;
   }
 
   /**
