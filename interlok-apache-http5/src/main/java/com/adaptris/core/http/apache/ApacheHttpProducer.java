@@ -181,7 +181,7 @@ public class ApacheHttpProducer extends HttpProducer {
           });
         }
         else {
-          rc = uri.toURL().equals(target.getRequestingURL());
+          rc = uri.toURL().sameFile(target.getRequestingURL());
         }
       }
       catch (MalformedURLException e) {
