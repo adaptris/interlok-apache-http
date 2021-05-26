@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 ext {
-  componentName='Interlok Apache HTTP Client'
+  componentName='Interlok HTTP/Apache HTTP(4)'
   componentDesc="HTTP(s) using version 4 of Apache HTTP client"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }

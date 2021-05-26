@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 ext {
-  componentName='Interlok Apache HTTP Client 5'
+  componentName='Interlok HTTP/Apache HTTP(5)'
   componentDesc="HTTP(s) using version 5 of Apache HTTP client"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
@@ -65,7 +65,7 @@ publishing {
         asNode().appendNode("description", componentDesc)
         asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/pages/cookbook/cookbook-http-client")
         def properties = asNode().appendNode("properties")
-        properties.appendNode("target", "3.11.1+")
+        properties.appendNode("target", "4.1.0+")
         properties.appendNode("tags", "http,https")
         properties.appendNode("license", "false")
         properties.appendNode("readme", "https://github.com/adaptris/interlok-apache-http/raw/develop/README.md")
