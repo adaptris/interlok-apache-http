@@ -44,7 +44,7 @@ import java.util.List;
  *
  * @config apache-http-basic-hmac-signature
  */
-@XStreamAlias("apache-http-basic-hmac-signature")
+@XStreamAlias("apache-http5-basic-hmac-signature")
 public class BasicHMACSignature extends HMACSignatureImpl {
   @NotBlank
   private String identity;

@@ -15,14 +15,14 @@ import java.util.List;
 /**
  * Implementation of {@link ResponseHeaderHandler} that uses nested handlers to extract headers from a {@link
  * HttpResponse}.
- * 
+ *
  * <p>This implementation is primarily so that you can mix and matchhow you capture response headers; If you wanted to use both
  * {@link ResponseHeadersAsMetadata} and {@link ResponseHeadersAsObjectMetadata} then you can.
  * </p>
  * @config apache-http-composite-request-headers
- * 
+ *
  */
-@XStreamAlias("apache-http-composite-response-header-handler")
+@XStreamAlias("apache-http5-composite-response-header-handler")
 public class CompositeResponseHeaderHandler implements ResponseHeaderHandler<HttpResponse> {
   @XStreamImplicit
   @NotNull

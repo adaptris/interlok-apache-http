@@ -45,7 +45,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 {
     "httpProxy", "allowRedirect", "connectTimeout", "readTimeout"
 })
-@XStreamAlias("default-apache-http-client-builder")
+@XStreamAlias("default-apache-http5-client-builder")
 public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
   @AdvancedConfig

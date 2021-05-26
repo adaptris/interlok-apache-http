@@ -35,7 +35,7 @@ import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
  *
  * @config apache-http-producer
  */
-@XStreamAlias("apache-http-producer")
+@XStreamAlias("apache-http5-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "producer,http,https", metadata =
 {

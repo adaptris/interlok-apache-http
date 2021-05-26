@@ -64,7 +64,7 @@ import java.util.Optional;
  *
  * @config branching-http-request-service
  */
-@XStreamAlias("branching-apache-http-request-service")
+@XStreamAlias("branching-apache-http5-request-service")
 @AdapterComponent
 @ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https,branching", branchSelector = true, metadata =
 {

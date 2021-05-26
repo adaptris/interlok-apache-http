@@ -13,11 +13,11 @@ import javax.validation.constraints.NotNull;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that applies static configured values as headers.
- * 
+ *
  * @config apache-http-configured-request-headers
- * 
+ *
  */
-@XStreamAlias("apache-http-configured-request-headers")
+@XStreamAlias("apache-http5-configured-request-headers")
 public class ConfiguredRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
   @NotNull
   @AutoPopulated

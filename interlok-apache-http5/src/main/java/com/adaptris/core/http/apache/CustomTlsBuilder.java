@@ -1,12 +1,12 @@
 /*
  * Copyright 2018 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,7 +44,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * {@link HttpClientBuilderConfigurator} implementation that allows you to customise keystores etc.
- * 
+ *
  * @config custom-tls-apache-http-client-builder
  *
  */
@@ -52,17 +52,17 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 {
     "keystore", "privateKeyPassword", "truststore", "hostnameVerification", "tlsVersions", "cipherSuites"
 })
-@XStreamAlias("custom-tls-apache-http-client-builder")
+@XStreamAlias("custom-tls-apache-http5-client-builder")
 public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
   public static enum HostnameVerification {
     /**
      * No Hostname Verification (dangerous).
-     * 
+     *
      */
     NONE(new NoopHostnameVerifier()),
     /**
      * Standard Hostname verification
-     * 
+     *
      */
     STANDARD(new DefaultHostnameVerifier());
 
@@ -134,9 +134,9 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
   }
 
   /**
-   * 
+   *
    * Set the list of tls versions that will be supported (comma separated)
-   * 
+   *
    * @param tls the tls versions to support; default is null
    */
   public void setTlsVersions(String tls) {
@@ -157,7 +157,7 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Set the cipher suites to support.
-   * 
+   *
    * @param ciphers the cipherSuites to support; default is null
    */
   public void setCipherSuites(String ciphers) {
@@ -198,7 +198,7 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Do we trust self-signed certificates or not.
-   * 
+   *
    * @param b if set to true the {@code TrustSelfSignedStrategy.INSTANCE} is used; default null/false.
    */
   public void setTrustSelfSigned(Boolean b) {
@@ -237,7 +237,7 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Set the trustore to be used.
-   * 
+   *
    */
   public void setTruststore(ConfiguredKeystore truststore) {
     this.truststore = truststore;
@@ -254,7 +254,7 @@ public class CustomTlsBuilder implements HttpClientBuilderConfigurator {
 
   /**
    * Set the keystore to be used.
-   * 
+   *
    */
   public void setKeystore(ConfiguredKeystore keystore) {
     this.keystore = keystore;

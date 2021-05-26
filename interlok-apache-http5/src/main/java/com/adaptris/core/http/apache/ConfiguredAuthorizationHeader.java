@@ -16,7 +16,7 @@ import javax.validation.constraints.NotBlank;
  *
  * @config apache-http-configured-authorization-header
  */
-@XStreamAlias("apache-http-configured-authorization-header")
+@XStreamAlias("apache-http5-configured-authorization-header")
 public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator {
 
   @NotBlank

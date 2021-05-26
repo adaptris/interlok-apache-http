@@ -1,12 +1,12 @@
 /*
  * Copyright 2017 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Direct HTTP support as a service rather wrapped via {@link StandaloneProducer} or {@link StandaloneRequestor}.
- * 
+ *
  * <p>
  * Note that this service just wraps a {@link ApacheHttpProducer} instance but doesn't expose all the possible settings available
  * for the normal {@link ApacheHttpProducer}. If you need those features, than continue using the producer wrapped as a
@@ -41,10 +41,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * values as part of a constant string e.g. {@code setUrl("%message{http_url}")} will use the metadata value associated with the key
  * {@code http_url}.
  * </p>
- * 
+ *
  * @config apache-http-request-service
  */
-@XStreamAlias("apache-http-request-service")
+@XStreamAlias("apache-http5-request-service")
 @AdapterComponent
 @ComponentProfile(summary = "Make a HTTP(s) request to a remote server using the Apache HTTP Client", tag = "service,http,https", metadata =
 {
@@ -57,7 +57,7 @@ public class HttpRequestService extends HttpRequestServiceImpl implements Dynami
   public HttpRequestService() {
     super();
   }
-  
+
   public HttpRequestService(String url) {
     this();
     setUrl(url);

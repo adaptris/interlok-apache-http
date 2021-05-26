@@ -7,12 +7,12 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that adds no additional headers
- * 
+ *
  * @config apache-http-no-request-headers
  * @author lchan
- * 
+ *
  */
-@XStreamAlias("apache-http-no-request-headers")
+@XStreamAlias("apache-http5-no-request-headers")
 public class NoOpRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
 
 

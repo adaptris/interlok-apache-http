@@ -15,11 +15,11 @@ import javax.validation.constraints.NotNull;
 /**
  * Implementation of {@link RequestHeaderProvider} that applies {@link AdaptrisMessage} metadata as headers using a
  * {@link MetadataFilter}.
- * 
+ *
  * @config apache-http-metadata-request-headers
- * 
+ *
  */
-@XStreamAlias("apache-http-metadata-request-headers")
+@XStreamAlias("apache-http5-metadata-request-headers")
 public class MetadataRequestHeaders implements RequestHeaderProvider<HttpUriRequestBase> {
   @NotNull
   @Valid

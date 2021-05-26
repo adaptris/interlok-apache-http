@@ -19,7 +19,7 @@ import java.io.OutputStream;
  * @config apache-http-payload-response-handler
  *
  */
-@XStreamAlias("apache-http-payload-response-handler")
+@XStreamAlias("apache-http5-payload-response-handler")
 @Slf4j
 @NoArgsConstructor
 public class PayloadResponseHandlerFactory extends ResponseHandlerFactoryImpl {

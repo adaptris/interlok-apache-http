@@ -9,15 +9,15 @@ import org.apache.hc.core5.http.HttpResponse;
 /**
  * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
  * response as object metadata to the {@link AdaptrisMessage}.
- * 
+ *
  * <p>The underlying {@link Header} object that will be added to object metadata and keyed by {@link Header#getName}. and will
  * include header fields where the name is {@code null};
  * </p>
  * @config apache-http-response-headers-as-object-metadata
  * @author lchan
- * 
+ *
  */
-@XStreamAlias("apache-http-response-headers-as-object-metadata")
+@XStreamAlias("apache-http5-response-headers-as-object-metadata")
 public class ResponseHeadersAsObjectMetadata extends ResponseHeadersAsMetadata {
 
   public ResponseHeadersAsObjectMetadata() {

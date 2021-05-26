@@ -31,7 +31,7 @@ import java.net.URLConnection;
  * @config apache-http-dynamic-authorization-header
  *
  */
-@XStreamAlias("apache-http-dynamic-authorization-header")
+@XStreamAlias("apache-http5-dynamic-authorization-header")
 public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticator {
 
   @NotBlank

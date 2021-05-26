@@ -26,7 +26,7 @@ import java.nio.charset.Charset;
  * @config apache-http-metadata-response-handler
  *
  */
-@XStreamAlias("apache-http-metadata-response-handler")
+@XStreamAlias("apache-http5-metadata-response-handler")
 @Slf4j
 @NoArgsConstructor
 public class MetadataResponseHandlerFactory extends ResponseHandlerFactoryImpl {

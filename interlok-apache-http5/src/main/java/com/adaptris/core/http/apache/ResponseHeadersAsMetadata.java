@@ -13,12 +13,12 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 /**
  * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
  * response as metadata to the {@link AdaptrisMessage}.
- * 
+ *
  * @config apache-http-response-headers-as-metadata
  * @author lchan
- * 
+ *
  */
-@XStreamAlias("apache-http-response-headers-as-metadata")
+@XStreamAlias("apache-http5-response-headers-as-metadata")
 public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResponse> {
 
   protected transient Logger log = LoggerFactory.getLogger(this.getClass());
