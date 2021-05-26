@@ -1,2 +1,3 @@
 rootProject.name = 'interlok-apache-http'
+include 'interlok-apache-http'
 include 'interlok-apache-http5'
