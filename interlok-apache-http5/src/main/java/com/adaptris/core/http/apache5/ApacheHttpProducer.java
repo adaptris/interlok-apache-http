@@ -84,6 +84,7 @@ public class ApacheHttpProducer extends HttpProducer {
   @Override
   public void close() {
     Closer.closeQuietly(httpClient);
+    httpClient = null;
     super.close();
   }
 
