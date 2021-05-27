@@ -1,5 +1,16 @@
 package com.adaptris.core.http.apache5;
 
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import javax.validation.Valid;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -16,19 +27,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-
-import javax.validation.Valid;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-
-import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
@@ -44,7 +42,7 @@ import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 }, recommended =
 {
     NullConnection.class
-}, author = "Adaptris Ltd")
+    }, author = "Adaptris Ltd", since = "4.1.0")
 @DisplayOrder(order =
 {
     "url", "authenticator", "ignoreServerResponseCode",

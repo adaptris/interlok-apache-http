@@ -50,7 +50,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 {
     "adphttpresponse"
 
-}, author = "Adaptris Ltd")
+    }, author = "Adaptris Ltd", since = "4.1.0")
 @DisplayOrder(order = {"url", "method", "contentType", "authenticator", "requestHeaderProvider", "responseHeaderHandler"})
 public class HttpRequestService extends HttpRequestServiceImpl implements DynamicPollingTemplate.TemplateProvider {
 

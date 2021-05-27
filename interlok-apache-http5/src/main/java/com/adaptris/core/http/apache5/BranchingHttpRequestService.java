@@ -15,6 +15,11 @@
 */
 package com.adaptris.core.http.apache5;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -35,12 +40,6 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Branch support for HTTP via interrogation of the HTTP status.
@@ -70,7 +69,7 @@ import java.util.Optional;
 {
     "adphttpresponse"
 
-}, author = "Adaptris Ltd")
+    }, author = "Adaptris Ltd", since = "4.1.0")
 @DisplayOrder(order = {"url", "method", "contentType", "defaultServiceId", "authentication", "requestHeaderProvider",
     "responseHeaderHandler", "statusMatches"})
 public class BranchingHttpRequestService extends HttpRequestServiceImpl {
