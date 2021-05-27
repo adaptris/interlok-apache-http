@@ -23,6 +23,7 @@ import com.adaptris.core.http.ResourceAuthenticator.ResourceTarget;
 import com.adaptris.core.http.auth.HttpAuthenticator;
 import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.interlok.util.Closer;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -78,6 +79,12 @@ public class ApacheHttpProducer extends HttpProducer {
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
+  }
+
+  @Override
+  public void close() {
+    Closer.closeQuietly(httpClient);
+    super.close();
   }
 
   @Override
