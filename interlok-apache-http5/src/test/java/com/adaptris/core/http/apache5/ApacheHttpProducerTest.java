@@ -197,6 +197,35 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   }
 
   @Test
+  public void testProducerReuse() throws Exception {
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
+    Channel c = createAndStartChannel(mock);
+    http.setUrl(createURL(c));
+    StandaloneProducer producer = new StandaloneProducer(http);
+
+    start(producer);
+    producer.doService(msg);
+
+    /* go again, reusing the same producer */
+    msg = new DefaultMessageFactory().newMessage(TEXT);
+    msg.addMetadata(METADATA_KEY_CONTENT_TYPE, "text/complicated");
+
+    producer.doService(msg);
+
+    stop(producer);
+    waitForMessages(mock, 2);
+    stopAndRelease(c);
+    doAssertions(mock, 2, true);
+    AdaptrisMessage m2 = mock.getMessages().get(0);
+    assertTrue(m2.headersContainsKey("User-Agent"));
+    assertFalse(m2.headersContainsKey(METADATA_KEY_CONTENT_TYPE));
+    assertEquals("text/plain", m2.getMetadataValue("Content-Type"));
+  }
+
+  @Test
   public void testProduce_WithInterceptors() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
@@ -643,7 +672,11 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   }
 
   protected AdaptrisMessage doAssertions(MockMessageProducer mockProducer, boolean assertPayload) {
-    assertEquals(1, mockProducer.getMessages().size());
+    return doAssertions(mockProducer, 1, assertPayload);
+  }
+
+  protected AdaptrisMessage doAssertions(MockMessageProducer mockProducer, int expected, boolean assertPayload) {
+    assertEquals(expected, mockProducer.getMessages().size());
     AdaptrisMessage msg = mockProducer.getMessages().get(0);
     if (assertPayload) {
       assertEquals(TEXT, msg.getContent());

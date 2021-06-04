@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -28,6 +29,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
@@ -75,14 +77,16 @@ public class ApacheHttpProducer extends HttpProducer {
    * to execute multiple requests concurrently taking full advantage of
    * persistent connection re-use and connection pooling.
    */
-  private transient CloseableHttpClient httpClient;
+  private static CloseableHttpClient httpClient;
+
+  private static RequestConfig requestConfig;
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
     Closer.closeQuietly(httpClient);
     httpClient = null;
     super.close();
@@ -97,25 +101,46 @@ public class ApacheHttpProducer extends HttpProducer {
       HttpUriRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getUri()));
       log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getUri());
-      httpClient = createClient(timeout);
+      httpClient = createClient(timeout, httpOperation);
       if (auth instanceof ApacheRequestAuthenticator) {
         ((ApacheRequestAuthenticator) auth).configure(httpOperation);
       }
       addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
       reply = httpClient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       preserveRequestPayload(msg, reply);
+
+      httpOperation.getConfig();
+
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
     return reply;
   }
 
-  private synchronized CloseableHttpClient createClient(long timeout) throws Exception {
+  private synchronized CloseableHttpClient createClient(long timeout, HttpUriRequestBase httpOperation) throws Exception {
     if (httpClient == null) {
       HttpClientBuilder builder = customise(
               HttpClientBuilderConfigurator.defaultIfNull(getClientConfig())
                       .configure(HttpClients.custom(), timeout));
       httpClient = builder.build();
+    } else {
+      if (timeout <= 0) {
+        // no timeout, or use default
+        return httpClient;
+      }
+      RequestConfig requestConfig = httpOperation.getConfig();
+      RequestConfig.Builder rcb;
+      if (requestConfig != null) {
+        rcb = RequestConfig.copy(requestConfig);
+        if (requestConfig.getResponseTimeout().toMilliseconds() == timeout) {
+          // no change in timeout, just return and carry on
+          return httpClient;
+        }
+      } else {
+        rcb = RequestConfig.custom();
+      }
+      rcb.setResponseTimeout(Timeout.ofMilliseconds(timeout));
+      httpOperation.setConfig(requestConfig);
     }
     return httpClient;
   }
@@ -127,6 +152,7 @@ public class ApacheHttpProducer extends HttpProducer {
    * @return the builder.
    */
   protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
+
     return builder;
   }
 
