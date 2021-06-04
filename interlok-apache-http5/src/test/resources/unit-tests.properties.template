@@ -1,0 +1,10 @@
+ProducerCase.baseDir=./build/examples
+ServiceCase.baseDir=./build/examples
+junit.jetty.user.realm.properties=@BASE_DIR@/src/test/resources/realm.properties
+junit.jetty.keystore.material=@BASE_DIR@/src/test/resources/interlok.jks
+junit.jetty.keystore.password=PW:AAAAEIhnGa0xsOzf0680Qcj4qosAAAAQOMQLy1hQbJVU85GWJiVzywAAABCbVQnnjO66PT1rvyg/er61
+junit.jetty.keystore.type=JKS
+junit.jetty.keystore.url=file://localhost/@BASE_DIR@/src/test/resources/interlok.jks?keystoreType=JKS
+
+junit.jetty.trust.url=file://localhost/@JAVA_HOME@/lib/security/cacerts?keystoreType=JKS
+junit.jetty.trust.password=changeit
