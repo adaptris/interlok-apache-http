@@ -1,0 +1,94 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+ext {
+  componentName='Interlok HTTP/Apache HTTP(4)'
+  componentDesc="HTTP(s) using version 4 of Apache HTTP client"
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
+}
+
+dependencies {
+  compile ("org.apache.httpcomponents:httpclient:4.5.13")
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+task examplesJar(type: Jar, dependsOn: test) {
+  classifier = 'examples'
+  from new File(buildDir, '/examples')
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.extensions.delombokTask
+}
+
+jar {
+  manifest {
+    attributes("Built-By": System.getProperty('user.name'),
+               "Build-Jdk": System.getProperty('java.version'),
+               "Implementation-Title": componentName,
+               "Implementation-Version": project.version,
+               "Implementation-Vendor-Id": project.group,
+               "Implementation-Vendor": organizationName)
+  }
+}
+
+task deleteGeneratedFiles(type: Delete) {
+//  delete file(testResourcesDir() + '/unit-tests.properties')
+//  delete file(testResourcesDir() + '/unit-tests.properties.resolved')
+//  delete file(testResourcesDir() + '/security-test.properties')
+//  delete file(testResourcesDir() + '/security-test.properties.resolved')
+//  delete file(testResourcesDir() + '/security.properties')
+//  delete file('derby.log')
+  delete delombokTargetDir
+}
+
+artifacts {
+  archives javadocJar
+  archives examplesJar
+  archives sourcesJar
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+
+      artifact javadocJar { classifier "javadoc" }
+      artifact examplesJar { classifier "examples" }
+      artifact sourcesJar { classifier "sources" }
+      pom.withXml {
+        asNode().appendNode("name", componentName)
+        asNode().appendNode("description", componentDesc)
+        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/pages/cookbook/cookbook-http-client")
+        def properties = asNode().appendNode("properties")
+        properties.appendNode("target", "3.11.1+")
+        properties.appendNode("tags", "http,https")
+        properties.appendNode("license", "false")
+        properties.appendNode("readme", "https://github.com/adaptris/interlok-apache-http/raw/develop/README.md")
+        properties.appendNode("externalUrl", "http://hc.apache.org")
+        properties.appendNode("repository", "https://github.com/adaptris/interlok-apache-http")
+      }
+    }
+  }
+  repositories {
+    maven {
+      credentials {
+        username repoUsername
+        password repoPassword
+      }
+      url mavenPublishUrl
+    }
+  }
+}
+
+delombok {
+  target = delombokTargetDir
+}
+
+processTestResources.dependsOn copyUnitTestProperties
+javadoc.dependsOn offlinePackageList
+clean.dependsOn deleteGeneratedFiles
