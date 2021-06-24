@@ -1,5 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 ext {
   componentName='Interlok HTTP/Apache HTTP(4)'
   componentDesc="HTTP(s) using version 4 of Apache HTTP client"
@@ -7,7 +5,7 @@ ext {
 }
 
 dependencies {
-  compile ("org.apache.httpcomponents:httpclient:4.5.13")
+  api ("org.apache.httpcomponents:httpclient:4.5.13")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -37,12 +35,6 @@ jar {
 }
 
 task deleteGeneratedFiles(type: Delete) {
-//  delete file(testResourcesDir() + '/unit-tests.properties')
-//  delete file(testResourcesDir() + '/unit-tests.properties.resolved')
-//  delete file(testResourcesDir() + '/security-test.properties')
-//  delete file(testResourcesDir() + '/security-test.properties.resolved')
-//  delete file(testResourcesDir() + '/security.properties')
-//  delete file('derby.log')
   delete delombokTargetDir
 }
 
