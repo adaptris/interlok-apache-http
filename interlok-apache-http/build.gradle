@@ -35,7 +35,9 @@ jar {
 }
 
 task deleteGeneratedFiles(type: Delete) {
-  delete delombokTargetDir
+  delete file(testResourcesDir() + "/unit-tests.properties")
+  delete file(testResourcesDir() + "/unit-tests.properties.resolved")
+  delete delombokTargetDir, "derby.log"
 }
 
 artifacts {
