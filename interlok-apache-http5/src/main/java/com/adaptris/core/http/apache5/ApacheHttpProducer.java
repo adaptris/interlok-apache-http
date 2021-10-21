@@ -1,23 +1,10 @@
 package com.adaptris.core.http.apache5;
 
-import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import javax.validation.Valid;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreException;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.http.ResourceAuthenticator.ResourceTarget;
@@ -29,7 +16,18 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.util.Timeout;
+
+import javax.validation.Valid;
+import java.net.MalformedURLException;
+import java.net.URI;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
@@ -77,9 +75,8 @@ public class ApacheHttpProducer extends HttpProducer {
    * to execute multiple requests concurrently taking full advantage of
    * persistent connection re-use and connection pooling.
    */
-  private static CloseableHttpClient httpClient;
-
-  private static RequestConfig requestConfig;
+  private static transient CloseableHttpClient httpClient;
+  private static transient HttpClientBuilderConfigurator httpConfig;
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
@@ -93,75 +90,47 @@ public class ApacheHttpProducer extends HttpProducer {
   }
 
   @Override
-  protected AdaptrisMessage doRequest(AdaptrisMessage msg, String uri, long timeout)
-      throws ProduceException {
-    AdaptrisMessage reply = defaultIfNull(getMessageFactory()).newMessage();
-
-    try (HttpAuthenticator auth = authenticator()) {
+  protected AdaptrisMessage doRequest(AdaptrisMessage msg, String uri, long timeout) throws ProduceException {
+    try (HttpAuthenticator auth = authenticator())
+    {
       HttpUriRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getUri()));
       log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getUri());
-      httpClient = createClient(timeout, httpOperation);
-      if (auth instanceof ApacheRequestAuthenticator) {
+      HttpClient httpClient = createClient(httpOperation, getClientConfig(), timeout);
+      if (auth instanceof ApacheRequestAuthenticator)
+      {
         ((ApacheRequestAuthenticator) auth).configure(httpOperation);
       }
-      addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
-      reply = httpClient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
+      getRequestHeaderProvider().addHeaders(msg, httpOperation).setEntity(new AdaptrisMessageEntity(msg, getContentTypeProvider()));
+
+      AdaptrisMessage reply = httpClient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
       preserveRequestPayload(msg, reply);
-
-      httpOperation.getConfig();
-
-    } catch (Exception e) {
+      return reply;
+    }
+    catch (Exception e)
+    {
       throw ExceptionHelper.wrapProduceException(e);
     }
-    return reply;
   }
 
-  private synchronized CloseableHttpClient createClient(long timeout, HttpUriRequestBase httpOperation) throws Exception {
-    if (httpClient == null) {
-      HttpClientBuilder builder = customise(
-              HttpClientBuilderConfigurator.defaultIfNull(getClientConfig())
-                      .configure(HttpClients.custom(), timeout));
-      httpClient = builder.build();
-    } else {
-      if (timeout <= 0) {
-        // no timeout, or use default
-        return httpClient;
-      }
+  private static synchronized CloseableHttpClient createClient(HttpUriRequestBase httpOperation, HttpClientBuilderConfigurator clientConfig, long timeout) throws Exception
+  {
+    if (httpClient == null)
+    {
+      httpClient = HttpClientBuilderConfigurator.defaultIfNull(clientConfig).configure(HttpClients.custom(), timeout).build();
+    }
+    else if (timeout > 0)
+    {
       RequestConfig requestConfig = httpOperation.getConfig();
-      RequestConfig.Builder rcb;
-      if (requestConfig != null) {
-        rcb = RequestConfig.copy(requestConfig);
-        if (requestConfig.getResponseTimeout().toMilliseconds() == timeout) {
-          // no change in timeout, just return and carry on
-          return httpClient;
-        }
-      } else {
-        rcb = RequestConfig.custom();
-      }
-      rcb.setResponseTimeout(Timeout.ofMilliseconds(timeout));
+      RequestConfig.Builder builder = requestConfig != null ? RequestConfig.copy(requestConfig) : RequestConfig.custom();
+      builder.setConnectionRequestTimeout(Timeout.ofMilliseconds(timeout));
+      builder.setConnectTimeout(Timeout.ofMilliseconds(timeout));
+      builder.setResponseTimeout(Timeout.ofMilliseconds(timeout));
       httpOperation.setConfig(requestConfig);
     }
     return httpClient;
   }
 
-  /**
-   * Do any further customisations.
-   *
-   * @param builder the builder
-   * @return the builder.
-   */
-  protected HttpClientBuilder customise(HttpClientBuilder builder) throws Exception {
-
-    return builder;
-  }
-
-  private HttpUriRequestBase addData(AdaptrisMessage msg, HttpUriRequestBase base) throws IOException,
-      CoreException {
-    AdaptrisMessageEntity entity = new AdaptrisMessageEntity(msg, getContentTypeProvider());
-    base.setEntity(entity);
-    return base;
-  }
 
   protected class ApacheResourceTargetMatcher implements ResourceTargetMatcher {
 
