@@ -97,8 +97,8 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
       requestCfg.setResponseTimeout(Timeout.ofMilliseconds(getReadTimeout().toMilliseconds()));
     }
     if (timeout != HttpProducer.DEFAULT_TIMEOUT) {
+      requestCfg.setConnectionRequestTimeout(Timeout.ofMilliseconds(timeout));
       requestCfg.setResponseTimeout(Timeout.ofMilliseconds(timeout));
-      //builder.setDefaultRequestConfig(SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(timeout)).build());
     }
     builder.setDefaultRequestConfig(requestCfg.build());
     return builder;

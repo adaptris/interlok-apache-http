@@ -76,7 +76,6 @@ public class ApacheHttpProducer extends HttpProducer {
    * persistent connection re-use and connection pooling.
    */
   private static transient CloseableHttpClient httpClient;
-  private static transient HttpClientBuilderConfigurator httpConfig;
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
@@ -130,7 +129,6 @@ public class ApacheHttpProducer extends HttpProducer {
     }
     return httpClient;
   }
-
 
   protected class ApacheResourceTargetMatcher implements ResourceTargetMatcher {
 
@@ -191,6 +189,4 @@ public class ApacheHttpProducer extends HttpProducer {
       return rc;
     }
   }
-
-
 }
