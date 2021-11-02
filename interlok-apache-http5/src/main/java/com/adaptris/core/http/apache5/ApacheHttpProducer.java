@@ -95,7 +95,7 @@ public class ApacheHttpProducer extends HttpProducer {
       HttpUriRequestBase httpOperation = getMethod(msg).create(uri);
       auth.setup(uri, msg, new ApacheResourceTargetMatcher(httpOperation.getUri()));
       log.trace("Attempting [{}] against [{}]", httpOperation.getMethod(), httpOperation.getUri());
-      HttpClient httpClient = createClient(httpOperation, getClientConfig(), timeout);
+      HttpClient httpClient = getClient(httpOperation, getClientConfig(), timeout);
       if (auth instanceof ApacheRequestAuthenticator)
       {
         ((ApacheRequestAuthenticator) auth).configure(httpOperation);
@@ -112,7 +112,7 @@ public class ApacheHttpProducer extends HttpProducer {
     }
   }
 
-  private static synchronized CloseableHttpClient createClient(HttpUriRequestBase httpOperation, HttpClientBuilderConfigurator clientConfig, long timeout) throws Exception
+  private static synchronized CloseableHttpClient getClient(HttpUriRequestBase httpOperation, HttpClientBuilderConfigurator clientConfig, long timeout) throws Exception
   {
     if (httpClient == null)
     {
@@ -125,7 +125,7 @@ public class ApacheHttpProducer extends HttpProducer {
       builder.setConnectionRequestTimeout(Timeout.ofMilliseconds(timeout));
       builder.setConnectTimeout(Timeout.ofMilliseconds(timeout));
       builder.setResponseTimeout(Timeout.ofMilliseconds(timeout));
-      httpOperation.setConfig(requestConfig);
+      httpOperation.setConfig(builder.build());
     }
     return httpClient;
   }
