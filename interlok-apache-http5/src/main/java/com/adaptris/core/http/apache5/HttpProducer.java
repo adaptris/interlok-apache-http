@@ -53,8 +53,8 @@ import static com.adaptris.core.http.apache5.ResponseHandlerFactory.OBJ_METADATA
  */
 public abstract class HttpProducer extends RequestReplyProducerImp {
 
-
   protected static final long DEFAULT_TIMEOUT = -1;
+
   /**
    * Maps various methods supported by the Apache Http client.
    *

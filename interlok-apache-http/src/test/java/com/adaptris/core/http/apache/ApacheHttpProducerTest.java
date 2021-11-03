@@ -73,9 +73,6 @@ import com.adaptris.util.text.Conversion;
 @SuppressWarnings("deprecation")
 public class ApacheHttpProducerTest extends ExampleProducerCase {
 
-  protected static Logger log = LoggerFactory.getLogger(ApacheHttpProducerTest.class);
-
-
   @Test
   public void testSetIgnoreServerResponse() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();

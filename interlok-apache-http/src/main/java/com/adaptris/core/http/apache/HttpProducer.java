@@ -51,8 +51,8 @@ import lombok.Setter;
  */
 public abstract class HttpProducer extends RequestReplyProducerImp {
 
-
   protected static final long DEFAULT_TIMEOUT = -1;
+
   /**
    * Maps various methods supported by the Apache Http client.
    *
@@ -228,8 +228,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @Setter
   @NotBlank
   private String url;
-
-  private transient boolean destWarning;
 
   public HttpProducer() {
     super();
