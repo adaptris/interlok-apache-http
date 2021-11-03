@@ -83,6 +83,7 @@ public class ApacheHttpProducer extends HttpProducer {
 
   @Override
   public synchronized void close() {
+    log.trace("Closing HTTP client");
     Closer.closeQuietly(httpClient);
     httpClient = null;
     super.close();
@@ -116,10 +117,12 @@ public class ApacheHttpProducer extends HttpProducer {
   {
     if (httpClient == null)
     {
+      // create client instance
       httpClient = HttpClientBuilderConfigurator.defaultIfNull(clientConfig).configure(HttpClients.custom(), timeout).build();
     }
     else if (timeout > 0)
     {
+      // reset non-default timeout on existing client instance
       RequestConfig requestConfig = httpOperation.getConfig();
       RequestConfig.Builder builder = requestConfig != null ? RequestConfig.copy(requestConfig) : RequestConfig.custom();
       builder.setConnectionRequestTimeout(Timeout.ofMilliseconds(timeout));
