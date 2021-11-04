@@ -22,6 +22,7 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.util.Timeout;
 
@@ -69,8 +70,8 @@ public class ApacheHttpProducer extends HttpProducer {
   private ResponseHandlerFactory responseHandlerFactory;
 
   /*
-   * IMPORTANT: Always re-use CloseableHttpClient instances. They are
-   * expensive to create, but they are also fully thread safe, so
+   * One should always re-use CloseableHttpClient instances, as they
+   * are expensive to create but they are also fully thread safe, so
    * multiple threads can use the same instance of CloseableHttpClient
    * to execute multiple requests concurrently taking full advantage of
    * persistent connection re-use and connection pooling.
@@ -79,14 +80,6 @@ public class ApacheHttpProducer extends HttpProducer {
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
-  }
-
-  @Override
-  public synchronized void close() {
-    log.trace("Closing HTTP client");
-    Closer.closeQuietly(httpClient);
-    httpClient = null;
-    super.close();
   }
 
   @Override
@@ -113,16 +106,25 @@ public class ApacheHttpProducer extends HttpProducer {
     }
   }
 
-  private static synchronized CloseableHttpClient getClient(HttpUriRequestBase httpOperation, HttpClientBuilderConfigurator clientConfig, long timeout) throws Exception
+  private synchronized CloseableHttpClient getClient(HttpUriRequestBase httpOperation, HttpClientBuilderConfigurator clientConfig, long timeout) throws Exception
   {
     if (httpClient == null)
     {
-      // create client instance
       httpClient = HttpClientBuilderConfigurator.defaultIfNull(clientConfig).configure(HttpClients.custom(), timeout).build();
+    }
+    // update timeouts if necessary
+    if (clientConfig != null && clientConfig instanceof DefaultClientBuilder)
+    {
+      DefaultClientBuilder clientBuilder = (DefaultClientBuilder)clientConfig;
+      RequestConfig requestConfig = httpOperation.getConfig();
+      RequestConfig.Builder builder = requestConfig != null ? RequestConfig.copy(requestConfig) : RequestConfig.custom();
+      builder.setConnectionRequestTimeout(Timeout.ofMilliseconds(clientBuilder.getConnectTimeout().toMilliseconds()));
+      builder.setConnectTimeout(Timeout.ofMilliseconds(clientBuilder.getConnectTimeout().toMilliseconds()));
+      builder.setResponseTimeout(Timeout.ofMilliseconds(clientBuilder.getReadTimeout().toMilliseconds()));
+      httpOperation.setConfig(builder.build());
     }
     else if (timeout > 0)
     {
-      // reset non-default timeout on existing client instance
       RequestConfig requestConfig = httpOperation.getConfig();
       RequestConfig.Builder builder = requestConfig != null ? RequestConfig.copy(requestConfig) : RequestConfig.custom();
       builder.setConnectionRequestTimeout(Timeout.ofMilliseconds(timeout));

@@ -16,6 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +26,7 @@ import com.adaptris.core.http.apache5.request.BasicHMACSignature;
 import com.adaptris.core.http.apache5.request.DateHeader;
 import com.adaptris.core.http.apache5.request.HMACSignatureImpl;
 import com.adaptris.core.http.apache5.request.RemoveHeaders;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,6 +229,9 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   public void testProduce_WithInterceptors() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
+
+    resetHttpClient(http);
+
     // empty RequestInterceptorClientBuilder just to get an empty list for coverage
     CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
         new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("Accept-Encoding", "User-Agent", "Connection"),
@@ -248,6 +254,9 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   public void testProduce_WithFewerInterceptors() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
+
+    resetHttpClient(http);
+
     // empty RequestInterceptorClientBuilder just to get an empty list for coverage
     CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
             new RequestInterceptorClientBuilder().withInterceptors(new AcceptEncoding()));
@@ -265,6 +274,9 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   public void testProduce_With_HMAC() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
+
+    resetHttpClient(http);
+
     BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyIdentity").withHeaders("Date")
         .withSecretKey("MySecretKey").withTargetHeader("hmac").withEncoding(HMACSignatureImpl.Encoding.BASE64)
         .withHmacAlgorithm(HMACSignatureImpl.Algorithm.HMAC_SHA256);
@@ -704,5 +716,24 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     handler.setSecurityConstraints(Arrays.asList(securityConstraint));
     handler.setLoginService(login);
     return handler;
+  }
+
+  private static void resetHttpClient(ApacheHttpProducer producer)
+  {
+    for (Field f : ApacheHttpProducer.class.getDeclaredFields())
+    {
+      if (f.getName().equals("httpClient"))
+      {
+        try
+        {
+          f.setAccessible(true);
+          f.set(producer, null);
+        }
+        catch (IllegalAccessException e)
+        {
+          // do nothing
+        }
+      }
+    }
   }
 }
