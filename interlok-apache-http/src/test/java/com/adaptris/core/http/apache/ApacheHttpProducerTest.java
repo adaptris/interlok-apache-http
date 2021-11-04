@@ -1,26 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import static com.adaptris.core.http.apache.JettyHelper.JETTY_USER_REALM;
-import static com.adaptris.core.http.apache.JettyHelper.METADATA_KEY_CONTENT_TYPE;
-import static com.adaptris.core.http.apache.JettyHelper.TEXT;
-import static com.adaptris.core.http.apache.JettyHelper.URL_TO_POST_TO;
-import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
-import static com.adaptris.core.http.apache.JettyHelper.createChannel;
-import static com.adaptris.core.http.apache.JettyHelper.createConnection;
-import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
-import static com.adaptris.core.http.apache.JettyHelper.createURL;
-import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
-import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -69,6 +48,27 @@ import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
+import static com.adaptris.core.http.apache.JettyHelper.JETTY_USER_REALM;
+import static com.adaptris.core.http.apache.JettyHelper.METADATA_KEY_CONTENT_TYPE;
+import static com.adaptris.core.http.apache.JettyHelper.TEXT;
+import static com.adaptris.core.http.apache.JettyHelper.URL_TO_POST_TO;
+import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
+import static com.adaptris.core.http.apache.JettyHelper.createChannel;
+import static com.adaptris.core.http.apache.JettyHelper.createConnection;
+import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
+import static com.adaptris.core.http.apache.JettyHelper.createURL;
+import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
+import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("deprecation")
 public class ApacheHttpProducerTest extends ExampleProducerCase {

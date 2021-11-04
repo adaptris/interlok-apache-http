@@ -1,35 +1,5 @@
 package com.adaptris.core.http.apache5;
 
-import static com.adaptris.core.http.apache5.JettyHelper.JETTY_USER_REALM;
-import static com.adaptris.core.http.apache5.JettyHelper.METADATA_KEY_CONTENT_TYPE;
-import static com.adaptris.core.http.apache5.JettyHelper.TEXT;
-import static com.adaptris.core.http.apache5.JettyHelper.URL_TO_POST_TO;
-import static com.adaptris.core.http.apache5.JettyHelper.createAndStartChannel;
-import static com.adaptris.core.http.apache5.JettyHelper.createChannel;
-import static com.adaptris.core.http.apache5.JettyHelper.createConnection;
-import static com.adaptris.core.http.apache5.JettyHelper.createConsumer;
-import static com.adaptris.core.http.apache5.JettyHelper.createURL;
-import static com.adaptris.core.http.apache5.JettyHelper.createWorkflow;
-import static com.adaptris.core.http.apache5.JettyHelper.stopAndRelease;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
-import com.adaptris.core.http.apache5.request.AcceptEncoding;
-import com.adaptris.core.http.apache5.request.BasicHMACSignature;
-import com.adaptris.core.http.apache5.request.DateHeader;
-import com.adaptris.core.http.apache5.request.HMACSignatureImpl;
-import com.adaptris.core.http.apache5.request.RemoveHeaders;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -44,6 +14,11 @@ import com.adaptris.core.StandaloneRequestor;
 import com.adaptris.core.http.ConfiguredContentTypeProvider;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.RawContentTypeProvider;
+import com.adaptris.core.http.apache5.request.AcceptEncoding;
+import com.adaptris.core.http.apache5.request.BasicHMACSignature;
+import com.adaptris.core.http.apache5.request.DateHeader;
+import com.adaptris.core.http.apache5.request.HMACSignatureImpl;
+import com.adaptris.core.http.apache5.request.RemoveHeaders;
 import com.adaptris.core.http.auth.AdapterResourceAuthenticator;
 import com.adaptris.core.http.auth.ConfiguredUsernamePassword;
 import com.adaptris.core.http.auth.MetadataUsernamePassword;
@@ -71,6 +46,27 @@ import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
+import static com.adaptris.core.http.apache5.JettyHelper.JETTY_USER_REALM;
+import static com.adaptris.core.http.apache5.JettyHelper.METADATA_KEY_CONTENT_TYPE;
+import static com.adaptris.core.http.apache5.JettyHelper.TEXT;
+import static com.adaptris.core.http.apache5.JettyHelper.URL_TO_POST_TO;
+import static com.adaptris.core.http.apache5.JettyHelper.createAndStartChannel;
+import static com.adaptris.core.http.apache5.JettyHelper.createChannel;
+import static com.adaptris.core.http.apache5.JettyHelper.createConnection;
+import static com.adaptris.core.http.apache5.JettyHelper.createConsumer;
+import static com.adaptris.core.http.apache5.JettyHelper.createURL;
+import static com.adaptris.core.http.apache5.JettyHelper.createWorkflow;
+import static com.adaptris.core.http.apache5.JettyHelper.stopAndRelease;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("deprecation")
 public class ApacheHttpProducerTest extends ExampleProducerCase {
