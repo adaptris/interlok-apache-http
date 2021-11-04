@@ -108,22 +108,14 @@ public class ApacheHttpProducer extends HttpProducer {
 
   private synchronized CloseableHttpClient getClient(HttpUriRequestBase httpOperation, HttpClientBuilderConfigurator clientConfig, long timeout) throws Exception
   {
-    if (httpClient == null)
+    if (httpClient == null || clientConfig != null)
     {
+      /*
+       * Either create an HTTP client instance or reconfigure with clientConfig.
+       */
       httpClient = HttpClientBuilderConfigurator.defaultIfNull(clientConfig).configure(HttpClients.custom(), timeout).build();
     }
-    // update timeouts if necessary
-    if (clientConfig != null && clientConfig instanceof DefaultClientBuilder)
-    {
-      DefaultClientBuilder clientBuilder = (DefaultClientBuilder)clientConfig;
-      RequestConfig requestConfig = httpOperation.getConfig();
-      RequestConfig.Builder builder = requestConfig != null ? RequestConfig.copy(requestConfig) : RequestConfig.custom();
-      builder.setConnectionRequestTimeout(Timeout.ofMilliseconds(clientBuilder.getConnectTimeout().toMilliseconds()));
-      builder.setConnectTimeout(Timeout.ofMilliseconds(clientBuilder.getConnectTimeout().toMilliseconds()));
-      builder.setResponseTimeout(Timeout.ofMilliseconds(clientBuilder.getReadTimeout().toMilliseconds()));
-      httpOperation.setConfig(builder.build());
-    }
-    else if (timeout > 0)
+    if (clientConfig == null && timeout > 0)
     {
       RequestConfig requestConfig = httpOperation.getConfig();
       RequestConfig.Builder builder = requestConfig != null ? RequestConfig.copy(requestConfig) : RequestConfig.custom();
