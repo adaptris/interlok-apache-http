@@ -74,7 +74,7 @@ public class ApacheHttpProducer extends HttpProducer {
    * to execute multiple requests concurrently taking full advantage of
    * persistent connection re-use and connection pooling.
    */
-  private static transient CloseableHttpClient httpClient;
+  private transient CloseableHttpClient httpClient;
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
