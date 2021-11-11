@@ -28,7 +28,10 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.util.Timeout;
 
 import javax.validation.Valid;
@@ -89,6 +92,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
    * @return the builder.
    */
   protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) {
+    BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager();
     RequestConfig.Builder requestCfg = RequestConfig.custom();
     if (getConnectTimeout() != null) {
       requestCfg.setConnectTimeout(Timeout.ofMilliseconds(getConnectTimeout().toMilliseconds()));
@@ -99,10 +103,13 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
     }
     if (getReadTimeout() != null) {
       requestCfg.setResponseTimeout(Timeout.ofMilliseconds(getReadTimeout().toMilliseconds()));
+      connectionManager.setSocketConfig(SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(getReadTimeout().toMilliseconds())).build());
     } else if (timeout >= 0) {
       requestCfg.setResponseTimeout(Timeout.ofMilliseconds(timeout));
+      connectionManager.setSocketConfig(SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(timeout)).build());
     }
     builder.setDefaultRequestConfig(requestCfg.build());
+    builder.setConnectionManager(connectionManager);
     return builder;
   }
 
