@@ -22,6 +22,7 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.util.Timeout;
 
 import javax.validation.Valid;
@@ -75,6 +76,13 @@ public class ApacheHttpProducer extends HttpProducer {
    * persistent connection re-use and connection pooling.
    */
   private transient CloseableHttpClient httpClient;
+
+  @Override
+  public synchronized void close() {
+    Closer.closeQuietly(httpClient);
+    httpClient = null;
+    super.close();
+  }
 
   protected ResponseHandlerFactory responseHandlerFactory() {
     return ObjectUtils.defaultIfNull(getResponseHandlerFactory(), DEFAULT_HANDLER);
