@@ -301,20 +301,17 @@ subprojects {
   spotbugsMain {
     effort = "max"
     reportLevel = "high"
-    // showProgress = "true"
-    effort = "max"
-    // Ignore failures?
-    // ignoreFailures = false
     reports {
-      xml {
-        enabled = false
-      }
-      html {
-        enabled = true
-      }
+  	  xml {
+	    required.set(false)
+	  }
+	  html {
+	    required.set(true)
+	    stylesheet = 'default.xsl'
+	  }
     }
   }
-
+  
   dependencyCheck  {
     suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
     scanConfigurations = [ "api", "compileClasspath", "runtimeClasspath" ]
