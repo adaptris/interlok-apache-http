@@ -1,17 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import javax.validation.Valid;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -28,6 +16,20 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+
+import javax.validation.Valid;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.

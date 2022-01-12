@@ -90,11 +90,15 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
     RequestConfig.Builder requestCfg = RequestConfig.custom();
     if (getConnectTimeout() != null) {
       requestCfg.setConnectTimeout(Long.valueOf(getConnectTimeout().toMilliseconds()).intValue());
+      requestCfg.setConnectionRequestTimeout(Long.valueOf(getConnectTimeout().toMilliseconds()).intValue());
+    } else if (timeout >= 0) {
+      requestCfg.setConnectTimeout(Long.valueOf(timeout).intValue());
+      requestCfg.setConnectionRequestTimeout(Long.valueOf(timeout).intValue());
     }
     if (getReadTimeout() != null) {
       requestCfg.setSocketTimeout(Long.valueOf(getReadTimeout().toMilliseconds()).intValue());
-    }
-    if (timeout != HttpProducer.DEFAULT_TIMEOUT) {
+      builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(Long.valueOf(getReadTimeout().toMilliseconds()).intValue()).build());
+    } else if (timeout >= 0) {
       requestCfg.setSocketTimeout(Long.valueOf(timeout).intValue());
       builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(Long.valueOf(timeout).intValue()).build());
     }
