@@ -1,5 +1,22 @@
 package com.adaptris.core.http.apache;
 
+import static com.adaptris.core.http.apache.JettyHelper.JETTY_USER_REALM;
+import static com.adaptris.core.http.apache.JettyHelper.METADATA_KEY_CONTENT_TYPE;
+import static com.adaptris.core.http.apache.JettyHelper.TEXT;
+import static com.adaptris.core.http.apache.JettyHelper.URL_TO_POST_TO;
+import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
+import static com.adaptris.core.http.apache.JettyHelper.createChannel;
+import static com.adaptris.core.http.apache.JettyHelper.createConnection;
+import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
+import static com.adaptris.core.http.apache.JettyHelper.createURL;
+import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
+import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
@@ -48,27 +65,14 @@ import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
-import org.junit.Test;
-
-import java.util.Arrays;
+import interlok.http.apache.credentials.AnyScope;
+import interlok.http.apache.credentials.ClientBuilderWithCredentials;
+import interlok.http.apache.credentials.DefaultCredentialsProviderBuilder;
+import interlok.http.apache.credentials.ScopedCredential;
+import interlok.http.apache.credentials.UsernamePassword;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.adaptris.core.http.apache.JettyHelper.JETTY_USER_REALM;
-import static com.adaptris.core.http.apache.JettyHelper.METADATA_KEY_CONTENT_TYPE;
-import static com.adaptris.core.http.apache.JettyHelper.TEXT;
-import static com.adaptris.core.http.apache.JettyHelper.URL_TO_POST_TO;
-import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
-import static com.adaptris.core.http.apache.JettyHelper.createChannel;
-import static com.adaptris.core.http.apache.JettyHelper.createConnection;
-import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
-import static com.adaptris.core.http.apache.JettyHelper.createURL;
-import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
-import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 @SuppressWarnings("deprecation")
 public class ApacheHttpProducerTest extends ExampleProducerCase {
@@ -258,7 +262,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
-    sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
+    sl.add(new AddMetadataService(List.of(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
     StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
     responder.setContentTypeProvider(new com.adaptris.core.http.MetadataContentTypeProvider(getName()));
     sl.add(new StandaloneProducer(responder));
@@ -338,7 +342,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
-    StandaloneRequestor producer = new StandaloneRequestor(http);
     doRequest(mock, http, new DefaultMessageFactory().newMessage(TEXT));
     doAssertions(mock, false);
     AdaptrisMessage m2 = mock.getMessages().get(0);
@@ -480,6 +483,30 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     }
   }
 
+  // Do we care that this introduces a possible circular package dependency??
+  @Test
+  public void testRequest_WithCredentialsProvider() throws Exception {
+    String threadName = Thread.currentThread().getName();
+    Thread.currentThread().setName(getName());
+    MockMessageProducer mock = new MockMessageProducer();
+    ApacheHttpProducer http = new ApacheHttpProducer();
+    ClientBuilderWithCredentials clientConfig = new ClientBuilderWithCredentials().withProvider(new DefaultCredentialsProviderBuilder().withScopedCredentials(
+        new ScopedCredential().withScope(new AnyScope())
+            .withCredentials(new UsernamePassword().withCredentials("user", "password"))
+    ));
+    http.setClientConfig(clientConfig);
+    try {
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
+      doAuthenticatedRequest(mock, http, msg);
+      doAssertions(mock, true);
+    }
+    finally {
+      Thread.currentThread().setName(threadName);
+      assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
+    }
+  }
+
+
   @Test
   public void testRequest_WithReplyAsMetadata() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
@@ -487,7 +514,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
-    sl.add(new AddMetadataService(Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
+    sl.add(new AddMetadataService(List.of(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
     StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
     responder.setContentTypeProvider(new ConfiguredContentTypeProvider("%message{" + getName() + "}"));
 
@@ -520,7 +547,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
 
     ServiceList sl = new ServiceList();
     sl.add(new AddMetadataService(
-        Arrays.asList(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
+        List.of(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
     // Should at least return "getName()" as a metadata key...
     sl.add(new JettyResponseService().withContentType("%message{" + getName() + "}")
         .withHttpStatus("200").withResponseHeaderProvider(
@@ -611,15 +638,14 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
 
 
   @Override
-  protected Object retrieveObjectForSampleConfig() {
+  protected StandaloneProducer retrieveObjectForSampleConfig() {
     ApacheHttpProducer producer =
         new ApacheHttpProducer().withURL("http://myhost.com/url/to/post/to");
     producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
     producer.setClientConfig(new CompositeClientBuilder().withBuilders(new DefaultClientBuilder().withProxy("http://my.proxy:3128"),
         new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement(),
         new RequestInterceptorClientBuilder().withInterceptors(new RemoveHeaders("User-Agent"))));
-    StandaloneProducer result = new StandaloneProducer(producer);
-    return result;
+    return new StandaloneProducer(producer);
   }
 
   protected AdaptrisMessage doAssertions(MockMessageProducer mockProducer, boolean assertPayload) {
@@ -651,7 +677,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     securityConstraint.setMustAuthenticate(true);
     securityConstraint.setRoles("user");
 
-    handler.setSecurityConstraints(Arrays.asList(securityConstraint));
+    handler.setSecurityConstraints(List.of(securityConstraint));
     handler.setLoginService(login);
     return handler;
   }
