@@ -15,8 +15,8 @@ import org.apache.http.auth.Credentials;
  *
  */
 @NoArgsConstructor
-@XStreamAlias("apache-http-credentials-wrapper")
-public class CredentialsWrapper {
+@XStreamAlias("apache-http-scoped-credential")
+public class ScopedCredential {
 
   /** The authentication scope associated with these credentials.
    *
@@ -30,7 +30,7 @@ public class CredentialsWrapper {
    */
   @Getter
   @Setter
-  @NotNull
+  @NotNull(message = "No Credentials available to use")
   @NonNull
   private CredentialsBuilder credentials;
 
@@ -42,12 +42,12 @@ public class CredentialsWrapper {
     return getCredentials().build();
   }
 
-  public CredentialsWrapper withScope(AuthScopeBuilder scope) {
+  public ScopedCredential withScope(AuthScopeBuilder scope) {
     setAuthenticationScope(scope);
     return this;
   }
 
-  public CredentialsWrapper withCredentials(CredentialsBuilder builder) {
+  public ScopedCredential withCredentials(CredentialsBuilder builder) {
     setCredentials(builder);
     return this;
   }

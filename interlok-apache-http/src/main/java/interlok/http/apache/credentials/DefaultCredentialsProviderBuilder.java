@@ -17,7 +17,7 @@ import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
  * Supports the use of a {@code org.apache.http.client.CredentialsProvider} where supported in a configuration friendly
  * way.
  * <p>This uses {@code org.apache.http.impl.client.SystemDefaultCredentialsProvider} with added configuration from the
- * underlying {@link CredentialsWrapper} via the {@code CredentialsProvider#setCredentials(AuthScope, Credentials)}
+ * underlying {@link ScopedCredential} via the {@code CredentialsProvider#setCredentials(AuthScope, Credentials)}
  * method.</p>
  *
  * @config apache-default-credentials-provider-builder
@@ -30,19 +30,19 @@ public class DefaultCredentialsProviderBuilder implements CredentialsProviderBui
   @Getter
   @Setter
   @NonNull
-  @NotNull
-  @XStreamImplicit(itemFieldName = "credential")
-  private List<CredentialsWrapper> credentials = new ArrayList<>();
+  @NotNull(message = "No Credentials associated with a CredentialsProvider")
+  @XStreamImplicit(itemFieldName = "scoped-credential")
+  private List<ScopedCredential> scopedCredentials = new ArrayList<>();
 
-  public DefaultCredentialsProviderBuilder withCredentials(CredentialsWrapper... w) {
-    setCredentials(new ArrayList<>(List.of(w)));
+  public DefaultCredentialsProviderBuilder withScopedCredentials(ScopedCredential... w) {
+    setScopedCredentials(new ArrayList<>(List.of(w)));
     return this;
   }
 
   @Override
   public CredentialsProvider build() {
     SystemDefaultCredentialsProvider provider = new SystemDefaultCredentialsProvider();
-    getCredentials().forEach((c) -> provider.setCredentials(c.authenticationScope(), c.credentials()));
+    this.getScopedCredentials().forEach((c) -> provider.setCredentials(c.authenticationScope(), c.credentials()));
     return provider;
   }
 }

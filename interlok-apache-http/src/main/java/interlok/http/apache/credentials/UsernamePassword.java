@@ -7,6 +7,8 @@ import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +19,10 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 /**
  * Adds support for {@code org.apache.http.client.CredentialsProvider} for username and password in a configuration
  * friendly way.
- *
+ * <p>This builds a {@code UsernamePasswordCredentials} under the covers, interestingly it allows you to have a non null
+ * blank username; there should be no reason why you would want to do that, so validation on the username field is set
+ * to be {@code NotBlank}.
+ * </p>
  * @config apache-username-password-credentials
  */
 @XStreamAlias("apache-username-password-credentials")
@@ -31,6 +36,7 @@ public class UsernamePassword implements CredentialsBuilder {
    */
   @Getter
   @Setter
+  @NotBlank(message="No Username associated with UsernamePassword credentials")
   private String username;
   /**
    * The password.

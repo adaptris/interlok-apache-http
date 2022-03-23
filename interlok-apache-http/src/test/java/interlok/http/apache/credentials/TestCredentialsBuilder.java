@@ -17,8 +17,8 @@ public class TestCredentialsBuilder {
 
   @Test
   public void testProviderBuilder() {
-    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withCredentials(
-        new CredentialsWrapper().withScope(new AnyScope())
+    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(
+        new ScopedCredential().withScope(new AnyScope())
             .withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword"))
     );
     assertNotNull(builder.build());
@@ -27,8 +27,8 @@ public class TestCredentialsBuilder {
 
   @Test
   public void testCredentialsProvider() {
-    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withCredentials(
-        new CredentialsWrapper().withScope(new AnyScope())
+    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(
+        new ScopedCredential().withScope(new AnyScope())
             .withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword"))
     );
     CredentialsProvider provider = builder.build();
@@ -40,8 +40,8 @@ public class TestCredentialsBuilder {
 
   @Test(expected= PasswordException.class)
   public void testCredentialsProvider_BadPassword() throws Exception {
-    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withCredentials(
-        new CredentialsWrapper().withScope(new AnyScope())
+    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(
+        new ScopedCredential().withScope(new AnyScope())
             .withCredentials(new UsernamePassword().withCredentials("myUser", "AES_GCM:myPassword"))
     );
     builder.build();
@@ -65,8 +65,8 @@ public class TestCredentialsBuilder {
   public void testClientBuilderConfigure() throws Exception {
     ClientBuilderWithCredentials builder = new ClientBuilderWithCredentials();
     assertNotNull(builder.configure(HttpClients.custom()));
-    DefaultCredentialsProviderBuilder credsProvider = new DefaultCredentialsProviderBuilder().withCredentials(
-        new CredentialsWrapper().withScope(new AnyScope())
+    DefaultCredentialsProviderBuilder credsProvider = new DefaultCredentialsProviderBuilder().withScopedCredentials(
+        new ScopedCredential().withScope(new AnyScope())
             .withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword"))
     );
     assertNotNull(builder.withProvider(credsProvider).configure(HttpClients.custom()));
