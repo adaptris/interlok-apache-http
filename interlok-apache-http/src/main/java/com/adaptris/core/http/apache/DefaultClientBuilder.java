@@ -16,7 +16,18 @@
 package com.adaptris.core.http.apache;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageProducer;
+import com.adaptris.util.TimeInterval;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import javax.validation.Valid;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
@@ -24,14 +35,6 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
-import com.adaptris.annotation.AdvancedConfig;
-import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageProducer;
-import com.adaptris.core.RequestReplyProducerImp;
-import com.adaptris.util.TimeInterval;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * default {@link HttpClientBuilderConfigurator} instance
@@ -44,24 +47,55 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     "httpProxy", "allowRedirect", "connectTimeout", "readTimeout"
 })
 @XStreamAlias("default-apache-http-client-builder")
+@NoArgsConstructor
 public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
 
+  /**
+   * Explicitly configurd proxy server.
+   * <p>Follows the form {@code scheme://host:port} or more simply {@code host:port} and if it ends up being
+   * just a {@code :} then is assumed that no proxy is required (this is to make it more convenient to migrate
+   * configuration through environments, some of which may require a proxy, some not.
+   * </p>
+   */
+  @Getter
+  @Setter
   @AdvancedConfig
   private String httpProxy;
+  /**
+   * Allow redirection.
+   * <p>Defaults to true if not explicitly specified, and uses a {@code LaxRedirectStrategy} which means that HTTP
+   * redirects are allows for POST and PUT operations. While this is against the HTTP specific, it's more
+   * convenient</p>
+   */
+  @Getter
+  @Setter
   @AdvancedConfig
   @InputFieldDefault(value = "true")
   private Boolean allowRedirect;
+  /** The connect timeout.
+   *
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private TimeInterval connectTimeout;
+  /** The read timeout.
+   * <p>
+   * Note that any read timeout will be overridden by the timeout value passed in via the
+   * {{@link AdaptrisMessageProducer#request(AdaptrisMessage, long)} method, provided it differs from
+   * {@code RequestReplyProducerImp#defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
+   * </p>
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private TimeInterval readTimeout;
 
   @Override
   public HttpClientBuilder configure(HttpClientBuilder builder, long timeout) throws Exception {
-    customiseTimeouts(builder, timeout);
-    return configure(builder);
+    return configure(customiseTimeouts(builder, timeout));
   }
 
   @Override
@@ -83,7 +117,7 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
    *
    * @param builder the builder
    * @param timeout the timeout specified by
-   *        {@link RequestReplyProducerImp#doRequest(AdaptrisMessage, String, long)}
+   *        {@code RequestReplyProducerImp#doRequest(AdaptrisMessage, String, long)}
    * @return the builder.
    */
   protected HttpClientBuilder customiseTimeouts(HttpClientBuilder builder, long timeout) {
@@ -106,90 +140,30 @@ public class DefaultClientBuilder implements HttpClientBuilderConfigurator {
     return builder;
   }
 
-  /**
-   * Specify whether to automatically handle redirection.
-   *
-   * @param b true or false.
-   */
-  public void setAllowRedirect(Boolean b) {
-    allowRedirect = b;
-  }
-
   protected boolean handleRedirection() {
     return BooleanUtils.toBooleanDefaultIfNull(getAllowRedirect(), true);
   }
 
-  /**
-   * Get the handle redirection flag.
-   *
-   * @return true or false.
-   */
-  public Boolean getAllowRedirect() {
-    return allowRedirect;
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends DefaultClientBuilder> T withAllowRedirect(Boolean b) {
     setAllowRedirect(b);
     return (T) this;
   }
 
-  /**
-   * @return the httpProxy
-   */
-  public String getHttpProxy() {
-    return httpProxy;
-  }
 
-  /**
-   * Explicitly configure a proxy server.
-   *
-   * @param proxy the httpProxy to generally {@code scheme://host:port} or more simply {@code host:port}
-   */
-  public void setHttpProxy(String proxy) {
-    httpProxy = proxy;
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends DefaultClientBuilder> T withProxy(String b) {
     setHttpProxy(b);
     return (T) this;
   }
 
-  public TimeInterval getConnectTimeout() {
-    return connectTimeout;
-  }
-
-  /**
-   * Set the connect timeout.
-   *
-   * @param t the timeout.
-   */
-  public void setConnectTimeout(TimeInterval t) {
-    connectTimeout = t;
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends DefaultClientBuilder> T withConnectTimeout(TimeInterval b) {
     setConnectTimeout(b);
     return (T) this;
   }
 
-  public TimeInterval getReadTimeout() {
-    return readTimeout;
-  }
-
-  /**
-   * Set the read timeout.
-   * <p>
-   * Note that any read timeout will be overridden by the timeout value passed in via the
-   * {{@link AdaptrisMessageProducer#request(AdaptrisMessage, long)} method, provided it differs from
-   * {@link RequestReplyProducerImp#defaultTimeout()}. Apache HTTP calls this the socket timeout in their documentation.
-   * </p>
-   *
-   * @param t the timeout.
-   */
-  public void setReadTimeout(TimeInterval t) {
-    readTimeout = t;
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends DefaultClientBuilder> T withReadTimeout(TimeInterval b) {
     setReadTimeout(b);
     return (T) this;

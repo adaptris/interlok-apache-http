@@ -15,20 +15,6 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.HmacUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.protocol.HttpContext;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -38,11 +24,30 @@ import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Base class for building a HMAC when doing HTTP requests.
  *
  */
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   protected static final String LF = "\n";
   protected static final String COLON = ":";
@@ -51,7 +56,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
    * The encoding to use on the resulting signature.
    *
    */
-  public static enum Encoding {
+  public enum Encoding {
     /**
      * Turn each byte into its hex representation.
      *
@@ -73,156 +78,147 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
       }
     };
     public abstract String encode(byte[] b);
-  };
+  }
 
   /**
    * The algorithm to use when creating the message authentication code.
    *
    */
-  public static enum Algorithm {
+  public enum Algorithm {
     HMAC_MD5() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacMd5(key, valueToDigest);
+        return new HmacUtils(HmacAlgorithms.HMAC_MD5, key).hmac(valueToDigest);
       }
     },
     HMAC_SHA1() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha1(key, valueToDigest);
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_1, key).hmac(valueToDigest);
       }
     },
     HMAC_SHA256() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha256(key, valueToDigest);
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_256, key).hmac(valueToDigest);
       }
     },
     HMAC_SHA384() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha384(key, valueToDigest);
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_384, key).hmac(valueToDigest);
       }
     },
     HMAC_SHA512() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha256(key, valueToDigest);
+        return new HmacUtils(HmacAlgorithms.HMAC_SHA_256, key).hmac(valueToDigest);
       }
     };
 
     public abstract byte[] digest(String key, String valueToDigest);
-  };
+  }
 
+  /** The headers to use for HMAC Generation.
+   *
+   */
   @XStreamImplicit(itemFieldName = "header")
-  @NotNull
+  @NotNull(message="Headers to use for the HMAC should not be null, an empty list is acceptable")
   @AutoPopulated
-  private List<String> headers;
+  @Setter
+  @Getter
+  private List<String> headers = new ArrayList<>();
 
+  /** The secret key to use for HMAC generation.
+   *
+   */
   @InputFieldHint(style = "PASSWORD", external = true)
-  @NotBlank
+  @NotBlank(message="The secret key for the HMAC should not be blank")
+  @Setter
+  @Getter
   private String secretKey;
+
+  /** The target header to attach the resulting HMAC to
+   *
+   */
   @InputFieldDefault(value = HttpConstants.AUTHORIZATION)
+  @Setter
+  @Getter
   private String targetHeader;
+
+  /** The encoding used for the HMAC.
+   *
+   */
   @InputFieldDefault(value = "BASE64")
-  @NotNull
-  @AutoPopulated
+  @NotNull(message="Encoding for the HMAC may not be null")
+  @Setter
+  @Getter
   private Encoding encoding;
+
+  /** The algorithm to use for the HMAC.
+   *
+   */
   @InputFieldDefault(value = "HMAC_SHA256")
   @NotNull
   @AutoPopulated
+  @Setter
+  @Getter
   private Algorithm hmacAlgorithm;
 
-  protected HMACSignatureImpl() {
-    setHmacAlgorithm(Algorithm.HMAC_SHA256);
-    setEncoding(Encoding.BASE64);
-    setHeaders(new ArrayList());
-  }
-
-  public List<String> getHeaders() {
-    return headers;
-  }
-
-  public void setHeaders(List<String> list) {
-    headers = Args.notNull(list, "headers");
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends HMACSignatureImpl> T withHeaders(List<String> list) {
     setHeaders(list);
     return (T) this;
   }
 
   public <T extends HMACSignatureImpl> T withHeaders(String... list) {
-    return withHeaders(new ArrayList<String>(Arrays.asList(list)));
+    return withHeaders(new ArrayList<>(List.of(list)));
   }
 
-  public String getTargetHeader() {
-    return targetHeader;
-  }
-
-  public void setTargetHeader(String targetHeader) {
-    this.targetHeader = targetHeader;
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends HMACSignatureImpl> T withTargetHeader(String s) {
     setTargetHeader(s);
     return (T) this;
   }
 
-  protected String targetHeader() {
-    return StringUtils.defaultIfBlank(getTargetHeader(), HttpConstants.AUTHORIZATION);
-  }
-
-  public Encoding getEncoding() {
-    return encoding;
-  }
-
-  public void setEncoding(Encoding encoding) {
-    this.encoding = Args.notNull(encoding, "encoding");
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends HMACSignatureImpl> T withEncoding(Encoding s) {
     setEncoding(s);
     return (T) this;
   }
 
-  public Algorithm getHmacAlgorithm() {
-    return hmacAlgorithm;
-  }
-
-  public void setHmacAlgorithm(Algorithm algorithm) {
-    hmacAlgorithm = Args.notNull(algorithm, "algorithm");
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends HMACSignatureImpl> T withHmacAlgorithm(Algorithm s) {
     setHmacAlgorithm(s);
     return (T) this;
   }
 
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  public void setSecretKey(String key) {
-    secretKey = Args.notBlank(key, "secretKey");
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends HMACSignatureImpl> T withSecretKey(String s) {
     setSecretKey(s);
     return (T) this;
   }
 
+
+  protected String targetHeader() {
+    return StringUtils.defaultIfBlank(getTargetHeader(), HttpConstants.AUTHORIZATION);
+  }
+
+  protected Algorithm hmacAlgorithm() {
+    return ObjectUtils.defaultIfNull(getHmacAlgorithm(), Algorithm.HMAC_SHA256);
+  }
+
+  protected Encoding encoding() {
+    return ObjectUtils.defaultIfNull(getEncoding(), Encoding.BASE64);
+  }
+
+  @SneakyThrows(PasswordException.class)
   protected String secretKey() {
-    try {
-      Args.notBlank(getSecretKey(), "secretKey");
-      return Password.decode(ExternalResolver.resolve(getSecretKey()));
-    } catch (PasswordException e) {
-      throw new RuntimeException(e);
-    }
+    return Password.decode(ExternalResolver.resolve(Args.notBlank(getSecretKey(), "secretKey")));
   }
 
   protected String buildHeader(HttpRequest request, HttpContext context) {
-    String hmac = getEncoding().encode(getHmacAlgorithm().digest(secretKey(), getStringToSign(request, context)));
+    String hmac = encoding().encode(hmacAlgorithm().digest(secretKey(), getStringToSign(request, context)));
     return buildHeader(hmac);
   }
 
@@ -232,13 +228,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
 
   @Override
   public HttpRequestInterceptor build() {
-    return new HttpRequestInterceptor() {
-      @Override
-      public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
-        request.addHeader(targetHeader(), buildHeader(request, context));
-      }
-
-    };
+    return (request, context) -> request.addHeader(targetHeader(), buildHeader(request, context));
   }
 
 }

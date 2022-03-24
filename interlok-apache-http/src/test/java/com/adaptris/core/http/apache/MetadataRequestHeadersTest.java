@@ -3,18 +3,17 @@ package com.adaptris.core.http.apache;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RegexMetadataFilter;
+import com.adaptris.core.metadata.RemoveAllMetadataFilter;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class MetadataRequestHeadersTest extends RequestHeadersCase {
 
@@ -28,14 +27,8 @@ public class MetadataRequestHeadersTest extends RequestHeadersCase {
   public void testFilter() throws Exception {
     MetadataRequestHeaders headers = new MetadataRequestHeaders();
     assertNull(headers.getFilter());
+    assertEquals(RemoveAllMetadataFilter.class, headers.filter().getClass());
     headers.setFilter(new NoOpMetadataFilter());
-    assertEquals(NoOpMetadataFilter.class, headers.getFilter().getClass());
-    try {
-      headers.setFilter(null);
-      fail();
-    } catch (IllegalArgumentException expected) {
-
-    }
     assertEquals(NoOpMetadataFilter.class, headers.getFilter().getClass());
   }
 
@@ -50,7 +43,5 @@ public class MetadataRequestHeadersTest extends RequestHeadersCase {
     httpOperation = headers.addHeaders(msg, httpOperation);
     assertTrue(contains(httpOperation, name, name));
   }
-
-
 
 }
