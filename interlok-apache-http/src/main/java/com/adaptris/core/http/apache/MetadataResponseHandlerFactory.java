@@ -30,7 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 public class MetadataResponseHandlerFactory extends ResponseHandlerFactoryImpl {
 
-  @NotBlank
+  /** The metadata key to store the response against.
+   *
+   */
+  @NotBlank(message="metadataKey for the HTTP response may not be blank")
   @Getter
   @Setter
   private String metadataKey;

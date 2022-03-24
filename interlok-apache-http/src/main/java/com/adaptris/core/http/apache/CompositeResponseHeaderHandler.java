@@ -1,55 +1,53 @@
 package com.adaptris.core.http.apache;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.HttpResponse;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import org.apache.http.HttpResponse;
 
 /**
  * Implementation of {@link ResponseHeaderHandler} that uses nested handlers to extract headers from a {@link
  * HttpResponse}.
- * 
- * <p>This implementation is primarily so that you can mix and matchhow you capture response headers; If you wanted to use both
+ *
+ * <p>This implementation is primarily so that you can mix and match how you capture response headers; If you wanted to use both
  * {@link ResponseHeadersAsMetadata} and {@link ResponseHeadersAsObjectMetadata} then you can.
  * </p>
  * @config apache-http-composite-request-headers
- * 
+ *
  */
 @XStreamAlias("apache-http-composite-response-header-handler")
+@NoArgsConstructor
 public class CompositeResponseHeaderHandler implements ResponseHeaderHandler<HttpResponse> {
+
+  /** The list of {@link ResponseHeaderHandler} objects that will be used to process
+   *  HTTP Response headers.
+   */
   @XStreamImplicit
-  @NotNull
+  @NotNull(message="Use an empty list of ResponseHeaderHandlers, not null")
+  @NonNull
   @AutoPopulated
-  private List<ResponseHeaderHandler<HttpResponse>> handlers;
+  @Valid
+  @Getter
+  @Setter
+  private List<ResponseHeaderHandler<HttpResponse>> handlers = new ArrayList<>();
 
-  public CompositeResponseHeaderHandler() {
-    setHandlers(new ArrayList<ResponseHeaderHandler<HttpResponse>>());
-  }
-
+  @SafeVarargs
   public CompositeResponseHeaderHandler(ResponseHeaderHandler<HttpResponse>... handlers) {
     this();
     for (ResponseHeaderHandler<HttpResponse> h : handlers) {
       addHandler(h);
     }
-  }
-
-
-
-  public List<ResponseHeaderHandler<HttpResponse>> getHandlers() {
-    return handlers;
-  }
-
-  public void setHandlers(List<ResponseHeaderHandler<HttpResponse>> handlers) {
-    this.handlers = Args.notNull(handlers, "Response Header Handlers");
   }
 
   public void addHandler(ResponseHeaderHandler<HttpResponse> handler) {

@@ -14,6 +14,7 @@ import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -95,14 +96,8 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   @Test
   public void testSetRequestHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
-    assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
-    try {
-      p.setRequestHeaderProvider(null);
-      fail();
-    } catch (Exception expected) {
-
-    }
-    assertEquals(NoOpRequestHeaders.class, p.getRequestHeaderProvider().getClass());
+    assertNull(p.getRequestHeaderProvider());
+    assertEquals(NoOpRequestHeaders.class, p.requestHeaderProvider().getClass());
     p.setRequestHeaderProvider(new MetadataRequestHeaders(new RemoveAllMetadataFilter()));
     assertEquals(MetadataRequestHeaders.class, p.getRequestHeaderProvider().getClass());
   }
@@ -111,14 +106,8 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   @Test
   public void testSetResponseHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
-    assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
-    try {
-      p.setResponseHeaderHandler(null);
-      fail();
-    } catch (Exception expected) {
-
-    }
-    assertEquals(DiscardResponseHeaders.class, p.getResponseHeaderHandler().getClass());
+    assertNull(p.getResponseHeaderHandler());
+    assertEquals(DiscardResponseHeaders.class, p.responseHeaderHandler().getClass());
     p.setResponseHeaderHandler(new ResponseHeadersAsMetadata());
     assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHeaderHandler().getClass());
   }

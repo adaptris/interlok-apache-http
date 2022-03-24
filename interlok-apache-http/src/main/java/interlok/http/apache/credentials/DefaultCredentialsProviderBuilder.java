@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,6 +33,7 @@ public class DefaultCredentialsProviderBuilder implements CredentialsProviderBui
   @NonNull
   @NotNull(message = "No Credentials associated with a CredentialsProvider")
   @XStreamImplicit(itemFieldName = "scoped-credential")
+  @Valid
   private List<ScopedCredential> scopedCredentials = new ArrayList<>();
 
   public DefaultCredentialsProviderBuilder withScopedCredentials(ScopedCredential... w) {

@@ -1,10 +1,5 @@
 package com.adaptris.core.http.apache;
 
-import java.io.UnsupportedEncodingException;
-import java.net.PasswordAuthentication;
-import java.net.URLConnection;
-import javax.validation.constraints.NotBlank;
-import org.apache.http.client.methods.HttpRequestBase;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -18,6 +13,14 @@ import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.adaptris.util.text.Base64ByteTranslator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.net.PasswordAuthentication;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.http.client.methods.HttpRequestBase;
 
 /**
  * Build a {@link HttpConstants#AUTHORIZATION} (Basic only) from configuration (or metadata).
@@ -31,20 +34,27 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *
  */
 @XStreamAlias("apache-http-dynamic-authorization-header")
+@NoArgsConstructor
 public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticator {
 
-  @NotBlank
+  /** The username.
+   *
+   */
+  @Getter
+  @Setter
+  @NotBlank(message="username may not be blank for authorization")
   @InputFieldHint(expression = true)
   private String username;
-  @NotBlank
+  /** The password.
+   *
+   */
+  @Getter
+  @Setter
+  @NotBlank(message="password may not be blank for authorization")
   @InputFieldHint(expression = true, style = "PASSWORD", external = true)
   private String password;
 
   private transient String authHeader;
-
-  public DynamicBasicAuthorizationHeader() {
-
-  }
 
   public DynamicBasicAuthorizationHeader(String username, String password) {
     this();
@@ -57,9 +67,11 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
     try {
       String username = Args.notBlank(msg.resolve(getUsername()), "username");
       String password = Args.notBlank(msg.resolve(ExternalResolver.resolve(getPassword())), "password");
-      String encoded = new Base64ByteTranslator().translate(String.format("%s:%s", username, Password.decode(password)).getBytes("UTF-8"));
+      String encoded = new Base64ByteTranslator().translate(
+          String.format("%s:%s", username, Password.decode(password)).getBytes(
+              StandardCharsets.UTF_8));
       authHeader = String.format("Basic %s", encoded);
-    } catch (UnsupportedEncodingException | IllegalArgumentException | PasswordException e) {
+    } catch (IllegalArgumentException | PasswordException e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
   }
@@ -71,31 +83,6 @@ public class DynamicBasicAuthorizationHeader implements ApacheRequestAuthenticat
 
   @Override
   public void close() {
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  /**
-   * Set the username
-   */
-  public void setUsername(String s) {
-    username = Args.notBlank(s, "username");
-  }
-
-  /**
-   * @return the password
-   */
-  public String getPassword() {
-    return password;
-  }
-
-  /**
-   * @param pw the password to set
-   */
-  public void setPassword(String pw) {
-    password = Args.notBlank(pw, "password");
   }
 
 }

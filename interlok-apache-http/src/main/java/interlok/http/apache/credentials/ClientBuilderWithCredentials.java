@@ -6,6 +6,7 @@ import com.adaptris.core.http.apache.HttpClientBuilderConfigurator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import interlok.http.apache.credentials.CredentialsProviderBuilder;
 import java.util.Optional;
+import javax.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,6 +36,7 @@ public class ClientBuilderWithCredentials implements HttpClientBuilderConfigurat
    */
   @Getter
   @Setter
+  @Valid
   private CredentialsProviderBuilder credentialsProvider;
 
   @Override

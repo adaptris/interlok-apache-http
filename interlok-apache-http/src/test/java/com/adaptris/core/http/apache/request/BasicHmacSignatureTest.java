@@ -1,12 +1,12 @@
 /*
  * Copyright 2018 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,15 +20,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.adaptris.core.http.HttpConstants;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
+import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
+import com.adaptris.security.exc.PasswordException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.HttpDateGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.adaptris.core.http.HttpConstants;
-import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
-import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
 
 public class BasicHmacSignatureTest {
 
@@ -58,19 +58,19 @@ public class BasicHmacSignatureTest {
   @Test
   public void testAlgorithm() {
     BasicHMACSignature hmac = new BasicHMACSignature();
-    assertNotNull(hmac.getHmacAlgorithm());
-    assertEquals(HMACSignatureImpl.Algorithm.HMAC_SHA256, hmac.getHmacAlgorithm());
+    assertNull(hmac.getHmacAlgorithm());
+    assertEquals(HMACSignatureImpl.Algorithm.HMAC_SHA256, hmac.hmacAlgorithm());
     hmac.withHmacAlgorithm(Algorithm.HMAC_MD5);
-    assertEquals(HMACSignatureImpl.Algorithm.HMAC_MD5, hmac.getHmacAlgorithm());
+    assertEquals(HMACSignatureImpl.Algorithm.HMAC_MD5, hmac.hmacAlgorithm());
   }
 
   @Test
   public void testEncoding() {
     BasicHMACSignature hmac = new BasicHMACSignature();
-    assertNotNull(hmac.getEncoding());
-    assertEquals(HMACSignatureImpl.Encoding.BASE64, hmac.getEncoding());
+    assertNull(hmac.getEncoding());
+    assertEquals(HMACSignatureImpl.Encoding.BASE64, hmac.encoding());
     hmac.withEncoding(HMACSignatureImpl.Encoding.HEX);
-    assertEquals(HMACSignatureImpl.Encoding.HEX, hmac.getEncoding());
+    assertEquals(HMACSignatureImpl.Encoding.HEX, hmac.encoding());
   }
 
   @Test
@@ -88,7 +88,7 @@ public class BasicHmacSignatureTest {
     assertEquals("hmac", hmac.targetHeader());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = PasswordException.class)
   public void testSecretKey() {
     BasicHMACSignature hmac = new BasicHMACSignature();
     assertNull(hmac.getSecretKey());

@@ -12,17 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 package com.adaptris.core.http.apache;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import java.net.Authenticator;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.util.Args;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
@@ -42,66 +36,109 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.http.client.RequestMethodProvider.RequestMethod;
 import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.http.client.net.NoRequestHeaders;
+import java.net.Authenticator;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 
 /**
  * Direct HTTP support as a service rather than wrapped via {@link StandaloneProducer} or {@link StandaloneRequestor}.
  *
  * <p>
- * Note that this service just wraps a {@link ApacheHttpProducer} instance but doesn't expose all the possible settings available
- * for the normal {@link ApacheHttpProducer}. If you need those features, than continue using the producer wrapped as a
- * {@link StandaloneProducer} or {@link StandaloneRequestor}.
+ * Note that this service just wraps a {@link ApacheHttpProducer} instance but doesn't expose all the possible settings
+ * available for the normal {@link ApacheHttpProducer}. If you need those features, than continue using the producer
+ * wrapped as a {@link StandaloneProducer} or {@link StandaloneRequestor}.
  * </p>
  * <p>
- * String parameters in this service will use the {@link AdaptrisMessage#resolve(String)} which allows you to specify metadata
- * values as part of a constant string e.g. {@code setUrl("%message{http_url}")} will use the metadata value associated with the key
- * {@code http_url}.
+ * String parameters in this service will use the {@link AdaptrisMessage#resolve(String)} which allows you to specify
+ * metadata values as part of a constant string e.g. {@code setUrl("%message{http_url}")} will use the metadata value
+ * associated with the key {@code http_url}.
  * </p>
- *
  */
 public abstract class HttpRequestServiceImpl extends ServiceImp {
 
-  @NotBlank
+  /**
+   * The URL to target.
+   * <p>The URL is resolved and runtime, and supports the expression notation {@code %message} etc.</p>
+   */
+  @Getter
+  @Setter
+  @NotBlank(message = "URL may not be blank")
   @InputFieldHint(expression = true)
   private String url;
-  @NotBlank
+  /**
+   * The Content-Type for the request
+   * <p>Defaults to {@code text/plain} if not explicitly specified, is resolved at runtime and supports the expression
+   * notation {@code %message} etc.</p>
+   */
   @AutoPopulated
   @InputFieldDefault(value = "text/plain")
   @InputFieldHint(expression = true)
+  @Getter
+  @Setter
   private String contentType;
-  @NotBlank
+
+  /**
+   * The method to use with the HTTP Request.
+   * <p>The method is resolved and runtime, and supports the expression notation {@code %message} etc, it defaults to
+   * 'POST' if not explicitly configured.</p>
+   */
   @AutoPopulated
   @InputFieldDefault(value = "POST")
   @InputFieldHint(expression = true, style = "com.adaptris.core.http.client.RequestMethodProvider.RequestMethod")
+  @Getter
+  @Setter
   private String method;
 
+  /** How to handle HTTP response headers.
+   *  <p>Defaults to {@link DiscardResponseHeaders} if not explicitly configured.</p>
+   */
   @AdvancedConfig
   @Valid
-  @NotNull
-  @AutoPopulated
+  @InputFieldDefault(value = "discard-response-headers")
+  @Getter
+  @Setter
   private ResponseHeaderHandler<HttpResponse> responseHeaderHandler;
 
+
+  /** How to supply HTTP request headers.
+   *  <p>Defaults to {@link NoRequestHeaders} if not explicitly configured.</p>
+   */
   @AdvancedConfig
   @Valid
-  @NotNull
-  @AutoPopulated
+  @InputFieldDefault(value = "no-request-headers")
+  @Getter
+  @Setter
   private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
+
+  /** The authentication for the request.
+   *  <p>If not explicitly specified then defaults to {@link NoAuthentication}</p>
+   */
   @Valid
   @AdvancedConfig
-  @NotNull
   @AutoPopulated
+  @InputFieldDefault(value = "no-authentication")
+  @Getter
+  @Setter
   private HttpAuthenticator authenticator = new NoAuthentication();
 
+  /** Any additional HTTP Client configuration required.
+   *
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private HttpClientBuilderConfigurator clientConfig;
 
   public HttpRequestServiceImpl() {
     super();
     Authenticator.setDefault(AdapterResourceAuthenticator.getInstance());
-    setResponseHeaderHandler(new DiscardResponseHeaders());
-    setRequestHeaderProvider(new NoOpRequestHeaders());
-    setContentType("text/plain");
-    setMethod("POST");
   }
 
   @Override
@@ -125,11 +162,12 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
     p.setMessageFactory(msg.getFactory());
     p.setClientConfig(clientConfig());
     p.setUrl(msg.resolve(getUrl()));
-    p.setContentTypeProvider(new RawContentTypeProvider(msg.resolve(getContentType())));
-    p.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.valueOf(msg.resolve(getMethod()).toUpperCase())));
+    p.setContentTypeProvider(new RawContentTypeProvider(msg.resolve(contentType())));
+    p.setMethodProvider(
+        new ConfiguredRequestMethodProvider(RequestMethod.valueOf(msg.resolve(method()).toUpperCase())));
     p.setAuthenticator(getAuthenticator());
-    p.setRequestHeaderProvider(getRequestHeaderProvider());
-    p.setResponseHeaderHandler(getResponseHeaderHandler());
+    p.setRequestHeaderProvider(requestHeaderProvider());
+    p.setResponseHeaderHandler(responseHeaderHandler());
     p.registerConnection(new NullConnection());
     return p;
   }
@@ -140,104 +178,20 @@ public abstract class HttpRequestServiceImpl extends ServiceImp {
     return getClientConfig();
   }
 
-  /**
-   * @return the responseHeaderHandler
-   */
-  public ResponseHeaderHandler<HttpResponse> getResponseHeaderHandler() {
-    return responseHeaderHandler;
+  protected ResponseHeaderHandler<HttpResponse> responseHeaderHandler() {
+    return ObjectUtils.defaultIfNull(getResponseHeaderHandler(), new DiscardResponseHeaders());
   }
 
-  /**
-   * Specify how we handle headers from the HTTP response.
-   *
-   * @param handler the handler, default is a {@link DiscardResponseHeaders}.
-   */
-  public void setResponseHeaderHandler(ResponseHeaderHandler<HttpResponse> handler) {
-    responseHeaderHandler = Args.notNull(handler, "ResponseHeaderHandler");
+  protected RequestHeaderProvider<HttpRequestBase> requestHeaderProvider() {
+    return ObjectUtils.defaultIfNull(getRequestHeaderProvider(), new NoOpRequestHeaders());
   }
 
-  public RequestHeaderProvider<HttpRequestBase> getRequestHeaderProvider() {
-    return requestHeaderProvider;
+  protected String contentType() {
+    return StringUtils.defaultIfBlank(getContentType(), "text/plain");
   }
 
-  /**
-   * Specify how we want to generate the initial set of HTTP Headers.
-   *
-   * @param handler the handler, default is a {@link NoRequestHeaders}
-   */
-  public void setRequestHeaderProvider(RequestHeaderProvider<HttpRequestBase> handler) {
-    requestHeaderProvider = Args.notNull(handler, "Request Header Provider");
+  protected String method() {
+    return StringUtils.defaultIfBlank(getMethod(), RequestMethod.POST.name());
   }
 
-
-  /**
-   * @return the url
-   */
-  public String getUrl() {
-    return url;
-  }
-
-  /**
-   * @param s the url to set; can be of the form {@code %message{key1}} to use the metadata value associated with {@code key1}
-   */
-  public void setUrl(String s) {
-    url = s;
-  }
-
-  /**
-   * @return the contentType
-   */
-  public String getContentType() {
-    return contentType;
-  }
-
-  /**
-   * @param ct the contentType to set; can be of the form {@code %message{key1}} to use the metadata value associated with
-   *          {@code key1}
-   */
-  public void setContentType(String ct) {
-    contentType = ct;
-  }
-
-  /**
-   * @return the method
-   */
-  public String getMethod() {
-    return method;
-  }
-
-  /**
-   * @param m the method to set; can be of the form {@code %message{key1}} to use the metadata value associated with
-   *          {@code key1}
-   */
-  public void setMethod(String m) {
-    method = m;
-  }
-
-  /**
-   * @return the authenticator
-   */
-  public HttpAuthenticator getAuthenticator() {
-    return authenticator;
-  }
-
-  /**
-   * @param auth the authenticator to set
-   */
-  public void setAuthenticator(HttpAuthenticator auth) {
-    authenticator = auth;
-  }
-
-  public HttpClientBuilderConfigurator getClientConfig() {
-    return clientConfig;
-  }
-
-  /**
-   * Specify any custom {@code HttpClientBuilder} configuration.
-   *
-   * @param clientConfig a {@link HttpClientBuilderConfigurator} instance.
-   */
-  public void setClientConfig(HttpClientBuilderConfigurator clientConfig) {
-    this.clientConfig = clientConfig;
-  }
 }

@@ -9,7 +9,7 @@ import com.adaptris.core.http.auth.HttpAuthenticator;
  * Some implementations of this interface will need to temporarily mutate global state and therefore must be closed in a finally
  * statement or try-with-resources block.
  * </p>
- * 
+ *
  * @author gdries
  */
 public interface ApacheRequestAuthenticator extends HttpAuthenticator {
@@ -17,6 +17,6 @@ public interface ApacheRequestAuthenticator extends HttpAuthenticator {
   /**
    * Perform whatever actions are required to the HttpRequestBase.
    */
-  public void configure(HttpRequestBase req) throws Exception;
+  void configure(HttpRequestBase req) throws Exception;
 
 }

@@ -1,22 +1,22 @@
 package com.adaptris.core.http.apache;
 
 import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
+
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.CoreConstants;
+import com.adaptris.core.MetadataElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Optional;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.entity.ContentType;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreConstants;
-import com.adaptris.core.MetadataElement;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 
 @NoArgsConstructor
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class ResponseHandlerFactoryImpl implements ResponseHandlerFactory {
 
 
-  protected abstract class ResponseHandlerImpl implements ResponseHandler<AdaptrisMessage> {
+  protected abstract static class ResponseHandlerImpl implements ResponseHandler<AdaptrisMessage> {
 
     protected HttpProducer owner;
 
@@ -62,12 +62,12 @@ public abstract class ResponseHandlerFactoryImpl implements ResponseHandlerFacto
     protected String contentEncoding(HttpEntity entity) {
       ContentType contentType =
           Optional.ofNullable(ContentType.get(entity)).orElse(ContentType.create("text/plain"));
-      return Optional.ofNullable(contentType.getCharset()).map((cs) -> cs.name()).orElse(null);
+      return Optional.ofNullable(contentType.getCharset()).map(Charset::name).orElse(null);
     }
 
     @Override
     public AdaptrisMessage handleResponse(HttpResponse response)
-        throws ClientProtocolException, IOException {
+        throws IOException {
       int status = response.getStatusLine().getStatusCode();
       AdaptrisMessage reply = defaultIfNull(owner.getMessageFactory()).newMessage();
       reply.addObjectHeader(OBJ_METADATA_PAYLOAD_MODIFIED, Boolean.FALSE);
@@ -76,10 +76,10 @@ public abstract class ResponseHandlerFactoryImpl implements ResponseHandlerFacto
       if (entity != null) {
         processEntity(entity, contentEncoding(entity), reply);
       }
-      reply = owner.getResponseHeaderHandler().handle(response, reply);
+      reply = owner.responseHeaderHandler().handle(response, reply);
       reply.addMetadata(
           new MetadataElement(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, String.valueOf(status)));
-      reply.addObjectHeader(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, Integer.valueOf(status));
+      reply.addObjectHeader(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE, status);
       return reply;
     }
 

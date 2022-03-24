@@ -1,5 +1,6 @@
 package com.adaptris.core.http.apache;
 
+import lombok.NoArgsConstructor;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 
@@ -10,20 +11,17 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 /**
  * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
  * response as object metadata to the {@link AdaptrisMessage}.
- * 
+ *
  * <p>The underlying {@link Header} object that will be added to object metadata and keyed by {@link Header#getName}. and will
  * include header fields where the name is {@code null};
  * </p>
  * @config apache-http-response-headers-as-object-metadata
  * @author lchan
- * 
+ *
  */
 @XStreamAlias("apache-http-response-headers-as-object-metadata")
+@NoArgsConstructor
 public class ResponseHeadersAsObjectMetadata extends ResponseHeadersAsMetadata {
-
-  public ResponseHeadersAsObjectMetadata() {
-
-  }
 
   public ResponseHeadersAsObjectMetadata(String prefix) {
     this();
@@ -31,7 +29,7 @@ public class ResponseHeadersAsObjectMetadata extends ResponseHeadersAsMetadata {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings({ "deprecation", "unchecked"} )
   public AdaptrisMessage handle(HttpResponse src, AdaptrisMessage msg) {
     Header[] headers = src.getAllHeaders();
     if (notNull(headers)) {

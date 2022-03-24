@@ -17,6 +17,9 @@ package com.adaptris.core.http.apache.request;
 
 import java.util.List;
 import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
@@ -44,18 +47,18 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config apache-http-basic-hmac-signature
  */
 @XStreamAlias("apache-http-basic-hmac-signature")
+@NoArgsConstructor
 public class BasicHMACSignature extends HMACSignatureImpl {
-  @NotBlank
+
+  /** The identity to use for the HMAC.
+   *
+   */
+  @NotBlank(message="identity may not be blank for HMAC generation")
+  @Getter
+  @Setter
   private String identity;
 
-  public String getIdentity() {
-    return identity;
-  }
-
-  public void setIdentity(String identity) {
-    this.identity = Args.notBlank(identity, "identity");
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends BasicHMACSignature> T withIdentity(String s) {
     setIdentity(s);
     return (T) this;

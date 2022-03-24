@@ -13,7 +13,7 @@ public interface ResponseHandlerFactory {
   /**
    * Key in object metadata that tells us if the payload has been modified by the ResponseHandler.
    */
-  public static final String OBJ_METADATA_PAYLOAD_MODIFIED =
+  String OBJ_METADATA_PAYLOAD_MODIFIED =
       ResponseHandler.class.getSimpleName() + "_modifiedPayload";
 
 
