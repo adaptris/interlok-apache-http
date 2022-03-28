@@ -21,9 +21,9 @@ import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
  * underlying {@link ScopedCredential} via the {@code CredentialsProvider#setCredentials(AuthScope, Credentials)}
  * method.</p>
  *
- * @config apache-default-credentials-provider-builder
+ * @config apache-http-default-credentials-provider-builder
  */
-@XStreamAlias("apache-default-credentials-provider-builder")
+@XStreamAlias("apache-http-default-credentials-provider-builder")
 @ComponentProfile(since = "4.5.0", summary = "Supports use of 'org.apache.http.client.CredentialsProvider'")
 @NoArgsConstructor
 public class DefaultCredentialsProviderBuilder implements CredentialsProviderBuilder {

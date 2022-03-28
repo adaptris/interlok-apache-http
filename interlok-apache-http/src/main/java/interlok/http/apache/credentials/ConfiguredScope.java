@@ -10,9 +10,9 @@ import org.apache.http.auth.AuthScope;
 
 /** An explicitly configured {@link AuthScope} builder.
  *
- * @config apache-configured-authentication-scope
+ * @config apache-http-configured-authentication-scope
  */
-@XStreamAlias("apache-configured-authentication-scope")
+@XStreamAlias("apache-http-configured-authentication-scope")
 @ComponentProfile(summary="Explicitly configured authentication scope")
 @NoArgsConstructor
 public class ConfiguredScope implements AuthScopeBuilder {

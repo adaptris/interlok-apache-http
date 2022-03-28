@@ -8,9 +8,9 @@ import org.apache.http.auth.AuthScope;
 /**
  * Returns {@code org.apache.http.auth.AuthScope#ANY} when requested to build a scope.
  *
- * @config apache-any-authentication-scope
+ * @config apache-http-any-authentication-scope
  */
-@XStreamAlias("apache-any-authentication-scope")
+@XStreamAlias("apache-http-any-authentication-scope")
 @ComponentProfile(summary="Any authentication scope")
 @NoArgsConstructor
 public class AnyScope implements AuthScopeBuilder {
