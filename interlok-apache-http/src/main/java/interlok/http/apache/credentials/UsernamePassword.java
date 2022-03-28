@@ -23,9 +23,9 @@ import org.apache.http.auth.UsernamePasswordCredentials;
  * blank username; there should be no reason why you would want to do that, so validation on the username field is set
  * to be {@code NotBlank}.
  * </p>
- * @config apache-username-password-credentials
+ * @config apache-http-username-password-credentials
  */
-@XStreamAlias("apache-username-password-credentials")
+@XStreamAlias("apache-http-username-password-credentials")
 @DisplayOrder(order = {"username", "password"})
 @ComponentProfile(summary = "Providers username+password credentials")
 @NoArgsConstructor
