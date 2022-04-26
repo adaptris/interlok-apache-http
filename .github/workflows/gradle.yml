@@ -29,4 +29,4 @@ jobs:
         gradle-version: wrapper
         arguments: check
     - name: codecov.io
-      uses: codecov/codecov-action@v3.0.0
+      uses: codecov/codecov-action@v3.1.0
