@@ -1,7 +1,8 @@
 package com.adaptris.core.http.apache;
 
+import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
+
 import com.adaptris.annotation.AdvancedConfig;
-import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
@@ -23,8 +24,10 @@ import com.adaptris.core.http.client.ResponseHeaderHandler;
 import com.adaptris.core.http.client.net.MetadataAuthorizationHeader;
 import com.adaptris.core.util.MessageHelper;
 import com.adaptris.interlok.util.Args;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import lombok.Getter;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -39,19 +42,15 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
-import static com.adaptris.core.http.apache.ResponseHandlerFactory.OBJ_METADATA_PAYLOAD_MODIFIED;
-
 /**
  * Abstract base class for all Apache HTTP producer classes.
  *
- * @author lchan
- *
  */
+@NoArgsConstructor
 public abstract class HttpProducer extends RequestReplyProducerImp {
+
+  private static final RequestMethodProvider DEFAULT_METHOD = new ConfiguredRequestMethodProvider(RequestMethod.POST);
+  private static final ConfiguredContentTypeProvider DEFAULT_CONTENT = new ConfiguredContentTypeProvider("text/plain");
 
   protected static final long DEFAULT_TIMEOUT = -1;
 
@@ -59,7 +58,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * Maps various methods supported by the Apache Http client.
    *
    */
-  public static enum HttpMethod {
+  public enum HttpMethod {
     DELETE {
       @Override
       public HttpRequestBase create(String url) {
@@ -117,10 +116,8 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * The default is {@code POST}
    * </p>
    */
-  @NotNull
-  @AutoPopulated
   @Valid
-  @NonNull
+  @InputFieldDefault(value = "POST")
   @Getter
   @Setter
   private RequestMethodProvider methodProvider;
@@ -133,13 +130,11 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    * </p>
    *
    */
-  @NotNull
   @Valid
-  @AutoPopulated
-  @AdvancedConfig
-  @NonNull
   @Getter
   @Setter
+  @AdvancedConfig
+  @InputFieldDefault(value = "text/plain")
   private ContentTypeProvider contentTypeProvider;
 
   /**
@@ -151,9 +146,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    */
   @AdvancedConfig
   @Valid
-  @NonNull
-  @NotNull
-  @AutoPopulated
   @Getter
   @Setter
   @InputFieldDefault(value = "discard response headers")
@@ -167,12 +159,9 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *
    */
   @AdvancedConfig
-  @Valid
-  @NotNull
-  @AutoPopulated
-  @NonNull
   @Getter
   @Setter
+  @Valid
   private RequestHeaderProvider<HttpRequestBase> requestHeaderProvider;
 
   /**
@@ -189,9 +178,9 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
    *
    */
   @AdvancedConfig
-  @InputFieldDefault(value = "false")
   @Getter
   @Setter
+  @InputFieldDefault(value = "false")
   private Boolean ignoreServerResponseCode;
   /**
    * Set the authentication method to use for the HTTP request
@@ -231,14 +220,6 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   @NotBlank
   private String url;
 
-  public HttpProducer() {
-    super();
-    setContentTypeProvider(new ConfiguredContentTypeProvider());
-    setResponseHeaderHandler(new DiscardResponseHeaders());
-    setRequestHeaderProvider(new NoOpRequestHeaders());
-    setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.POST));
-  }
-
   /**
    *
    * @see com.adaptris.core.RequestReplyProducerImp#defaultTimeout()
@@ -254,7 +235,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   }
 
   protected HttpMethod getMethod(AdaptrisMessage msg) {
-    RequestMethod m = getMethodProvider().getMethod(msg);
+    RequestMethod m = methodProvider().getMethod(msg);
     log.trace("HTTP Request Method is : [{}]", m);
     return HttpMethod.valueOf(m.name());
   }
@@ -278,9 +259,26 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
     return msg.resolve(getUrl());
   }
 
+  @SuppressWarnings("unchecked")
   public <T extends HttpProducer> T withURL(String s) {
     setUrl(s);
     return (T) this;
+  }
+
+  protected ResponseHeaderHandler<HttpResponse> responseHeaderHandler() {
+    return ObjectUtils.defaultIfNull(getResponseHeaderHandler(), new DiscardResponseHeaders());
+  }
+
+  protected RequestHeaderProvider<HttpRequestBase> requestHeaderProvider() {
+    return ObjectUtils.defaultIfNull(getRequestHeaderProvider(), new NoOpRequestHeaders());
+  }
+
+  protected RequestMethodProvider methodProvider() {
+    return ObjectUtils.defaultIfNull(getMethodProvider(), DEFAULT_METHOD);
+  }
+
+  protected ContentTypeProvider contentTypeProvider() {
+    return ObjectUtils.defaultIfNull(getContentTypeProvider(), DEFAULT_CONTENT);
   }
 
   /**
@@ -291,7 +289,7 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
   protected void preserveRequestPayload(AdaptrisMessage request, AdaptrisMessage response)
       throws Exception {
     boolean responseModifiedPayload =
-        ((Boolean) response.getObjectHeaders().get(OBJ_METADATA_PAYLOAD_MODIFIED)).booleanValue();
+        (Boolean) response.getObjectHeaders().get(OBJ_METADATA_PAYLOAD_MODIFIED);
     if (!responseModifiedPayload) {
       MessageHelper.copyPayload(request, response);
     }

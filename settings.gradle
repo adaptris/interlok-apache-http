@@ -1,3 +1,4 @@
 rootProject.name = 'interlok-apache-http-parent'
 include 'interlok-apache-http'
 include 'interlok-apache-http5'
+include 'interlok-apache-http-async'

@@ -1,5 +1,6 @@
 package com.adaptris.core.http.apache;
 
+import lombok.NoArgsConstructor;
 import org.apache.http.HttpResponse;
 
 import com.adaptris.core.AdaptrisMessage;
@@ -8,11 +9,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * {@link ResponseHeaderHandler} implementation that discards the headers from the HTTP response.
- * 
- * @author lchan
+ *
  * @config apache-http-discard-response-headers
  */
 @XStreamAlias("apache-http-discard-response-headers")
+@NoArgsConstructor
 public class DiscardResponseHeaders implements ResponseHeaderHandler<HttpResponse> {
 
   @Override

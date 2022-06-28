@@ -1,5 +1,7 @@
 package com.adaptris.core.http.apache;
 
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -13,6 +15,10 @@ import com.adaptris.core.http.auth.HttpAuthenticator;
 import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import javax.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,13 +29,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-
-import javax.validation.Valid;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-
-import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 
 /**
  * Producer implementation that uses the Apache HTTP Client as the underlying transport.
@@ -88,7 +87,7 @@ public class ApacheHttpProducer extends HttpProducer {
         if (auth instanceof ApacheRequestAuthenticator) {
           ((ApacheRequestAuthenticator) auth).configure(httpOperation);
         }
-        addData(msg, getRequestHeaderProvider().addHeaders(msg, httpOperation));
+        addData(msg, requestHeaderProvider().addHeaders(msg, httpOperation));
         reply =
             httpclient.execute(httpOperation, responseHandlerFactory().createResponseHandler(this));
         preserveRequestPayload(msg, reply);
@@ -119,7 +118,7 @@ public class ApacheHttpProducer extends HttpProducer {
   private HttpRequestBase addData(AdaptrisMessage msg, HttpRequestBase base) throws IOException,
       CoreException {
     if (base instanceof HttpEntityEnclosingRequestBase) {
-      AdaptrisMessageEntity entity = new AdaptrisMessageEntity(msg, getContentTypeProvider());
+      AdaptrisMessageEntity entity = new AdaptrisMessageEntity(msg, contentTypeProvider());
       ((HttpEntityEnclosingRequestBase) base).setEntity(entity);
     }
     return base;
@@ -127,9 +126,9 @@ public class ApacheHttpProducer extends HttpProducer {
 
   protected class ApacheResourceTargetMatcher implements ResourceTargetMatcher {
 
-    private URI uri;
-    private String host;
-    private int port;
+    private final URI uri;
+    private final String host;
+    private final int port;
 
     protected ApacheResourceTargetMatcher(URI uri) {
       this.uri = uri;
@@ -178,7 +177,7 @@ public class ApacheHttpProducer extends HttpProducer {
           rc = uri.toURL().sameFile(target.getRequestingURL());
         }
       }
-      catch (MalformedURLException e) {
+      catch (MalformedURLException ignored) {
 
       }
       return rc;

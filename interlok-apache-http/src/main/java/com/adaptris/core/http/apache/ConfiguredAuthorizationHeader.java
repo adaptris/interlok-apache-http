@@ -1,14 +1,16 @@
 package com.adaptris.core.http.apache;
 
-import javax.validation.constraints.NotBlank;
-import org.apache.http.client.methods.HttpRequestBase;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.auth.ResourceTargetMatcher;
-import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.http.client.methods.HttpRequestBase;
 
 /**
  * Build an {@link HttpConstants#AUTHORIZATION} header from static data.
@@ -16,33 +18,20 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config apache-http-configured-authorization-header
  */
 @XStreamAlias("apache-http-configured-authorization-header")
+@NoArgsConstructor
 public class ConfiguredAuthorizationHeader implements ApacheRequestAuthenticator {
 
-  @NotBlank
+  @Getter
+  @Setter
+  @NotBlank(message="Authorization Header Value should not be blank")
   @InputFieldHint(expression = true)
   private String headerValue;
 
   private transient String actualHeaderValue;
 
-  public ConfiguredAuthorizationHeader() {
-
-  }
-
   public ConfiguredAuthorizationHeader(String value) {
     this();
     setHeaderValue(value);
-  }
-
-  public String getHeaderValue() {
-    return headerValue;
-  }
-
-  /**
-   * The value for the authorization header
-   * @param headerValue
-   */
-  public void setHeaderValue(String headerValue) {
-    this.headerValue = Args.notBlank(headerValue, "headerValue");
   }
 
   @Override

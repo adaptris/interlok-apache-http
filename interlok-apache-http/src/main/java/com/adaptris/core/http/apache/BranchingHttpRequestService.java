@@ -78,7 +78,7 @@ public class BranchingHttpRequestService extends HttpRequestServiceImpl {
    * Set the {@code nextServiceId} based on these evaluators.
    *
    */
-  @NotNull
+  @NotNull(message="List of HTTP response code evaluators may not be null")
   @AutoPopulated
   @Valid
   @XStreamImplicit
@@ -100,7 +100,7 @@ public class BranchingHttpRequestService extends HttpRequestServiceImpl {
 
   public BranchingHttpRequestService() {
     super();
-    setStatusMatches(new ArrayList<StatusEvaluator>());
+    setStatusMatches(new ArrayList<>());
   }
 
   public BranchingHttpRequestService(String url) {
@@ -124,8 +124,8 @@ public class BranchingHttpRequestService extends HttpRequestServiceImpl {
     p.setIgnoreServerResponseCode(true);
     try {
       LifecycleHelper.initAndStart(p).request(msg);
-      Optional.ofNullable(getDefaultServiceId()).ifPresent((s) -> msg.setNextServiceId(s));
-      int responseCode = ((Integer) msg.getObjectHeaders().get(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE)).intValue();
+      Optional.ofNullable(getDefaultServiceId()).ifPresent(msg::setNextServiceId);
+      int responseCode = (Integer) msg.getObjectHeaders().get(CoreConstants.HTTP_PRODUCER_RESPONSE_CODE);
       for (StatusEvaluator rp : getStatusMatches()) {
         if (rp.matches(responseCode)) {
           msg.setNextServiceId(rp.serviceId());

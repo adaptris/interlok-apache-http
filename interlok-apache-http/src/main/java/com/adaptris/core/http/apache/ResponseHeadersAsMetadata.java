@@ -1,6 +1,11 @@
 package com.adaptris.core.http.apache;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
@@ -12,21 +17,22 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 /**
  * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
  * response as metadata to the {@link AdaptrisMessage}.
- * 
+ *
  * @config apache-http-response-headers-as-metadata
  * @author lchan
- * 
+ *
  */
 @XStreamAlias("apache-http-response-headers-as-metadata")
+@NoArgsConstructor
 public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResponse> {
 
   protected transient Logger log = LoggerFactory.getLogger(this.getClass());
 
+  /** The metadata prefix to add to any metadata recorded from the HTTP response headers.
+   */
+  @Getter
+  @Setter
   private String metadataPrefix;
-
-  public ResponseHeadersAsMetadata() {
-
-  }
 
   public ResponseHeadersAsMetadata(String prefix) {
     this();
@@ -51,20 +57,7 @@ public class ResponseHeadersAsMetadata implements ResponseHeaderHandler<HttpResp
     return defaultIfEmpty(getMetadataPrefix(), "") + header;
   }
 
-  public String getMetadataPrefix() {
-    return metadataPrefix;
-  }
-
-  public void setMetadataPrefix(String metadataPrefix) {
-    this.metadataPrefix = metadataPrefix;
-  }
-
-
   protected static boolean notNull(Object[] o) {
-    boolean result = true;
-    if (o == null || o.length == 0) {
-      result = false;
-    }
-    return result;
+    return ArrayUtils.isNotEmpty(o);
   }
 }

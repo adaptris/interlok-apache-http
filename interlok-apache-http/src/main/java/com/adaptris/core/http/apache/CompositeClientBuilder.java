@@ -1,12 +1,12 @@
 /*
  * Copyright 2018 Adaptris Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,21 +15,23 @@
 */
 package com.adaptris.core.http.apache;
 
+import com.adaptris.annotation.AutoPopulated;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 import org.apache.http.impl.client.HttpClientBuilder;
-
-import com.adaptris.core.util.Args;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
  * {@link HttpClientBuilderConfigurator} implementation that wraps a list of implementations.
- * 
+ *
  * @config composite-apache-http-client-builder
  * @see CustomTlsBuilder
  * @see DefaultClientBuilder
@@ -37,24 +39,22 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * @see RequestInterceptorClientBuilder
  */
 @XStreamAlias("composite-apache-http-client-builder")
+@NoArgsConstructor
 public class CompositeClientBuilder implements HttpClientBuilderConfigurator {
 
-  @NotNull
+  /** The list of builders that will be used in turn to configure the {@code HttpClientBuilder}.
+   *
+   */
+  @NotNull(message="Use an empty list of builders, not null")
+  @NonNull
   @XStreamImplicit
-  private List<HttpClientBuilderConfigurator> builders;
+  @Valid
+  @Getter
+  @Setter
+  @AutoPopulated
+  private List<HttpClientBuilderConfigurator> builders = new ArrayList<>();
 
-  public CompositeClientBuilder() {
-    setBuilders(new ArrayList<>());
-  }
-
-  public List<HttpClientBuilderConfigurator> getBuilders() {
-    return builders;
-  }
-
-  public void setBuilders(List<HttpClientBuilderConfigurator> list) {
-    this.builders = Args.notNull(list, "builders");
-  }
-
+  @SuppressWarnings("unchecked")
   public <T extends CompositeClientBuilder> T withBuilders(HttpClientBuilderConfigurator... builders) {
     this.builders = new ArrayList<>(Arrays.asList(builders));
     return (T) this;
