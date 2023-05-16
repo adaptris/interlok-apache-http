@@ -1,26 +1,27 @@
 package interlok.http.apache.credentials;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.adaptris.security.exc.PasswordException;
 import java.util.Locale;
+
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import com.adaptris.security.exc.PasswordException;
 
 public class TestCredentialsBuilder {
 
   @Test
   public void testProviderBuilder() {
     DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(
-        new ScopedCredential().withScope(new AnyScope())
-            .withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword"))
-    );
+        new ScopedCredential().withScope(new AnyScope()).withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword")));
     assertNotNull(builder.build());
     assertTrue(CredentialsProvider.class.isAssignableFrom(builder.build().getClass()));
   }
@@ -28,9 +29,7 @@ public class TestCredentialsBuilder {
   @Test
   public void testCredentialsProvider() {
     DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(
-        new ScopedCredential().withScope(new AnyScope())
-            .withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword"))
-    );
+        new ScopedCredential().withScope(new AnyScope()).withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword")));
     CredentialsProvider provider = builder.build();
     Credentials creds = provider.getCredentials(AuthScope.ANY);
     assertEquals(UsernamePasswordCredentials.class, creds.getClass());
@@ -38,13 +37,12 @@ public class TestCredentialsBuilder {
     assertEquals("myPassword", creds.getPassword());
   }
 
-  @Test(expected= PasswordException.class)
+  @Test
   public void testCredentialsProvider_BadPassword() throws Exception {
-    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(
-        new ScopedCredential().withScope(new AnyScope())
-            .withCredentials(new UsernamePassword().withCredentials("myUser", "AES_GCM:myPassword"))
-    );
-    builder.build();
+    DefaultCredentialsProviderBuilder builder = new DefaultCredentialsProviderBuilder().withScopedCredentials(new ScopedCredential()
+        .withScope(new AnyScope()).withCredentials(new UsernamePassword().withCredentials("myUser", "AES_GCM:myPassword")));
+
+    assertThrows(PasswordException.class, () -> builder.build());
   }
 
   @Test
@@ -66,9 +64,7 @@ public class TestCredentialsBuilder {
     ClientBuilderWithCredentials builder = new ClientBuilderWithCredentials();
     assertNotNull(builder.configure(HttpClients.custom()));
     DefaultCredentialsProviderBuilder credsProvider = new DefaultCredentialsProviderBuilder().withScopedCredentials(
-        new ScopedCredential().withScope(new AnyScope())
-            .withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword"))
-    );
+        new ScopedCredential().withScope(new AnyScope()).withCredentials(new UsernamePassword().withCredentials("myUser", "myPassword")));
     assertNotNull(builder.withProvider(credsProvider).configure(HttpClients.custom()));
   }
 

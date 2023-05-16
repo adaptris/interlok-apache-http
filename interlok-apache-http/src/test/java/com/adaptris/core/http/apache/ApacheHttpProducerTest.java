@@ -11,12 +11,17 @@ import static com.adaptris.core.http.apache.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -24,7 +29,6 @@ import com.adaptris.core.Channel;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.DefaultMessageFactory;
 import com.adaptris.core.MetadataElement;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
@@ -62,18 +66,17 @@ import com.adaptris.core.services.metadata.PayloadFromTemplateService;
 import com.adaptris.core.stubs.MockMessageProducer;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.GuidGeneratorWithTime;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 import com.adaptris.util.text.Conversion;
+
 import interlok.http.apache.credentials.AnyScope;
 import interlok.http.apache.credentials.ClientBuilderWithCredentials;
 import interlok.http.apache.credentials.DefaultCredentialsProviderBuilder;
 import interlok.http.apache.credentials.ScopedCredential;
 import interlok.http.apache.credentials.UsernamePassword;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import org.junit.Test;
 
 @SuppressWarnings("deprecation")
 public class ApacheHttpProducerTest extends ExampleProducerCase {
@@ -92,7 +95,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     assertFalse(p.ignoreServerResponseCode());
   }
 
-
   @Test
   public void testSetRequestHandler() throws Exception {
     ApacheHttpProducer p = new ApacheHttpProducer();
@@ -101,7 +103,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     p.setRequestHeaderProvider(new MetadataRequestHeaders(new RemoveAllMetadataFilter()));
     assertEquals(MetadataRequestHeaders.class, p.getRequestHeaderProvider().getClass());
   }
-
 
   @Test
   public void testSetResponseHandler() throws Exception {
@@ -112,15 +113,13 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     assertEquals(ResponseHeadersAsMetadata.class, p.getResponseHeaderHandler().getClass());
   }
 
-  private static void doAuthenticatedProduce(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg)
-      throws Exception {
-    Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO),
-        mock);
+  private static void doAuthenticatedProduce(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
+    Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO), mock);
     try {
       start(c);
       http.setUrl(createURL(c));
       StandaloneProducer producer = new StandaloneProducer(http);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -132,7 +131,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     http.setUrl(createURL(c));
     StandaloneProducer producer = new StandaloneProducer(http);
     try {
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -144,22 +143,20 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     http.setUrl(createURL(c));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     try {
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
     }
   }
 
-  private static void doAuthenticatedRequest(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg)
-      throws Exception {
-    Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO),
-        mock);
+  private static void doAuthenticatedRequest(MockMessageProducer mock, ApacheHttpProducer http, AdaptrisMessage msg) throws Exception {
+    Channel c = JettyHelper.createChannel(createConnection(createSecurityWrapper()), JettyHelper.createConsumer(URL_TO_POST_TO), mock);
     http.setUrl(createURL(c));
     StandaloneRequestor producer = new StandaloneRequestor(http);
     try {
       start(c);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -212,9 +209,8 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
   public void testProduce_With_HMAC() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
-    BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyIdentity").withHeaders("Date")
-        .withSecretKey("MySecretKey").withTargetHeader("hmac").withEncoding(Encoding.BASE64)
-        .withHmacAlgorithm(Algorithm.HMAC_SHA256);
+    BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyIdentity").withHeaders("Date").withSecretKey("MySecretKey")
+        .withTargetHeader("hmac").withEncoding(Encoding.BASE64).withHmacAlgorithm(Algorithm.HMAC_SHA256);
     CompositeClientBuilder builder = new CompositeClientBuilder().withBuilders(new DefaultClientBuilder(),
         new RequestInterceptorClientBuilder().withInterceptors(new DateHeader(), hmac));
     http.setClientConfig(builder);
@@ -263,14 +259,13 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
     }
     assertEquals("UTF-8", msg.getContentEncoding());
   }
-
 
   @Test
   public void testProduce_ReplyHasNoData() throws Exception {
@@ -290,7 +285,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -346,17 +341,15 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     ServiceList services = new ServiceList();
     services.add(new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)));
     Channel c = createChannel(jc, createWorkflow(mc, mock, services));
-    StandaloneRequestor producer =
-        new StandaloneRequestor(new ApacheHttpProducer().withURL(createURL(c)));
+    StandaloneRequestor producer = new StandaloneRequestor(new ApacheHttpProducer().withURL(createURL(c)));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       fail();
     } catch (ServiceException expected) {
 
-    }
-    finally {
+    } finally {
       stopAndRelease(c);
       stop(producer);
     }
@@ -379,7 +372,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -409,7 +402,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
   }
-
 
   @Test
   public void testProduce_WithUsernamePassword_BadCredentials() throws Exception {
@@ -446,8 +438,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
       http.setAuthenticator(acl);
       doAuthenticatedProduce(mock, http, msg);
       doAssertions(mock, true);
-    }
-    finally {
+    } finally {
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -465,8 +456,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
       http.setAuthenticator(acl);
       doAuthenticatedProduce(mock, http, msg);
       doAssertions(mock, true);
-    }
-    finally {
+    } finally {
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
@@ -479,22 +469,19 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     Thread.currentThread().setName(getName());
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
-    ClientBuilderWithCredentials clientConfig = new ClientBuilderWithCredentials().withProvider(new DefaultCredentialsProviderBuilder().withScopedCredentials(
-        new ScopedCredential().withScope(new AnyScope())
-            .withCredentials(new UsernamePassword().withCredentials("user", "password"))
-    ));
+    ClientBuilderWithCredentials clientConfig = new ClientBuilderWithCredentials()
+        .withProvider(new DefaultCredentialsProviderBuilder().withScopedCredentials(
+            new ScopedCredential().withScope(new AnyScope()).withCredentials(new UsernamePassword().withCredentials("user", "password"))));
     http.setClientConfig(clientConfig);
     try {
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(TEXT);
       doAuthenticatedRequest(mock, http, msg);
       doAssertions(mock, true);
-    }
-    finally {
+    } finally {
       Thread.currentThread().setName(threadName);
       assertEquals(0, AdapterResourceAuthenticator.getInstance().currentAuthenticators().size());
     }
   }
-
 
   @Test
   public void testRequest_WithReplyAsMetadata() throws Exception {
@@ -515,7 +502,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
-      ServiceCase.execute(requestor, msg);
+      ExampleServiceCase.execute(requestor, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -526,7 +513,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     assertEquals(TEXT, msg.getMetadataValue(getName()));
   }
 
-
   // INTERLOK-2682
   @Test
   public void test_ReplyMetadata_ShouldNotOverwrite() throws Exception {
@@ -535,12 +521,10 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
     ServiceList sl = new ServiceList();
-    sl.add(new AddMetadataService(
-        List.of(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
+    sl.add(new AddMetadataService(List.of(new MetadataElement(getName(), "text/plain; charset=UTF-8"))));
     // Should at least return "getName()" as a metadata key...
-    sl.add(new JettyResponseService().withContentType("%message{" + getName() + "}")
-        .withHttpStatus("200").withResponseHeaderProvider(
-            new MetadataResponseHeaderProvider(new NoOpMetadataFilter())));
+    sl.add(new JettyResponseService().withContentType("%message{" + getName() + "}").withHttpStatus("200")
+        .withResponseHeaderProvider(new MetadataResponseHeaderProvider(new NoOpMetadataFilter())));
     Channel c = LifecycleHelper.initAndStart(createChannel(jc, createWorkflow(mc, mock, sl)));
 
     ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
@@ -549,7 +533,7 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     msg.addMetadata(getName(), "original metadata value that should get overwritten");
     try {
-      ServiceCase.execute(requestor, msg);
+      ExampleServiceCase.execute(requestor, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
@@ -557,7 +541,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     assertTrue(msg.headersContainsKey(getName()));
     assertEquals("text/plain; charset=UTF-8", msg.getMetadataValue(getName()));
   }
-
 
   @Test
   public void testRequest_ExpectHeader() throws Exception {
@@ -577,22 +560,19 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
 
     ApacheHttpProducer http = new ApacheHttpProducer().withURL(createURL(c));
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
-    http.setRequestHeaderProvider(
-        new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
+    http.setRequestHeaderProvider(new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
     StandaloneRequestor requestor = new StandaloneRequestor(http);
     requestor.setReplyTimeout(new TimeInterval(60L, TimeUnit.SECONDS));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
 
     try {
-      ServiceCase.execute(requestor, msg);
+      ExampleServiceCase.execute(requestor, msg);
       assertEquals(TEXT, msg.getContent());
-    }
-    finally {
+    } finally {
       stopAndRelease(c);
       Thread.currentThread().setName(threadName);
     }
   }
-
 
   // This is INTERLOK-3396 effectively. Send data, but put the reply into metadata.
   @Test
@@ -615,21 +595,19 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage(TEXT);
     try {
       start(c);
-      ServiceCase.execute(producer, msg);
+      ExampleServiceCase.execute(producer, msg);
       waitForMessages(mock, 1);
     } finally {
       stopAndRelease(c);
     }
-    assertTrue(msg.containsKey("httpReplyPayload"));
+    assertTrue(msg.headersContainsKey("httpReplyPayload"));
     assertEquals(responseText, msg.getMetadataValue("httpReplyPayload"));
     assertEquals(TEXT, msg.getContent());
   }
 
-
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
-    ApacheHttpProducer producer =
-        new ApacheHttpProducer().withURL("http://myhost.com/url/to/post/to");
+    ApacheHttpProducer producer = new ApacheHttpProducer().withURL("http://myhost.com/url/to/post/to");
     producer.setAuthenticator(new ConfiguredUsernamePassword("user", "password"));
     producer.setClientConfig(new CompositeClientBuilder().withBuilders(new DefaultClientBuilder().withProxy("http://my.proxy:3128"),
         new CustomTlsBuilder().withHostnameVerification(HostnameVerification.NONE), new NoConnectionManagement(),

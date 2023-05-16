@@ -14,14 +14,17 @@
  * limitations under the License.
 */
 package com.adaptris.core.http.apache;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.apache.http.impl.client.HttpClients;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
@@ -59,9 +62,7 @@ public class CustomTlsBuilderTest extends BaseCase {
 
   @Test
   public void testBuilder_WithKeystores() throws Exception {
-    String keystore = PROPERTIES.getProperty(KEY_KEYSTORE);
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreType = PROPERTIES.getProperty(KEY_KEYSTORE_TYPE);
     String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
 
     String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
@@ -77,9 +78,7 @@ public class CustomTlsBuilderTest extends BaseCase {
 
   @Test
   public void testBuilder_WithKeystores_NoPassword() throws Exception {
-    String keystore = PROPERTIES.getProperty(KEY_KEYSTORE);
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreType = PROPERTIES.getProperty(KEY_KEYSTORE_TYPE);
     String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
 
     String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
@@ -114,8 +113,8 @@ public class CustomTlsBuilderTest extends BaseCase {
 
   @Test
   public void testBuilder_WithCipherSuites() throws Exception {
-    CustomTlsBuilder http = new CustomTlsBuilder().withCipherSuites(
-        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
+    CustomTlsBuilder http = new CustomTlsBuilder()
+        .withCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 

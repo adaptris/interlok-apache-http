@@ -1,12 +1,12 @@
 package com.adaptris.core.http.apache;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.net.URL;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.http.ResourceAuthenticator.ResourceTarget;
 
@@ -41,10 +41,10 @@ public class ApacheResourceTargetMatcherTest extends ApacheHttpProducer {
     String url = "http://localhost/path/to/index.html";
     ApacheResourceTargetMatcher matcher = new ApacheResourceTargetMatcher(new URI(url));
     assertTrue(matcher.matches(new ResourceTarget().withRequestingHost("localhost").withRequestingPort(80).withRequestingScheme("http")));
-    assertFalse(matcher
-        .matches(new ResourceTarget().withRequestingHost("localhost").withRequestingPort(8080).withRequestingScheme("http")));
-    assertFalse(matcher
-        .matches(new ResourceTarget().withRequestingHost("microsoft.com").withRequestingPort(80).withRequestingScheme("http")));
+    assertFalse(
+        matcher.matches(new ResourceTarget().withRequestingHost("localhost").withRequestingPort(8080).withRequestingScheme("http")));
+    assertFalse(
+        matcher.matches(new ResourceTarget().withRequestingHost("microsoft.com").withRequestingPort(80).withRequestingScheme("http")));
   }
 
 }

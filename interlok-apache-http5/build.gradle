@@ -40,7 +40,6 @@ task deleteGeneratedFiles(type: Delete) {
   delete delombokTargetDir, "derby.log"
 }
 
-
 artifacts {
   archives javadocJar
   archives examplesJar

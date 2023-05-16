@@ -22,16 +22,16 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.impl.client.HttpClientBuilder;
 
-import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.http.apache.request.RequestInterceptorBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * {@link HttpClientBuilderConfigurator} instance that allows additional {@code HttpRequestInterceptor} instances to be added to the
@@ -43,7 +43,8 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 @NoArgsConstructor
 public class RequestInterceptorClientBuilder implements HttpClientBuilderConfigurator {
 
-  /** Additional request interceptors that will be added to the {@link HttpClientBuilder}.
+  /**
+   * Additional request interceptors that will be added to the {@link HttpClientBuilder}.
    *
    */
   @Getter

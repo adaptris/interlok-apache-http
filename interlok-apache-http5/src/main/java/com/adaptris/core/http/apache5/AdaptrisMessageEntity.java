@@ -1,15 +1,16 @@
 package com.adaptris.core.http.apache5;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreException;
-import com.adaptris.core.http.ContentTypeProvider;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
 import org.apache.hc.core5.util.Args;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.CoreException;
+import com.adaptris.core.http.ContentTypeProvider;
 
 /**
  * A streamed, repeatable entity that obtains its content from the associated
@@ -25,7 +26,6 @@ public final class AdaptrisMessageEntity extends AbstractHttpEntity {
     super(Args.notNull(contentType, "Content Type").getContentType(msg), null, false);
     this.msg = Args.notNull(msg, "AdaptrisMessage");
   }
-
 
   @Override
   public boolean isRepeatable() {
@@ -58,8 +58,7 @@ public final class AdaptrisMessageEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public void close() throws IOException
-  {
-
+  public void close() throws IOException {
   }
+  
 }
