@@ -24,21 +24,23 @@ import static com.adaptris.core.http.apache5.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache5.JettyHelper.createURL;
 import static com.adaptris.core.http.apache5.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache5.JettyHelper.stopAndRelease;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.Channel;
 import com.adaptris.core.CoreConstants;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.DefaultMessageFactory;
-import com.adaptris.core.Service;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
 import com.adaptris.core.StandaloneProducer;
@@ -62,6 +64,7 @@ import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.TimeInterval;
 
 public class HttpRequestServiceTest extends ExampleServiceCase {
+
   private static final String TEXT = "ABCDEFG";
 
   @Test
@@ -85,10 +88,8 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
-    Channel c = createChannel(jc,
-        createWorkflow(mc, mock,
-            new ServiceList(new Service[] {new PayloadFromTemplateService().withTemplate(TEXT),
-                new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200))})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new PayloadFromTemplateService().withTemplate(TEXT),
+        new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)))));
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setClientConfig(new NoConnectionManagement());
@@ -149,16 +150,13 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     assertEquals(getName(), m2.getMetadataValue(getName()));
   }
 
-
   @Test
   public void testService_WithMetadataMethod() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
-    Channel c = createChannel(jc,
-        createWorkflow(mc, mock,
-            new ServiceList(new Service[] {new PayloadFromTemplateService().withTemplate(TEXT),
-                new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200))})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new PayloadFromTemplateService().withTemplate(TEXT),
+        new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)))));
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("%message{httpMethod}");
@@ -177,16 +175,13 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     assertEquals(TEXT, msg.getContent());
   }
 
-
   @Test
   public void testRequest_GetMethod_ZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
-    Channel c = createChannel(jc,
-        createWorkflow(mc, mock,
-            new ServiceList(new Service[] {new PayloadFromTemplateService().withTemplate(TEXT),
-                new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200))})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new PayloadFromTemplateService().withTemplate(TEXT),
+        new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)))));
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("GET");
@@ -209,10 +204,8 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
-    Channel c = createChannel(jc,
-        createWorkflow(mc, mock,
-            new ServiceList(new Service[] {new PayloadFromTemplateService().withTemplate(TEXT),
-                new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200))})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new PayloadFromTemplateService().withTemplate(TEXT),
+        new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)))));
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("POST");
@@ -237,8 +230,7 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
     StandardResponseProducer responder = new StandardResponseProducer(HttpStatus.OK_200);
     responder.setSendPayload(false);
-    Channel c = createChannel(jc, createWorkflow(mc, mock,
-        new ServiceList(new Service[] {new StandaloneProducer(responder)})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new StandaloneProducer(responder))));
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("POST");
@@ -256,8 +248,6 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     assertEquals("POST", m2.getMetadataValue(CoreConstants.HTTP_METHOD));
     assertEquals(0, msg.getSize());
   }
-
-
 
   @Test
   public void testRequest_MetadataResponseHeaders() throws Exception {
@@ -307,7 +297,6 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     assertNotEquals("Hello World", msg.getMetadataValue("Server"));
   }
 
-
   @Test
   public void testRequest_ObjectMetadataResponseHeaders() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
@@ -331,16 +320,13 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     assertTrue(msg.getObjectHeaders().containsKey("Server"));
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void testRequest_GetMethod_NonZeroBytes() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
-    Channel c = createChannel(jc,
-        createWorkflow(mc, mock,
-            new ServiceList(new Service[] {new PayloadFromTemplateService().withTemplate(TEXT),
-                new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200))})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new PayloadFromTemplateService().withTemplate(TEXT),
+        new StandaloneProducer(new StandardResponseProducer(HttpStatus.OK_200)))));
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("GET");
@@ -364,10 +350,8 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     HttpConnection jc = createConnection();
     JettyMessageConsumer mc = createConsumer(URL_TO_POST_TO);
 
-    Channel c = createChannel(jc,
-        createWorkflow(mc, mock, new ServiceList(new Service[] {
-            new PayloadFromTemplateService().withTemplate(TEXT),
-            new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401))})));
+    Channel c = createChannel(jc, createWorkflow(mc, mock, new ServiceList(new PayloadFromTemplateService().withTemplate(TEXT),
+        new StandaloneProducer(new StandardResponseProducer(HttpStatus.UNAUTHORIZED_401)))));
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("GET");
 
@@ -396,8 +380,7 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
     Thread.currentThread().setName(getName());
 
     ConfigurableSecurityHandler csh = new ConfigurableSecurityHandler();
-    HashLoginServiceFactory hsl =
-        new HashLoginServiceFactory("InterlokJetty", PROPERTIES.getProperty(JETTY_USER_REALM));
+    HashLoginServiceFactory hsl = new HashLoginServiceFactory("InterlokJetty", PROPERTIES.getProperty(JETTY_USER_REALM));
     csh.setLoginService(hsl);
     SecurityConstraint securityConstraint = new SecurityConstraint();
     securityConstraint.setMustAuthenticate(true);
@@ -445,8 +428,7 @@ public class HttpRequestServiceTest extends ExampleServiceCase {
 
     HttpRequestService service = new HttpRequestService(createURL(c));
     service.setMethod("GET");
-    service.setRequestHeaderProvider(new ConfiguredRequestHeaders()
-        .withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
+    service.setRequestHeaderProvider(new ConfiguredRequestHeaders().withHeaders(new KeyValuePair(HttpConstants.EXPECT, "102-Processing")));
     AdaptrisMessage msg = new DefaultMessageFactory().newMessage("Hello World");
 
     try {

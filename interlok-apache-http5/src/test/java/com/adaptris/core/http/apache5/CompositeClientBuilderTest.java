@@ -16,9 +16,9 @@
 package com.adaptris.core.http.apache5;
 
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CompositeClientBuilderTest {
 

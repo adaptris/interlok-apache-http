@@ -3,15 +3,19 @@ package com.adaptris.core.http.apache;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 import com.adaptris.core.util.Args;
 
 public abstract class RequestHeadersCase {
 
-  @Rule
-  public TestName testName = new TestName();
+  private TestInfo testInfo;
+
+  @BeforeEach
+  public void beforeTests(TestInfo info) {
+    testInfo = info;
+  }
 
   protected static boolean contains(HttpRequestBase request, String headerKey, String headerValue) {
     boolean matched = false;
@@ -27,4 +31,9 @@ public abstract class RequestHeadersCase {
     }
     return matched;
   }
+
+  public String getName() {
+    return testInfo.getDisplayName().substring(0, testInfo.getDisplayName().indexOf("("));
+  }
+
 }

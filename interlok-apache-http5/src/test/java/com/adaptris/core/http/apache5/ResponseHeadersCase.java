@@ -1,7 +1,7 @@
 package com.adaptris.core.http.apache5;
 
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataElement;
@@ -9,8 +9,12 @@ import com.adaptris.core.util.Args;
 
 public abstract class ResponseHeadersCase {
 
-  @Rule
-  public TestName testName = new TestName();
+  private TestInfo testInfo;
+
+  @BeforeEach
+  public void beforeTests(TestInfo info) {
+    testInfo = info;
+  }
 
   protected static boolean contains(AdaptrisMessage request, String headerKey, String headerValue) {
     boolean matched = false;
@@ -24,4 +28,9 @@ public abstract class ResponseHeadersCase {
     }
     return matched;
   }
+
+  public String getName() {
+    return testInfo.getDisplayName().substring(0, testInfo.getDisplayName().indexOf("("));
+  }
+
 }

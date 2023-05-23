@@ -296,4 +296,5 @@ public abstract class HttpProducer extends RequestReplyProducerImp {
       MessageHelper.copyPayload(request, response);
     }
   }
+  
 }

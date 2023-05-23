@@ -15,13 +15,16 @@
 */
 
 package com.adaptris.core.http.apache;
+
 import static com.adaptris.core.http.apache.JettyHelper.createAndStartChannel;
 import static com.adaptris.core.http.apache.JettyHelper.createURL;
 import static com.adaptris.core.http.apache.JettyHelper.stopAndRelease;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.Test;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.BranchingServiceCollection;
 import com.adaptris.core.Channel;
@@ -59,11 +62,9 @@ public class BranchingHttpRequestServiceTest extends ExampleServiceCase {
       c.requestStart();
       execute(service, msg);
       fail();
-    }
-    catch (ServiceException expected) {
+    } catch (ServiceException expected) {
 
-    }
-    finally {
+    } finally {
       stopAndRelease(c);
     }
   }
@@ -81,8 +82,7 @@ public class BranchingHttpRequestServiceTest extends ExampleServiceCase {
       c.requestStart();
       execute(service, msg);
       waitForMessages(mock, 1);
-    }
-    finally {
+    } finally {
       stopAndRelease(c);
     }
     assertEquals(1, mock.messageCount());
@@ -133,7 +133,6 @@ public class BranchingHttpRequestServiceTest extends ExampleServiceCase {
     assertEquals("should-not-be-overriden", msg.getNextServiceId());
   }
 
-
   @Test
   public void testService_ExactMatch() throws Exception {
     MockMessageProducer mock = new MockMessageProducer();
@@ -149,8 +148,7 @@ public class BranchingHttpRequestServiceTest extends ExampleServiceCase {
       c.requestStart();
       execute(service, msg);
       waitForMessages(mock, 1);
-    }
-    finally {
+    } finally {
       stopAndRelease(c);
     }
     assertEquals(1, mock.messageCount());
@@ -173,8 +171,7 @@ public class BranchingHttpRequestServiceTest extends ExampleServiceCase {
       c.requestStart();
       execute(service, msg);
       waitForMessages(mock, 1);
-    }
-    finally {
+    } finally {
       stopAndRelease(c);
     }
     assertEquals(1, mock.messageCount());
