@@ -363,7 +363,6 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     MockMessageProducer mock = new MockMessageProducer();
     ApacheHttpProducer http = new ApacheHttpProducer();
     http.setMethodProvider(new ConfiguredRequestMethodProvider(RequestMethod.GET));
-    StandaloneRequestor producer = new StandaloneRequestor(http);
     doRequest(mock, http, new DefaultMessageFactory().newMessage(TEXT));
     doAssertions(mock, false);
     AdaptrisMessage m2 = mock.getMessages().get(0);

@@ -15,15 +15,17 @@
 */
 package com.adaptris.core.http.apache5;
 
-import com.adaptris.core.util.Args;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+
+import com.adaptris.core.util.Args;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
  * {@link HttpClientBuilderConfigurator} implementation that wraps a list of implementations.
@@ -50,7 +52,7 @@ public class CompositeClientBuilder implements HttpClientBuilderConfigurator {
   }
 
   public void setBuilders(List<HttpClientBuilderConfigurator> list) {
-    this.builders = Args.notNull(list, "builders");
+    builders = Args.notNull(list, "builders");
   }
 
   public <T extends CompositeClientBuilder> T withBuilders(HttpClientBuilderConfigurator... builders) {
