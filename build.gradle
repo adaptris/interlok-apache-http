@@ -160,7 +160,7 @@ subprojects {
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
 
-  	testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.9.3")
+  	testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.10.0")
     testImplementation "org.slf4j:slf4j-simple:$slf4jVersion"
     // exclude any log4j dependencies so that we can just use slf4j simple.
     // works around INTERLOK-3233
