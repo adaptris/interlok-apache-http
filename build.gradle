@@ -1,8 +1,9 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
-  id 'com.github.spotbugs' version '5.2.1' apply false
-  id 'org.owasp.dependencycheck' version '8.4.2' apply false
+  id "com.github.spotbugs" version "5.2.1" apply false
+  id "org.sonarqube" version "4.4.1.3373"
+  id "org.owasp.dependencycheck" version "8.4.2" apply false
   id "io.freefair.lombok" version "8.4" apply false
   id "org.gradle.test-retry" version "1.5.6" apply false
 }
@@ -79,6 +80,14 @@ ext.buildUtil = [
   }
 ]
 
+sonar {
+  properties {
+    property "sonar.projectKey", "adaptris_interlok-apache-http"
+    property "sonar.organization", "adaptris-org"
+    property "sonar.host.url", "https://sonarcloud.io"
+  }
+}
+
 // Disable gradle module generation since we probably don't want
 // xxx.module files in your repository.
 allprojects {
@@ -97,14 +106,14 @@ allprojects {
 
 subprojects {
   // Apply the java plugin to add support for Java
-  apply plugin: 'java-library'
-  apply plugin: 'maven-publish'
+  apply plugin: "java-library"
+  apply plugin: "maven-publish"
   apply plugin: "jacoco"
+  apply plugin: "com.github.spotbugs"
+  apply plugin: "org.sonarqube"
+  apply plugin: "org.owasp.dependencycheck"
   apply plugin: "io.freefair.lombok"
-  apply plugin: 'com.github.spotbugs'
-  apply plugin: 'org.owasp.dependencycheck'
-  apply plugin: 'project-report'
-  apply plugin: 'org.gradle.test-retry'
+  apply plugin: "org.gradle.test-retry"
 
   sourceCompatibility = JavaVersion.VERSION_17
   targetCompatibility = JavaVersion.VERSION_17
