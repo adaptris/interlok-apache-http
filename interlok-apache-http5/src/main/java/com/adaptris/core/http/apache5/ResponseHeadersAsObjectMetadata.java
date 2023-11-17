@@ -1,18 +1,21 @@
 package com.adaptris.core.http.apache5;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.http.client.ResponseHeaderHandler;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.http.client.ResponseHeaderHandler;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 /**
- * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the
- * response as object metadata to the {@link AdaptrisMessage}.
+ * Concrete implementation of {@link ResponseHeaderHandler} which adds all the HTTP headers from the response as object metadata to the
+ * {@link AdaptrisMessage}.
  *
- * <p>The underlying {@link Header} object that will be added to object metadata and keyed by {@link Header#getName}. and will
- * include header fields where the name is {@code null};
+ * <p>
+ * The underlying {@link Header} object that will be added to object metadata and keyed by {@link Header#getName}. and will include header
+ * fields where the name is {@code null};
  * </p>
+ *
  * @config apache-http-response-headers-as-object-metadata
  * @author lchan
  *
@@ -37,9 +40,10 @@ public class ResponseHeadersAsObjectMetadata extends ResponseHeadersAsMetadata {
       for (Header h : headers) {
         String metadataKey = generateKey(h.getName());
         log.trace("Adding {}: {}", metadataKey, h);
-        msg.getObjectMetadata().put(metadataKey, h);
+        msg.getObjectHeaders().put(metadataKey, h);
       }
     }
     return msg;
   }
+
 }

@@ -15,6 +15,22 @@
 */
 package com.adaptris.core.http.apache5.request;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.protocol.HttpContext;
+
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -24,19 +40,6 @@ import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.security.password.Password;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.HmacUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.protocol.HttpContext;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
 
 /**
  * Base class for building a HMAC when doing HTTP requests.
@@ -71,8 +74,9 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
         return Base64.getEncoder().encodeToString(b);
       }
     };
+
     public abstract String encode(byte[] b);
-  };
+  }
 
   /**
    * The algorithm to use when creating the message authentication code.
@@ -82,36 +86,40 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
     HMAC_MD5() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacMd5(key, valueToDigest);
+        return hmac(HmacAlgorithms.HMAC_MD5, key, valueToDigest);
       }
     },
     HMAC_SHA1() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha1(key, valueToDigest);
+        return hmac(HmacAlgorithms.HMAC_SHA_1, key, valueToDigest);
       }
     },
     HMAC_SHA256() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha256(key, valueToDigest);
+        return hmac(HmacAlgorithms.HMAC_SHA_256, key, valueToDigest);
       }
     },
     HMAC_SHA384() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha384(key, valueToDigest);
+        return hmac(HmacAlgorithms.HMAC_SHA_384, key, valueToDigest);
       }
     },
     HMAC_SHA512() {
       @Override
       public byte[] digest(String key, String valueToDigest) {
-        return HmacUtils.hmacSha256(key, valueToDigest);
+        return hmac(HmacAlgorithms.HMAC_SHA_512, key, valueToDigest);
       }
     };
 
+    private static byte[] hmac(HmacAlgorithms algorithm, String key, String valueToDigest) {
+      return new HmacUtils(algorithm, key).hmac(valueToDigest);
+    }
+
     public abstract byte[] digest(String key, String valueToDigest);
-  };
+  }
 
   @XStreamImplicit(itemFieldName = "header")
   @NotNull
@@ -135,7 +143,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   protected HMACSignatureImpl() {
     setHmacAlgorithm(Algorithm.HMAC_SHA256);
     setEncoding(Encoding.BASE64);
-    setHeaders(new ArrayList());
+    setHeaders(new ArrayList<>());
   }
 
   public List<String> getHeaders() {
@@ -152,7 +160,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
   }
 
   public <T extends HMACSignatureImpl> T withHeaders(String... list) {
-    return withHeaders(new ArrayList<String>(Arrays.asList(list)));
+    return withHeaders(new ArrayList<>(Arrays.asList(list)));
   }
 
   public String getTargetHeader() {
@@ -231,8 +239,7 @@ public abstract class HMACSignatureImpl implements RequestInterceptorBuilder {
 
   @Override
   public HttpRequestInterceptor build() {
-    return (request, entity, context) ->
-        request.addHeader(targetHeader(), buildHeader(request, context));
+    return (request, entity, context) -> request.addHeader(targetHeader(), buildHeader(request, context));
   }
 
 }

@@ -15,31 +15,22 @@
 */
 package com.adaptris.core.http.apache.request;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.protocol.HttpDateGenerator;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.apache.request.HMACSignatureImpl.Algorithm;
 import com.adaptris.core.http.apache.request.HMACSignatureImpl.Encoding;
 import com.adaptris.security.exc.PasswordException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.protocol.HttpDateGenerator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 public class BasicHmacSignatureTest {
-
-
-  @Before
-  public void setUp() throws Exception {
-  }
-
-  @After
-  public void tearDown() throws Exception {
-  }
 
   @Test
   public void testEnum_Encoding() {
@@ -88,14 +79,15 @@ public class BasicHmacSignatureTest {
     assertEquals("hmac", hmac.targetHeader());
   }
 
-  @Test(expected = PasswordException.class)
+  @Test
   public void testSecretKey() {
     BasicHMACSignature hmac = new BasicHMACSignature();
     assertNull(hmac.getSecretKey());
     hmac.withSecretKey("XXX");
     assertEquals("XXX", hmac.secretKey());
     hmac.withSecretKey("PW:WillNotDecode");
-    hmac.secretKey();
+
+    assertThrows(PasswordException.class, () -> hmac.secretKey());
   }
 
   @Test
@@ -109,8 +101,7 @@ public class BasicHmacSignatureTest {
   @Test
   public void testBuild() {
     BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyAccessKey").withEncoding(Encoding.BASE64)
-        .withHmacAlgorithm(Algorithm.HMAC_SHA512).withSecretKey("MySecretKey").withHeaders("Date", "Content-Type")
-        .withTargetHeader("hmac");
+        .withHmacAlgorithm(Algorithm.HMAC_SHA512).withSecretKey("MySecretKey").withHeaders("Date", "Content-Type").withTargetHeader("hmac");
     assertNotNull(hmac.build());
   }
 
@@ -132,8 +123,7 @@ public class BasicHmacSignatureTest {
   @Test
   public void testBuildHeader() {
     BasicHMACSignature hmac = new BasicHMACSignature().withIdentity("MyAccessKey").withEncoding(Encoding.BASE64)
-        .withHmacAlgorithm(Algorithm.HMAC_SHA512).withSecretKey("MySecretKey").withHeaders("Date", "Content-Type")
-        .withTargetHeader("hmac");
+        .withHmacAlgorithm(Algorithm.HMAC_SHA512).withSecretKey("MySecretKey").withHeaders("Date", "Content-Type").withTargetHeader("hmac");
     HttpGet get = new HttpGet("http://localhost:8080/index.html");
     String header = hmac.buildHeader(get, null);
     assertTrue(header.startsWith("MyAccessKey:"));

@@ -1,10 +1,10 @@
 package interlok.http.apache.async;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.adaptris.core.http.apache.request.DateHeader;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestCompositeAsyncClientBuilder {
 

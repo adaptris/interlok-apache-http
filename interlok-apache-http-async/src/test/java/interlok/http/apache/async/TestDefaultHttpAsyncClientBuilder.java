@@ -1,12 +1,12 @@
 package interlok.http.apache.async;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.adaptris.util.TimeInterval;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestDefaultHttpAsyncClientBuilder {
 

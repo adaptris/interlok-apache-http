@@ -15,14 +15,16 @@
  */
 package interlok.http.apache.async;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import com.adaptris.security.keystore.ConfiguredUrl;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.junit.Test;
 
 public class TestAsyncWithCustomKeystores extends BaseCase {
 
@@ -43,8 +45,8 @@ public class TestAsyncWithCustomKeystores extends BaseCase {
     String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
     String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
 
-    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withTrustSelfSigned(true).withTrustStore(
-        new ConfiguredUrl(truststoreURL, truststorePassword));
+    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withTrustSelfSigned(true)
+        .withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword));
     assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
   }
 
@@ -53,8 +55,8 @@ public class TestAsyncWithCustomKeystores extends BaseCase {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
     String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
 
-    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withPrivateKeyPassword(
-            new ConfiguredPrivateKeyPasswordProvider(keystorePassword))
+    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores()
+        .withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword))
         .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
     assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
   }
@@ -67,25 +69,27 @@ public class TestAsyncWithCustomKeystores extends BaseCase {
     String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
     String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
 
-    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withPrivateKeyPassword(
-            new ConfiguredPrivateKeyPasswordProvider(keystorePassword))
+    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores()
+        .withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword))
         .withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword))
         .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
     assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
   }
 
-  // Generated from Optional.getPrivateKeyPassword
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testBuilder_WithKeystores_NoPassword() throws Exception {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
     String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
 
     String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
     String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
-    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores()
-        .withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword))
-        .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
-    assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
+
+    // Generated from Optional.getPrivateKeyPassword
+    assertThrows(NullPointerException.class, () -> {
+      AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword))
+          .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
+      http.configure(HttpAsyncClientBuilder.create());
+    });
   }
 
 }
