@@ -5,7 +5,7 @@ ext {
 }
 
 dependencies {
-  implementation ("commons-codec:commons-codec:1.17.1")
+  implementation ("commons-codec:commons-codec:1.18.0")
   api ("org.apache.httpcomponents.client5:httpclient5:5.4.1")
 }
 
