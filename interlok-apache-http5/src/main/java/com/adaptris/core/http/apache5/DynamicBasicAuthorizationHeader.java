@@ -15,7 +15,7 @@ import com.adaptris.util.text.Base64ByteTranslator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.io.UnsupportedEncodingException;
 import java.net.PasswordAuthentication;
 import java.net.URLConnection;

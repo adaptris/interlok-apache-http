@@ -7,7 +7,7 @@ import com.adaptris.core.http.client.RequestHeaderProvider;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

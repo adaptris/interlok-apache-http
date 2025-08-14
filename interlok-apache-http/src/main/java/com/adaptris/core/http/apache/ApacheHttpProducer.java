@@ -18,7 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

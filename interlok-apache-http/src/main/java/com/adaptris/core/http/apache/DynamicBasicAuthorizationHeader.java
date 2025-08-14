@@ -16,7 +16,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.net.PasswordAuthentication;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -38,9 +38,9 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.Args;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.net.Authenticator;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;

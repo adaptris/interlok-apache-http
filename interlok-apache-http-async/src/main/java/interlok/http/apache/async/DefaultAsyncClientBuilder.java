@@ -7,7 +7,7 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.util.TimeInterval;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.util.Optional;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

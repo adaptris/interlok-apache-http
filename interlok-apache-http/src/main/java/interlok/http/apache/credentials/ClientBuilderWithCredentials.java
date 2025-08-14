@@ -6,7 +6,7 @@ import com.adaptris.core.http.apache.HttpClientBuilderConfigurator;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import interlok.http.apache.credentials.CredentialsProviderBuilder;
 import java.util.Optional;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

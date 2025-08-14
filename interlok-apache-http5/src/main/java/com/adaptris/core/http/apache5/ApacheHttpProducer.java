@@ -25,7 +25,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.util.Timeout;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.net.MalformedURLException;
 import java.net.URI;
 

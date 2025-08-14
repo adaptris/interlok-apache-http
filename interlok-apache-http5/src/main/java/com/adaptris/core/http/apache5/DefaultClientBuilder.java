@@ -17,7 +17,7 @@ package com.adaptris.core.http.apache5;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.hc.client5.http.config.RequestConfig;

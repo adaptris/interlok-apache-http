@@ -9,7 +9,7 @@ import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * Build an {@link HttpConstants#AUTHORIZATION} header from static data.
