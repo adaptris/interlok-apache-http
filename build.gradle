@@ -1,11 +1,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
-  id "com.github.spotbugs" version "6.5.4" apply false
+  id "com.github.spotbugs" version "6.5.10" apply false
   id "org.sonarqube" version "6.3.1.5724"
   id "org.owasp.dependencycheck" version "12.2.2" apply false
   id "io.freefair.lombok" version "8.14.2" apply false
-  id "org.gradle.test-retry" version "1.6.4" apply false
+  id "org.gradle.test-retry" version "1.6.5" apply false
 }
 
 ext {
@@ -23,7 +23,7 @@ ext {
 
   organizationName = "Adaptris Ltd"
   organizationUrl = "http://interlok.adaptris.net"
-  slf4jVersion = '2.0.17'
+  slf4jVersion = '2.0.18'
   mockitoVersion = '5.2.0'
 }
 
@@ -318,7 +318,7 @@ subprojects {
   }
   
   dependencyCheck  {
-    suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
+    suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml", "$rootDir/gradle/owasp-exclude.xml" ]
     scanConfigurations = [ "api", "compileClasspath", "runtimeClasspath" ]
     formats = [ "HTML", "JUNIT" ]
     junitFailOnCVSS = 7.0
