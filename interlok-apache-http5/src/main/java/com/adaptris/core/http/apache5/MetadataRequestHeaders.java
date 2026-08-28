@@ -9,8 +9,8 @@ import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Implementation of {@link RequestHeaderProvider} that applies {@link AdaptrisMessage} metadata as headers using a

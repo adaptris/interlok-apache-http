@@ -6,7 +6,7 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.http.HttpConstants;
 import com.adaptris.core.http.auth.ResourceTargetMatcher;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

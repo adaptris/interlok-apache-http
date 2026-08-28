@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;

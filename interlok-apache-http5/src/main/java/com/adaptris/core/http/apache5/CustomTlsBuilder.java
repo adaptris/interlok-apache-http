@@ -35,7 +35,7 @@ import org.apache.hc.core5.ssl.TrustStrategy;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
