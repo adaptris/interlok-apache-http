@@ -11,6 +11,7 @@ import static com.adaptris.core.http.apache5.JettyHelper.createConsumer;
 import static com.adaptris.core.http.apache5.JettyHelper.createURL;
 import static com.adaptris.core.http.apache5.JettyHelper.createWorkflow;
 import static com.adaptris.core.http.apache5.JettyHelper.stopAndRelease;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -235,9 +236,10 @@ public class ApacheHttpProducerTest extends ExampleProducerCase {
     doProduce(mock, http, msg);
     doAssertions(mock, true);
     AdaptrisMessage m2 = mock.getMessages().get(0);
-    // User-Agent should have been removed.
     assertTrue(m2.headersContainsKey("Accept-Encoding"));
-    assertEquals("gzip, x-gzip, deflate", m2.getMetadataValue("Accept-Encoding"));
+    assertArrayEquals(new String[] {"deflate", "gzip", "x-gzip"},
+        Arrays.stream(m2.getMetadataValue("Accept-Encoding").split(","))
+            .map(String::trim).sorted().toArray(String[]::new));
   }
 
   @Test

@@ -22,74 +22,65 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
+
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import com.adaptris.security.keystore.ConfiguredUrl;
 
-public class TestAsyncWithCustomKeystores extends BaseCase {
+class TestAsyncWithCustomKeystores extends BaseCase {
 
   protected static final String KEY_PASSWORD = "keystore.password";
-  protected static final String KEY_KEYSTORE_URL = "keystore.url";
-  protected static final String KEY_TRUSTSTORE_URL = "trust.url";
-  protected static final String KEY_TRUSTSTORE_PASSWORD = "trust.password";
+  private static final String KEYSTORE_URL = Objects
+      .requireNonNull(TestAsyncWithCustomKeystores.class.getResource("/interlok.jks"), "Missing test keystore")
+      .toExternalForm() + "?keystoreType=JKS";
 
   @Test
-  public void testBuilder() throws Exception {
+  void testBuilder() throws Exception {
     HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClientBuilder.create();
     AsyncWithCustomKeystores builder = new AsyncWithCustomKeystores();
     assertEquals(httpClientBuilder, builder.configure(httpClientBuilder));
   }
 
   @Test
-  public void testBuilder_WithTrustStore() throws Exception {
-    String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
-    String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
+  void testBuilder_WithTrustStore() throws Exception {
+    String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
 
     AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withTrustSelfSigned(true)
-        .withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword));
+        .withTrustStore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
     assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
   }
 
   @Test
-  public void testBuilder_WithKeystore() throws Exception {
+  void testBuilder_WithKeystore() throws Exception {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
 
     AsyncWithCustomKeystores http = new AsyncWithCustomKeystores()
         .withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword))
-        .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
+        .withKeystore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
     assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
   }
 
   @Test
-  public void testBuilder_WithKeystores() throws Exception {
+  void testBuilder_WithKeystores() throws Exception {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
-
-    String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
-    String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
 
     AsyncWithCustomKeystores http = new AsyncWithCustomKeystores()
         .withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword))
-        .withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword))
-        .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
+        .withTrustStore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword))
+        .withKeystore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
     assertNotNull(http.configure(HttpAsyncClientBuilder.create()));
   }
 
   @Test
-  public void testBuilder_WithKeystores_NoPassword() throws Exception {
+  void testBuilder_WithKeystores_NoPassword() {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
-
-    String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
-    String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
+    AsyncWithCustomKeystores http = new AsyncWithCustomKeystores()
+        .withTrustStore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword))
+        .withKeystore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
 
     // Generated from Optional.getPrivateKeyPassword
-    assertThrows(NullPointerException.class, () -> {
-      AsyncWithCustomKeystores http = new AsyncWithCustomKeystores().withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword))
-          .withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
-      http.configure(HttpAsyncClientBuilder.create());
-    });
+    assertThrows(NullPointerException.class, () -> http.configure(HttpAsyncClientBuilder.create()));
   }
 
 }
