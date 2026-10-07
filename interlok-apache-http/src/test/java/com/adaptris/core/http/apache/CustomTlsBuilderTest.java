@@ -19,28 +19,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.Test;
 
-import com.adaptris.core.http.apache.CustomTlsBuilder.HostnameVerification;
+import java.util.Objects;
+
 import com.adaptris.core.security.ConfiguredPrivateKeyPasswordProvider;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.keystore.ConfiguredUrl;
 
-public class CustomTlsBuilderTest extends BaseCase {
+class CustomTlsBuilderTest extends BaseCase {
 
-  protected static final String KEY_KEYSTORE = "jetty.keystore.material";
   protected static final String KEY_PASSWORD = "jetty.keystore.password";
-  protected static final String KEY_KEYSTORE_TYPE = "jetty.keystore.type";
-  protected static final String KEY_KEYSTORE_URL = "jetty.keystore.url";
-  protected static final String KEY_TRUSTSTORE_URL = "jetty.trust.url";
-  protected static final String KEY_TRUSTSTORE_PASSWORD = "jetty.trust.password";
+  private static final String KEYSTORE_URL = Objects
+      .requireNonNull(CustomTlsBuilderTest.class.getResource("/interlok.jks"), "Missing test keystore")
+      .toExternalForm() + "?keystoreType=JKS";
 
   @Test
-  public void testSetTrustSelfSigned() throws Exception {
+  void testSetTrustSelfSigned() {
     CustomTlsBuilder p = new CustomTlsBuilder();
     assertFalse(p.trustSelfSigned());
     p.setTrustSelfSigned(Boolean.TRUE);
@@ -50,54 +50,41 @@ public class CustomTlsBuilderTest extends BaseCase {
   }
 
   @Test
-  public void testSetHostnameVerification() throws Exception {
+  void testSetHostnameVerification() {
     CustomTlsBuilder p = new CustomTlsBuilder();
-    assertEquals(HostnameVerification.STANDARD, p.hostnameVerification());
+    assertEquals(CustomTlsBuilder.HostnameVerification.STANDARD, p.hostnameVerification());
 
-    p.setHostnameVerification(HostnameVerification.NONE);
-    assertEquals(HostnameVerification.NONE, p.hostnameVerification());
+    p.setHostnameVerification(CustomTlsBuilder.HostnameVerification.NONE);
+    assertEquals(CustomTlsBuilder.HostnameVerification.NONE, p.hostnameVerification());
     p.setHostnameVerification(null);
-    assertEquals(HostnameVerification.STANDARD, p.hostnameVerification());
+    assertEquals(CustomTlsBuilder.HostnameVerification.STANDARD, p.hostnameVerification());
   }
 
   @Test
-  public void testBuilder_WithKeystores() throws Exception {
+  void testBuilder_WithKeystores() throws Exception {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
-
-    String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
-    String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
     CustomTlsBuilder http = new CustomTlsBuilder();
-    http.setHostnameVerification(HostnameVerification.NONE);
+    http.setHostnameVerification(CustomTlsBuilder.HostnameVerification.NONE);
     http.withPrivateKeyPassword(new ConfiguredPrivateKeyPasswordProvider(keystorePassword));
     http.setTrustSelfSigned(true);
-    http.setTruststore(new ConfiguredUrl(truststoreURL, truststorePassword));
-    http.setKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
+    http.setTruststore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
+    http.setKeystore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
     assertNotNull(http.configure(HttpClients.custom(), 10));
   }
 
   @Test
-  public void testBuilder_WithKeystores_NoPassword() throws Exception {
+  void testBuilder_WithKeystores_NoPassword() {
     String keystorePassword = PROPERTIES.getProperty(KEY_PASSWORD);
-    String keystoreURL = PROPERTIES.getProperty(KEY_KEYSTORE_URL);
-
-    String truststoreURL = PROPERTIES.getProperty(KEY_TRUSTSTORE_URL);
-    String truststorePassword = PROPERTIES.getProperty(KEY_TRUSTSTORE_PASSWORD);
     CustomTlsBuilder http = new CustomTlsBuilder();
-    http.setHostnameVerification(HostnameVerification.NONE);
+    http.setHostnameVerification(CustomTlsBuilder.HostnameVerification.NONE);
     http.setTrustSelfSigned(true);
-    http.withTrustStore(new ConfiguredUrl(truststoreURL, truststorePassword));
-    http.withKeystore(new ConfiguredUrl(keystoreURL, keystorePassword));
-    try {
-      http.configure(HttpClients.custom(), 10);
-      fail();
-    } catch (Exception expected) {
-
-    }
+    http.withTrustStore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
+    http.withKeystore(new ConfiguredUrl(KEYSTORE_URL, keystorePassword));
+    assertThrows(AdaptrisSecurityException.class, () -> http.configure(HttpClients.custom(), 10));
   }
 
   @Test
-  public void testTrustSelfSigned() throws Exception {
+  void testTrustSelfSigned() {
     CustomTlsBuilder http = new CustomTlsBuilder();
     http.withTrustSelfSigned(false);
     assertNull(http.trustStrategy());
@@ -106,13 +93,13 @@ public class CustomTlsBuilderTest extends BaseCase {
   }
 
   @Test
-  public void testBuilder_WithTls() throws Exception {
+  void testBuilder_WithTls() throws Exception {
     CustomTlsBuilder http = new CustomTlsBuilder().withTlsVersions("SSLv3,TLSv1.1");
     assertNotNull(http.configure(HttpClients.custom()));
   }
 
   @Test
-  public void testBuilder_WithCipherSuites() throws Exception {
+  void testBuilder_WithCipherSuites() throws Exception {
     CustomTlsBuilder http = new CustomTlsBuilder()
         .withCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA3841,TLS_RSA_WITH_AES_256_CBC_SHA256");
     assertNotNull(http.configure(HttpClients.custom()));
