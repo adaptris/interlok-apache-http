@@ -117,8 +117,8 @@ subprojects {
   apply plugin: "io.freefair.lombok"
   apply plugin: "org.gradle.test-retry"
 
-  sourceCompatibility = JavaVersion.VERSION_17
-  targetCompatibility = JavaVersion.VERSION_17
+  sourceCompatibility = JavaVersion.VERSION_21
+  targetCompatibility = JavaVersion.VERSION_21
 
   group   = 'com.adaptris'
   version = releaseVersion
@@ -221,6 +221,7 @@ subprojects {
   }
 
   task umlJavadoc(type: Javadoc) {
+    dependsOn "offlinePackageList"
     group 'Documentation'
     description 'Build javadocs using plantuml + graphviz + umldoclet, if dot is available'
 
@@ -233,8 +234,14 @@ subprojects {
     source = sourceSets.main.extensions.delombokTask
     classpath = project.sourceSets.main.compileClasspath
     configure(options) {
-      options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
-      options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
+      def coreJavadocDir = new File(offlineJavadocPackageDir, "interlok-core-${interlokCoreVersion}-javadoc.jar")
+      def commonJavadocDir = new File(offlineJavadocPackageDir, "interlok-common-${interlokCoreVersion}-javadoc.jar")
+      if (new File(coreJavadocDir, 'element-list').exists()) {
+          options.linksOffline(interlokJavadocs, coreJavadocDir.getCanonicalPath())
+      }
+      if (new File(commonJavadocDir, 'element-list').exists()) {
+          options.linksOffline(interlokCommonJavadocs, commonJavadocDir.getCanonicalPath())
+      }
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption "Xdoclint:none", "-quiet"
